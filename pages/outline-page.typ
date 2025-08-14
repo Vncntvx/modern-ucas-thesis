@@ -11,7 +11,8 @@
   depth: 4,
   title: [目#h(1em)录],
   outlined: false,
-  title-vspace: 0pt,
+  title-above: 24pt,
+  title-below: 18pt,
   title-text-args: auto,
   // 引用页数的字体，这里用于显示 Times New Roman
   reference-font: auto,
@@ -48,6 +49,7 @@
   // 默认显示的字体
   set text(font: reference-font, size: reference-size)
 
+  v(title-above)
   {
     set align(center)
     text(..title-text-args, title)
@@ -55,7 +57,7 @@
     invisible-heading(level: 1, outlined: outlined, title)
   }
 
-  v(title-vspace)
+  v(title-below)
 
   // 目录样式
   set outline(indent: level => indent

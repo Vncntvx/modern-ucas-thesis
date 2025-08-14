@@ -18,6 +18,8 @@
   keywords: (),
   outline-title: "Abstract",
   outlined: true,
+  title-above: 24pt,
+  title-below: 18pt,
   abstract-title-weight: "regular",
   stoke-width: 0.5pt,
   info-value-align: center,
@@ -89,7 +91,7 @@
     // 标记一个不可见的标题用于目录生成
     #invisible-heading(level: 1, outlined: outlined, outline-title)
 
-    #v(24pt)
+    #v(title-above)
 
     #align(center, text(
       size: 字号.四号,
@@ -97,7 +99,7 @@
       strong[Abstract],
     ))
 
-    #v(18pt)
+    #v(title-below)
 
     #[#set text(font: fonts.宋体, size: 字号.小四)
       #show smartquote: set text(font: "Times New Roman")

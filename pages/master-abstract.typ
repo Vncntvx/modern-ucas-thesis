@@ -19,6 +19,8 @@
   keywords: (),
   outline-title: [摘#h(1em)要],
   outlined: true,
+  title-above: 24pt,
+  title-below: 18pt,
   abstract-title-weight: "regular",
   stoke-width: 0.5pt,
   info-value-align: center,
@@ -93,7 +95,7 @@
     // 标记一个不可见的标题用于目录生成
     #invisible-heading(level: 1, outlined: outlined, outline-title)
 
-    #v(24pt)
+    #v(title-above)
 
     #align(center, text(
       font: fonts.黑体,
@@ -102,7 +104,7 @@
       strong[摘#h(1em)要],
     ))
 
-    #v(18pt)
+    #v(title-below)
 
     #[#set text(font: fonts.宋体, size: 字号.小四)
       #set par(first-line-indent: (amount: 2em, all: true))

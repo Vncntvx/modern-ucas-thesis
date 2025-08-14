@@ -13,7 +13,7 @@
   fig-title: "图目录",
   tbl-title: "表目录",
   outlined: false,
-  title-above: 20pt,
+  title-above: 24pt,
   title-below: 18pt,
   title-text-args: auto,
   // 字体与字号

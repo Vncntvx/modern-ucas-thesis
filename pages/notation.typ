@@ -10,7 +10,8 @@
   // 其他参数
   title: "符号列表",
   outlined: false,
-  title-vspace: 18pt,
+  title-above: 24pt,
+  title-below: 18pt,
   title-text-args: auto,
   // 字体与字号
   font: auto,
@@ -35,6 +36,7 @@
   // 默认显示的字体
   set text(font: font, size: size)
 
+  v(title-above)
   {
     set align(center)
     text(..title-text-args, title)
@@ -43,7 +45,7 @@
     invisible-heading(level: 1, outlined: outlined, title)
   }
 
-  v(title-vspace)
+  v(title-below)
 
   // 设置首行缩进为 0
   set par(first-line-indent: (amount: 0pt, all: true))
