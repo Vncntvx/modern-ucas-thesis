@@ -105,6 +105,7 @@
       preface(
         twoside: twoside,
         ..args,
+        fonts: fonts + args.named().at("fonts", default: (:)),
       )
     },
     mainmatter: (..args) => {
@@ -264,6 +265,7 @@
       notation(
         twoside: twoside,
         ..args,
+        fonts: fonts + args.named().at("fonts", default: (:)),
       )
     },
     // 参考文献页
