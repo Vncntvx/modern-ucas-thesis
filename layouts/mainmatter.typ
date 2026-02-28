@@ -168,7 +168,8 @@
             let current-position = here().position().page
 
             // 动态查询当前页所属的最近一级标题
-            let current-heading = all-headings.filter(h => h.location().page() <= current-position).last()
+            let filtered-headings = all-headings.filter(h => h.location().page() <= current-position)
+            let current-heading = if filtered-headings.len() > 0 { filtered-headings.last() } else { none }
 
             // 页眉渲染
             if current-heading != none {

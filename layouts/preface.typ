@@ -64,7 +64,8 @@
             // 奇数页：显示当前页的一级标题
             let all-headings = query(heading.where(level: 1))
             let current-position = here().position().page
-            let current-heading = all-headings.filter(h => h.location().page() <= current-position).last()
+            let filtered-headings = all-headings.filter(h => h.location().page() <= current-position)
+            let current-heading = if filtered-headings.len() > 0 { filtered-headings.last() } else { none }
             if current-heading != none {
               if current-heading.has("numbering") and current-heading.numbering != none {
                 import "../utils/custom-numbering.typ": custom-numbering
