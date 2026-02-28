@@ -11,7 +11,7 @@
 
   v(5em)
 
-  image("master-proposal-logo.png", width: 7cm)
+  image("master-proposal-logo.svg", width: 7cm)
 
   v(2em)
 
