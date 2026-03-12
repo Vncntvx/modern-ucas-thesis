@@ -2,13 +2,13 @@
 name = "modern-ucas-thesis"
 version = "0.1.0"
 entrypoint = "lib.typ"
-authors = ["Wenjie Xu <@WayneXuCN>"]
+authors = ["Wenjie Xu <@Vncntvx>"]
 # Note: MIT license applies to the template code only.
 # UCAS logos in assets/vi/ are copyrighted by UCAS and not covered by this license.
-# See LOGO_COPYRIGHT.md for details.
+# See docs/LOGO_COPYRIGHT.md for details.
 license = "MIT"
 description = "Master's or doctoral thesis at the University of Chinese Academy of Sciences."
-repository = "https://github.com/WayneXuCN/modern-ucas-thesis"
+repository = "https://github.com/Vncntvx/modern-ucas-thesis"
 keywords = [
     "University of Chinese Academy of Sciences",
     "UCAS",

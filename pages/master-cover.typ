@@ -88,10 +88,12 @@
     info.title + range(min-title-lines - info.title.len()).map(it => "　")
   )
   info.reviewer = (
-    info.reviewer + range(min-reviewer-lines - info.reviewer.len()).map(it => "　")
+    info.reviewer
+      + range(min-reviewer-lines - info.reviewer.len()).map(it => "　")
   )
   info.supervisors = (
-    info.supervisors + range(min-supervisor-lines - info.supervisors.len()).map(it => "　")
+    info.supervisors
+      + range(min-supervisor-lines - info.supervisors.len()).map(it => "　")
   )
   // 2.3 处理日期
   assert(
@@ -205,7 +207,6 @@
   let defence-info-key = info-key.with(info-inset: defence-info-inset)
   let defence-info-value = info-value.with(info-inset: defence-info-inset)
 
-
   // 4.  正式渲染
   pagebreak(weak: true)
 
@@ -262,7 +263,10 @@
       info-key("作者姓名："),
       info-value("author", info.author),
       info-key("指导教师："),
-      ..info.supervisors.map(s => info-value("supervisors", s)).intersperse(info-key("　")),
+      ..info
+        .supervisors
+        .map(s => info-value("supervisors", s))
+        .intersperse(info-key("　")),
       info-key("学位类别："),
       info-value("category", info.category),
       ..(
@@ -329,8 +333,8 @@
     size: 字号.小三,
     weight: "bold",
     underline(offset: .4em, stroke: .05em, evade: false)[#(
-        info.title-en.intersperse("\n").sum()
-      )],
+      info.title-en.intersperse("\n").sum()
+    )],
   )
 
   if info.supervisor-ii-en != "" {
@@ -386,7 +390,8 @@
     // TODO: 丑陋的实现，但效果还行，有时间再优化
     text(
       weight: "bold",
-      "Supervisors: " + supers.intersperse("\n                               ").sum(),
+      "Supervisors: "
+        + supers.intersperse("\n                               ").sum(),
     )
   }
 

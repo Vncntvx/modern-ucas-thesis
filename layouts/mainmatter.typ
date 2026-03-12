@@ -1,7 +1,9 @@
 #import "@preview/i-figured:0.2.4"
 #import "../utils/style.typ": get-fonts, 字号
 #import "../utils/custom-numbering.typ": custom-numbering
-#import "../utils/custom-heading.typ": active-heading, current-heading, heading-display
+#import "../utils/custom-heading.typ": (
+  active-heading, current-heading, heading-display,
+)
 #import "../utils/unpairs.typ": unpairs
 
 #let mainmatter(
@@ -11,19 +13,28 @@
   fonts: (:),
   fontset: "mac",
   // 其他参数
-  leading: 1.5 * 15.6pt - 0.7em,
-  spacing: 1.5 * 15.6pt - 0.7em,
+  // 行距设置为1.25倍（视觉），对齐《指导意见》要求
+  // 小四字体(12pt) * 1.25 = 15pt，leading = 15pt - 12pt = 3pt = 0.25em
+  // 参考 LaTeX 模板 \linespread{1.6} 的实际效果，调整为 0.6em 以获得合适的行距
+  leading: 0.6em,
+  spacing: 0.6em,
   justify: true,
   first-line-indent: (amount: 2em, all: true),
-  numbering: custom-numbering.with(first-level: "第一章 ", depth: 3, "1.1 "),
+  // 章节编号格式：第1章（阿拉伯数字）
+  numbering: custom-numbering.with(first-level: "第1章 ", depth: 3, "1.1 "),
   // 正文字体与字号参数
   text-args: auto,
   // 标题字体与字号
+  // 一级标题：四号(14pt)，二级及以下：小四(12pt)
   heading-font: auto,
-  heading-size: (字号.四号,),
+  heading-size: (字号.四号, 字号.小四, 字号.小四, 字号.小四),
   heading-weight: ("regular",),
-  heading-above: (2 * 15.6pt - 0.7em, 2 * 15.6pt - 0.7em),
-  heading-below: (2 * 15.6pt - 0.7em, 1.5 * 15.6pt - 0.7em),
+  // 标题间距，对齐 LaTeX 模板
+  // 一级标题 beforeskip=24pt, afterskip=18pt
+  // 二级标题 beforeskip=24pt, afterskip=6pt
+  // 三级标题 beforeskip=12pt, afterskip=6pt
+  heading-above: (24pt, 24pt, 12pt, 12pt),
+  heading-below: (18pt, 6pt, 6pt, 6pt),
   heading-pagebreak: (true, false),
   heading-align: (center, auto),
   // 页眉
@@ -31,7 +42,8 @@
   header-vspace: 0em,
   display-header: true,
   skip-on-first-level: true,
-  stroke-width: 0.5pt,
+  // 页眉分隔线：0.8pt，对齐 LaTeX 模板
+  stroke-width: 0.8pt,
   reset-footnote: true,
   // caption 的 separator
   separator: "  ",
@@ -107,7 +119,9 @@
   // 4.1 设置标题的 Numbering
   set heading(numbering: numbering)
   // 4.2 设置字体字号并加入假段落模拟首行缩进
+  // 标题使用单倍行距 (\linespread{1.0})，对齐 LaTeX 模板
   show heading: it => {
+    set par(leading: 1em)
     set text(
       font: array-at(heading-font, it.level),
       size: array-at(heading-size, it.level),
@@ -168,17 +182,26 @@
             let current-position = here().position().page
 
             // 动态查询当前页所属的最近一级标题
-            let filtered-headings = all-headings.filter(h => h.location().page() <= current-position)
-            let current-heading = if filtered-headings.len() > 0 { filtered-headings.last() } else { none }
+            let filtered-headings = all-headings.filter(h => (
+              h.location().page() <= current-position
+            ))
+            let current-heading = if filtered-headings.len() > 0 {
+              filtered-headings.last()
+            } else { none }
 
             // 页眉渲染
             if current-heading != none {
               // 构造章节标题显示内容
-              if current-heading.has("numbering") and current-heading.numbering != none {
-                let counter-values = counter(heading).at(current-heading.location())
+              if (
+                current-heading.has("numbering")
+                  and current-heading.numbering != none
+              ) {
+                let counter-values = counter(heading).at(
+                  current-heading.location(),
+                )
                 header-content = (
                   custom-numbering(
-                    first-level: "第一章 ",
+                    first-level: "第1章 ",
                     depth: 3,
                     "1.1 ",
                     ..counter-values,
@@ -206,6 +229,7 @@
           }
 
           // 渲染页眉
+          // 页眉字体：宋体，字号使用小五号(9pt)，对齐《指导意见》要求
           set text(font: fonts.宋体, size: 字号.小五)
 
           // 显示页眉内容

@@ -9,17 +9,20 @@
   fonts: (:),
   fontset: "mac",
   // 其他参数
-  leading: 1.5 * 15.6pt - 0.7em,
-  spacing: 1.5 * 15.6pt - 0.7em,
+  // 行距设置为1.25倍（视觉），符合《指导意见》要求
+  leading: 0.6em,
+  spacing: 0.6em,
   justify: true,
   first-line-indent: (amount: 2em, all: true),
-  numbering: custom-numbering.with(first-level: "第一章 ", depth: 3, "1.1 "),
+  // 章节编号格式：第1章（阿拉伯数字）
+  numbering: custom-numbering.with(first-level: "第1章 ", depth: 3, "1.1 "),
   // 页眉
   header-render: auto,
   header-vspace: 0em,
   display-header: true,
   skip-on-first-level: true,
-  stroke-width: 0.5pt,
+  // 页眉分隔线：0.8pt，对齐 LaTeX 模板
+  stroke-width: 0.8pt,
   reset-footnote: true,
   ..args,
   it,
@@ -39,7 +42,6 @@
   }
   counter(page).update(0)
   set page(numbering: "I")
-
 
   // 3. 处理页眉
   set page(..(
@@ -64,15 +66,24 @@
             // 奇数页：显示当前页的一级标题
             let all-headings = query(heading.where(level: 1))
             let current-position = here().position().page
-            let filtered-headings = all-headings.filter(h => h.location().page() <= current-position)
-            let current-heading = if filtered-headings.len() > 0 { filtered-headings.last() } else { none }
+            let filtered-headings = all-headings.filter(h => (
+              h.location().page() <= current-position
+            ))
+            let current-heading = if filtered-headings.len() > 0 {
+              filtered-headings.last()
+            } else { none }
             if current-heading != none {
-              if current-heading.has("numbering") and current-heading.numbering != none {
+              if (
+                current-heading.has("numbering")
+                  and current-heading.numbering != none
+              ) {
                 import "../utils/custom-numbering.typ": custom-numbering
-                let counter-values = counter(heading).at(current-heading.location())
+                let counter-values = counter(heading).at(
+                  current-heading.location(),
+                )
                 header-content = (
                   custom-numbering(
-                    first-level: "第一章 ",
+                    first-level: "第1章 ",
                     depth: 3,
                     "1.1 ",
                     ..counter-values,
@@ -100,6 +111,7 @@
           }
 
           // 渲染页眉
+          // 页眉字体：宋体，字号使用小五号(9pt)，对齐《指导意见》要求
           set text(font: fonts.宋体, size: 字号.小五)
 
           // 显示页眉内容

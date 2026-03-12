@@ -81,7 +81,7 @@
   pagebreak(weak: true, to: if twoside { "odd" })
 
   [
-    #set text(font: fonts.宋体, size: 字号.小四)
+    #set text(font: "Times New Roman", size: 字号.小四)
     #set par(leading: leading, justify: true)
     #set par(spacing: spacing)
 
@@ -98,7 +98,7 @@
 
     #v(title-below)
 
-    #[#set text(font: fonts.宋体, size: 字号.小四)
+    #[#set text(font: "Times New Roman", size: 字号.小四)
       #show smartquote: set text(font: "Times New Roman")
       #set par(first-line-indent: (amount: 2em, all: true))
 
@@ -107,9 +107,9 @@
 
     #v(15pt)
 
-    #[#set text(font: fonts.宋体, size: 字号.小四)
+    #[#set text(font: "Times New Roman", size: 字号.小四)
       #show smartquote: set text(font: "Times New Roman")
-      #strong[Key Words]: #(("",) + keywords.intersperse("; ")).sum()
+      #strong[Key Words]: #(keywords.intersperse("; ")).sum()
     ]
   ]
 }

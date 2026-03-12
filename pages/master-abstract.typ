@@ -112,8 +112,8 @@
     #v(15pt)
 
     #[
-      #set text(font: fonts.楷体, size: 字号.小四)
-      #fakebold[关键词]：#(("",) + keywords.intersperse("；")).sum()
+      #set text(font: fonts.宋体, size: 字号.小四)
+      #fakebold[关键词]：#(keywords.intersperse("；")).sum()
     ]
 
   ]

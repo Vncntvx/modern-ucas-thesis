@@ -67,7 +67,6 @@
     text(..title-text-args, tbl-title)
   }
 
-
   v(title-below)
 
   // 紧接着渲染表目录

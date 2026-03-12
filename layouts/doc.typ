@@ -10,7 +10,11 @@
   // 其他参数
   fallback: false, // 字体缺失时使用 fallback，不显示豆腐块
   lang: "zh",
+  // 页面边距设置，上、下2.54cm，左、右3.17cm，
   margin: (top: 2.54cm, bottom: 2.54cm, left: 3.17cm, right: 3.17cm),
+  // 页眉、页脚距页边界 1.5cm
+  header-ascent: 1.5cm, // 页眉高度 + 页眉与正文间距
+  footer-descent: 1.5cm, // 正文与页脚间距
   it,
 ) = {
   // 1.  默认参数
@@ -34,8 +38,8 @@
   set page(
     paper: "a4",
     margin: margin,
-    header-ascent: (2.54cm - 1.5cm),
-    footer-descent: (2.54cm - 1.5cm),
+    header-ascent: header-ascent,
+    footer-descent: footer-descent,
   )
 
   // 4.  PDF 元信息

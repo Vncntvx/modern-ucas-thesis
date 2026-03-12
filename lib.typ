@@ -1,6 +1,6 @@
 // 中国科学院大学学位论文模板 modern-ucas-thesis
-// Author: https://github.com/WayneHsuCN
-// Repo: https://github.com/WayneHsuCN/modern-ucas-thesis
+// Author: https://github.com/Vncntvx
+// Repo: https://github.com/Vncntvx/modern-ucas-thesis
 
 #import "layouts/doc.typ": doc
 #import "layouts/preface.typ": preface
@@ -22,7 +22,9 @@
 #import "pages/backmatter.typ": backmatter
 #import "utils/bilingual-bibliography.typ": bilingual-bibliography
 #import "utils/custom-numbering.typ": custom-numbering
-#import "utils/custom-heading.typ": active-heading, current-heading, heading-display
+#import "utils/custom-heading.typ": (
+  active-heading, current-heading, heading-display,
+)
 #import "@preview/i-figured:0.2.4": show-equation, show-figure
 #import "utils/style.typ": get-fonts, 字体组, 字号
 

@@ -107,9 +107,13 @@
     inset: (left: 0pt),
     table.header()[*Symbol*][*Description*][*Unit*],
     [$R$], [the gas constant], [$m^2 dot s^(-2) dot K^(-1)$],
-    [$C_v$], [specific heat capacity at constant volume], [$m^2 dot s^(-2) dot K^(-1)$],
+    [$C_v$],
+    [specific heat capacity at constant volume],
+    [$m^2 dot s^(-2) dot K^(-1)$],
 
-    [$C_p$], [specific heat capacity at constant pressure], [$m^2 dot s^(-2) dot K^(-1)$],
+    [$C_p$],
+    [specific heat capacity at constant pressure],
+    [$m^2 dot s^(-2) dot K^(-1)$],
 
     [$E$], [specific total energy], [$m^2 dot s^(-2)$],
     [$e$], [specific internal energy], [$m^2 dot s^(-2)$],
