@@ -21,6 +21,7 @@
 #import "pages/acknowledgement.typ": acknowledgement
 #import "pages/backmatter.typ": backmatter
 #import "utils/bilingual-bibliography.typ": bilingual-bibliography
+#import "utils/bilingual-figure.typ": bifigure, bitable
 #import "utils/custom-numbering.typ": custom-numbering
 #import "utils/custom-heading.typ": (
   active-heading, current-heading, heading-display,
@@ -293,5 +294,8 @@
         ..args,
       )
     },
+    // 双语图表函数
+    bifigure: bifigure,
+    bitable: bitable,
   )
 }

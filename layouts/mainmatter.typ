@@ -1,8 +1,11 @@
 #import "@preview/i-figured:0.2.4"
 #import "../utils/style.typ": get-fonts, 字号
 #import "../utils/custom-numbering.typ": custom-numbering
-#import "../utils/custom-heading.typ": active-heading, current-heading, heading-display
+#import "../utils/custom-heading.typ": (
+  active-heading, current-heading, heading-display,
+)
 #import "../utils/unpairs.typ": unpairs
+#import "../utils/bilingual-figure.typ": show-bifigure, show-bitable
 
 #let mainmatter(
   // documentclass 传入参数
@@ -110,6 +113,24 @@
   // 3.3 设置 figure 的编号
   show heading: i-figured.reset-counters
   show figure: show-figure
+
+  // 3.3.1 双语图表的 show 规则
+  // 必须在 i-figured 之后，匹配 i-figured 创建的新 kind
+  show figure: it => {
+    // 检查 kind 是否是 i-figured 创建的双语图表
+    let fig-kind = it.kind
+    if type(fig-kind) == str {
+      if fig-kind == "i-figured-\"bifigure\"" {
+        show-bifigure(fonts, kind: "bifigure")(it)
+      } else if fig-kind == "i-figured-\"bitable\"" {
+        show-bitable(fonts, kind: "bitable")(it)
+      } else {
+        it
+      }
+    } else {
+      it
+    }
+  }
 
   // 3.4 设置 equation 的编号和假段落首行缩进
   show math.equation.where(block: true): show-equation
@@ -220,7 +241,8 @@
             if current-heading != none {
               // 构造章节标题显示内容
               if (
-                current-heading.has("numbering") and current-heading.numbering != none
+                current-heading.has("numbering")
+                  and current-heading.numbering != none
               ) {
                 let counter-values = counter(heading).at(
                   current-heading.location(),

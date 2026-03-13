@@ -62,7 +62,9 @@
   v(title-below)
 
   // 目录样式
-  set outline(indent: level => indent.slice(0, calc.min(level + 1, indent.len())).sum())
+  set outline(indent: level => indent
+    .slice(0, calc.min(level + 1, indent.len()))
+    .sum())
   show outline.entry: entry => {
     // 获取当前级别字体大小
     let current-size = size.at(entry.level - 1, default: size.last())

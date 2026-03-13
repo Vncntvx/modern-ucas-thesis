@@ -1,4 +1,4 @@
-# 中国科学院大学学位论文模板
+# modern-ucas-thesis
 
 <p align="center">
   <a href="docs/README_EN.md">English</a> | <strong>中文</strong>
@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/github/license/Vncntvx/modern-ucas-thesis?style=flat-square" alt="License">
 </p>
 
-基于 [Typst](https://typst.app/) 的中国科学院大学学位论文模板，参考《中国科学院大学研究生学位论文撰写规范指导意见（2022年）》格式要求。
+基于 [Typst](https://typst.app/) 的中国科学院大学学位论文，参考《中国科学院大学研究生学位论文撰写规范指导意见（2022年）》格式要求。
 
 > ⚠️ **免责声明**：本项目非官方出品，使用前请自行核对学校最新格式要求。
 ---
@@ -112,8 +112,8 @@ modern-ucas-thesis/
     - [x] 中文摘要
     - [x] 英文摘要
     - [ ] 目录页
-    - [x] 插图目录
-    - [x] 表格目录
+    - [x] 图表目录
+    - [x] 双语图表标题
     - [x] 符号表
     - [ ] 页眉
     - [ ] 致谢
@@ -162,7 +162,7 @@ make format-check
 
 本项目代码采用 [MIT](LICENSE) 许可证开源。
 
-**关于 UCAS 标识**：`assets/vi/` 目录下的校徽、Logo 等视觉标识的版权归中国科学院大学所有。本模板将其纳入仅为方便用户撰写学位论文（属于个人学习/教学合理使用范畴），请勿用于其他商业或官方用途。如需商用授权，请联系学校相关部门。详见 [docs/LOGO_COPYRIGHT.md](docs/LOGO_COPYRIGHT.md)。
+**关于 UCAS 标识**：`assets/vi/` 目录下的校徽、Logo 等视觉标识的版权归中国科学院大学所有。本项目将其纳入仅为方便用户撰写学位论文（属于个人学习/教学合理使用范畴），请勿用于其他商业或官方用途。如需商用授权，请联系学校相关部门。详见 [docs/LOGO_COPYRIGHT.md](docs/LOGO_COPYRIGHT.md)。
 
 ---
 

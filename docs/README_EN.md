@@ -1,4 +1,4 @@
-# UCAS Thesis Template
+# modern-ucas-thesis
 
 <p align="center">
   <strong>English</strong> | <a href="../README.md">中文</a>
@@ -112,8 +112,8 @@ modern-ucas-thesis/
     - [x] Chinese abstract
     - [x] English abstract
     - [ ] Table of contents
-    - [x] List of figures
-    - [x] List of tables
+    - [x] List of figures and tables
+    - [x] Bilingual figure/table captions
     - [x] Notation list
     - [ ] Header
     - [ ] Acknowledgements

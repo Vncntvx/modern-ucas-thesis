@@ -85,10 +85,12 @@
     info.title + range(min-title-lines - info.title.len()).map(it => "　")
   )
   info.reviewer = (
-    info.reviewer + range(min-reviewer-lines - info.reviewer.len()).map(it => "　")
+    info.reviewer
+      + range(min-reviewer-lines - info.reviewer.len()).map(it => "　")
   )
   info.supervisors = (
-    info.supervisors + range(min-supervisor-lines - info.supervisors.len()).map(it => "　")
+    info.supervisors
+      + range(min-supervisor-lines - info.supervisors.len()).map(it => "　")
   )
   // 2.3 处理日期
   assert(
@@ -258,7 +260,10 @@
       info-key("作者姓名："),
       info-value("author", info.author),
       info-key("指导教师："),
-      ..info.supervisors.map(s => info-value("supervisors", s)).intersperse(info-key("　")),
+      ..info
+        .supervisors
+        .map(s => info-value("supervisors", s))
+        .intersperse(info-key("　")),
       info-key("学位类别："),
       info-value("category", info.category),
       ..(
@@ -381,7 +386,8 @@
     // 利用 intersperse 在各个supervisor之间加入换行和空格（缩进）
     text(
       weight: "bold",
-      "Supervisors: " + supers.intersperse("\n                               ").sum(),
+      "Supervisors: "
+        + supers.intersperse("\n                               ").sum(),
     )
   }
 

@@ -22,6 +22,8 @@
   notation,
   acknowledgement,
   backmatter,
+  bifigure,
+  bitable,
 ) = documentclass(
   doctype: "doctor", // "bachelor" | "master" | "doctor" | "postdoc", 文档类型，默认为博士生 doctor
   degree: "academic", // "academic" | "professional", 学位类型，默认为学术型 academic
@@ -175,7 +177,7 @@
 
 当前，Typst 官方已提供跨平台支持，兼容 Windows、Linux、macOS 以及网页版（Typst Web App）。用户可通过各软件的官方网站获取最新版本，建议避免使用非官方渠道下载。编辑器与 Typst CLI 安装完成后，即可实现本地编译，无需额外配置。对于初学者，推荐直接使用 Typst Web App 进行在线编辑与预览，无需本地环境配置，且支持多人协作。值得注意的是，Typst 不依赖于传统 LaTeX 编译引擎，而基于 WebAssembly 技术实现高效渲染，具备良好的跨平台兼容性，能够满足绝大多数用户的学术写作需求。
 
-#figure(
+#bitable(
   table(
     columns: 6,
     align: center,
@@ -186,7 +188,8 @@
     [Emacs], [Emacs], [native], [webview], [是], [良好],
     [typst-cli], [任意编辑器], [native], [PDF阅读器], [否], [无],
   ),
-  caption: [支持的Typst的编译环境和编辑器],
+  caption-zh: [支持的Typst的编译环境和编辑器],
+  caption-en: [Supported Typst Compilation Environments and Editors],
 )<tab:Typst_intro>
 
 = Typst使用说明<chap:guide>
@@ -209,46 +212,45 @@
 
 == 功能介绍
 
-=== 列表
-
-==== 无序列表
+=== 无序列表
 
 - 无序列表项一
 - 无序列表项二
   - 无序子列表项一
   - 无序子列表项二
 
-==== 有序列表
+=== 有序列表
 
 + 有序列表项一
 + 有序列表项二
   + 有序子列表项一
   + 有序子列表项二
 
-==== 术语列表
+=== 术语列表
 
 / 术语一: 术语解释
 / 术语二: 术语解释
 
 === 图表
 
-引用@tbl:timing，引用@tbl:timing-tlt，以及@fig:ucas-logo。引用图表时，表格和图片分别需要加上 `tbl:`和`fig:` 前缀才能正常显示编号。
+引用@timing，引用@timing-tlt，以及@ucas-logo。引用图表时，表格和图片分别需要加上 `tbl:`和`fig:` 前缀才能正常显示编号。
 
 #align(center, (
   stack(dir: ltr)[
-    #figure(
+    #bitable(
       table(
         align: center + horizon,
         columns: 4,
         [t], [1], [2], [3],
         [y], [0.3s], [0.4s], [0.8s],
       ),
-      caption: [常规表],
+      caption-zh: [常规表],
+      caption-en: [Regular Table],
     ) <timing>
   ][
     #h(50pt)
   ][
-    #figure(
+    #bitable(
       table(
         columns: 4,
         stroke: none,
@@ -264,15 +266,38 @@
         [0.8s],
         table.hline(),
       ),
-      caption: [三线表],
+      caption-zh: [三线表],
+      caption-en: [Three-line Table],
     ) <timing-tlt>
   ]
 ))
 
-#figure(
+#bitable(
+  table(
+    columns: 3,
+    align: center,
+    table.header([项目], [数值], [单位]),
+    [A], [10.5], [cm],
+    [B], [20.3], [kg],
+    [C], [15.2], [m/s],
+  ),
+  caption-zh: [带注释的实验数据表],
+  caption-en: [Experimental Data Table with Note],
+  note: [所有数值均为三次测量的平均值。],
+) <tab:with-note>
+
+#bifigure(
   image("images/ucas-emblem.svg", width: 20%),
-  caption: [图片测试],
+  caption-zh: [图片测试],
+  caption-en: [Image Test],
 ) <ucas-logo>
+
+#bifigure(
+  image("images/ucas-emblem.svg", width: 15%),
+  caption-zh: [带注释的校徽图],
+  caption-en: [UCAS Emblem with Note],
+  note: [这是中国科学院大学的校徽，采用SVG矢量格式绘制，可在任意分辨率下保持清晰。],
+) <fig:with-note>
 
 === 数学公式
 
@@ -298,7 +323,7 @@ $ F_n = floor(1 / sqrt(5) phi.alt^n) $
 
 === 代码块
 
-代码块支持语法高亮。引用时需要加上 `lst:` @lst:code
+代码块支持语法高亮。引用时需要加上标签 @code
 
 #figure(
   ```py
@@ -415,14 +440,14 @@ $ F_n = floor(1 / sqrt(5) phi.alt^n) $
 
 === 论文正文
 
-==== 章节和各章标题
+（1）章节和各章标题
 
 论文正文须由另页右页（奇数页）开始，用阿拉伯数字连续编码，一直到全文最后。正文内部新章节无须另页右页（奇数页）开始。
 论文可参考“绪论-研究背景与意义-研究方法与过程-研究结果与讨论-研究结论与展望”的结构形式撰写，各主体研究内容可分别单独成为章节并作为章节标题使用。
 
 各章标题中尽量不采用英文缩写词，对必须采用者，应使用本行业的通用缩写词。标题中尽量不使用标点符号。
 
-==== 序号
+（2）序号
 
 #strong[标题序号]
 
@@ -436,20 +461,21 @@ $ F_n = floor(1 / sqrt(5) phi.alt^n) $
 
 正文页码从绪论开始按阿拉伯数字（1，2，3……）连续编排，页码应位居左页左下角、右页右下角；正文前的部分（中英文摘要、目录等）用大写罗马数字（I，II，III…）单独编排，页码位于页面下方居中。
 
-==== 页眉
+（3）页眉
 
 页眉从摘要开始，奇数页上标明“摘要”、“Abstract”、“目录”、“图表目录”等，偶数页上标明论文题目（英文摘要标明英文题目）。正文（即第1章开始到最后一章）的页眉，奇数页上标明每一章名称，偶数页上标明论文题目。参考文献、附录、致谢等的页眉，奇数页标明“参考文献”、“附录”、“致谢”等，偶数页标明论文题目。页眉居中设置。
 
-==== 名词和术语
+（4）名词和术语
+
 科技名词术语及设备、元件的名称，应采用全国科学技术名词审定委员会公布的权威标准或其他相关权威信息源规定的术语或名称。标准中未规定的术语要采用行业通用术语或名称。全文名词术语必须统一。一些特殊名词或新名词应在适当位置加以说明或注解。双名法的生物学名部分均为拉丁文，并为斜体字。
 
 采用英语缩写词时，除本行业广泛应用的通用缩写词外，文中第一次出现的缩写词应该用括号注明英文原词。新的外来名词应用括号注明英语全称和缩写语。
 
-==== 量和单位
+（5）量和单位
 
 量和单位要严格执行《国际单位制及其应用》（GB 3100-93）、《有关量、单位和符号的一般原则》（GB3101—93）有关量和单位的规定。量的符号一般为单个拉丁字母或希腊字母，并一律采用斜体（pH例外）。
 
-==== 图和表
+（6）图和表
 
 论文中若有图和表，应设置图表目录，先列图后列表，置于目录页后，另页编排。
 
@@ -474,7 +500,7 @@ $ F_n = floor(1 / sqrt(5) phi.alt^n) $
 - 表格尽量用“三线表”，避免出现竖线，避免使用过大的表格，确有必要时可采用卧排表，正确方位应为“顶左底右”，即表顶朝左，表底朝右。表格太大需要转页时，需要在续表表头上方注明“续表”，表头也应重复排出。
 - 中文（宋体）英文（Times New Roman）表注为五号字，1.25倍行距。
 
-==== 表达式
+（7）表达式
 
 论文中的表达式需另行起，原则上应居中。若有两个以上的表达式，应从“1”开始的阿拉伯数字进行编号，并将编号置于括号内。编号采用右端对齐。表达式较多时可分章编号。
 
@@ -491,7 +517,7 @@ $ F_n = floor(1 / sqrt(5) phi.alt^n) $
 
 == 排版与印刷要求
 
-#figure(
+#bitable(
   table(
     align: center,
     columns: 2,
@@ -502,7 +528,8 @@ $ F_n = floor(1 / sqrt(5) phi.alt^n) $
     [页眉], [宋体小五号居中，英文和阿拉伯数字用Times New Roman体],
     [页码], [Times New Roman体小五号],
   ),
-  caption: [排版和印刷要求],
+  caption-zh: [排版和印刷要求],
+  caption-en: [Typesetting and Printing Requirements],
 )<tab:typo_and_print_require>
 
 === 印刷及装订要求
