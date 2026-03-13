@@ -1,5 +1,5 @@
-// #import "@preview/modern-ucas-thesis:0.1.0": documentclass
-#import "../lib.typ": documentclass
+#import "@preview/modern-ucas-thesis:0.2.0": documentclass
+// #import "../lib.typ": documentclass
 // 你首先应该安装 fonts下的所有字体，或在编译的时候指定字体路径：
 // typst watch template/thesis.typ --font-path ./fonts
 // 如果是 Web App 上编辑，你应该手动上传所有字体文件，否则部分字体不能正常使用，导致显示错误。

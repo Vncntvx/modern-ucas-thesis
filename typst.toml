@@ -1,6 +1,6 @@
 [package]
 name = "modern-ucas-thesis"
-version = "0.1.0"
+version = "0.2.0"
 entrypoint = "lib.typ"
 authors = ["Wenjie Xu <@Vncntvx>"]
 license = "MIT"
@@ -16,6 +16,7 @@ keywords = [
 ]
 categories = ["thesis"]
 exclude = ["imgs"]
+compiler = "0.14.0"
 
 [template]
 path = "template"
