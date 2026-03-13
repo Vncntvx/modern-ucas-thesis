@@ -19,8 +19,16 @@
 )
 
 #let 等宽字体 = (
+  // 优先使用 Typst 内置字体
+  "DejaVu Sans Mono",
+  // 常见系统字体
   "Courier New",
+  "Courier",
+  // macOS 系统字体
+  "SF Mono",
+  "Monaco",
   "Menlo",
+  // 其他等宽字体
   "IBM Plex Mono",
   "Source Han Sans HW SC",
   "Source Han Sans HW",
