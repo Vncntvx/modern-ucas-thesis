@@ -20,7 +20,9 @@
   // 字体与字号
   font: auto,
   size: (字号.四号, 字号.小四),
-  // 垂直间距
+  // 段前段后间距规范值
+  // 一级：段前6pt，段后0pt
+  // 二级/三级：段前6pt，段后0pt
   above: (6pt, 6pt),
   below: (0pt, 0pt),
   indent: (0pt, 18pt, 28pt),
@@ -60,35 +62,44 @@
   v(title-below)
 
   // 目录样式
-  set outline(indent: level => indent
-    .slice(0, calc.min(level + 1, indent.len()))
-    .sum())
-  show outline.entry: entry => block(
-    above: above.at(entry.level - 1, default: above.last()),
-    below: below.at(entry.level - 1, default: below.last()),
-    link(entry.element.location(), entry.indented(
-      none,
-      {
-        text(
-          font: font.at(entry.level - 1, default: font.last()),
-          size: size.at(entry.level - 1, default: size.last()),
-          {
-            if entry.prefix() not in (none, []) {
-              entry.prefix()
-              h(gap)
-            }
-            entry.body()
-          },
-        )
-        box(width: 1fr, inset: (x: .25em), fill.at(
-          entry.level - 1,
-          default: fill.last(),
-        ))
-        entry.page()
-      },
-      gap: 0pt,
-    )),
-  )
+  set outline(indent: level => indent.slice(0, calc.min(level + 1, indent.len())).sum())
+  show outline.entry: entry => {
+    // 获取当前级别字体大小
+    let current-size = size.at(entry.level - 1, default: size.last())
+    // 获取当前级别规范值
+    let current-above = above.at(entry.level - 1, default: above.last())
+    let current-below = below.at(entry.level - 1, default: below.last())
+    // 计算段前段后间距：规范值 + 单倍行距（字体大小）
+    // 段前不加行距，优化视觉效果 (不知道为什么，不去除会导致间距过大)
+    let actual-above = current-above
+    let actual-below = current-below + current-size
+    block(
+      above: actual-above,
+      below: actual-below,
+      link(entry.element.location(), entry.indented(
+        none,
+        {
+          text(
+            font: font.at(entry.level - 1, default: font.last()),
+            size: current-size,
+            {
+              if entry.prefix() not in (none, []) {
+                entry.prefix()
+                h(gap)
+              }
+              entry.body()
+            },
+          )
+          box(width: 1fr, inset: (x: .25em), fill.at(
+            entry.level - 1,
+            default: fill.last(),
+          ))
+          entry.page()
+        },
+        gap: 0pt,
+      )),
+    )
+  }
 
   // 显示目录
   outline(title: none, depth: depth)

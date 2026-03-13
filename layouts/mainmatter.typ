@@ -1,9 +1,7 @@
 #import "@preview/i-figured:0.2.4"
 #import "../utils/style.typ": get-fonts, 字号
 #import "../utils/custom-numbering.typ": custom-numbering
-#import "../utils/custom-heading.typ": (
-  active-heading, current-heading, heading-display,
-)
+#import "../utils/custom-heading.typ": active-heading, current-heading, heading-display
 #import "../utils/unpairs.typ": unpairs
 
 #let mainmatter(
@@ -13,28 +11,27 @@
   fonts: (:),
   fontset: "mac",
   // 其他参数
-  // 行距设置为1.25倍（视觉），对齐《指导意见》要求
-  // 小四字体(12pt) * 1.25 = 15pt，leading = 15pt - 12pt = 3pt = 0.25em
-  // 参考 LaTeX 模板 \linespread{1.6} 的实际效果，调整为 0.6em 以获得合适的行距
-  leading: 0.6em,
-  spacing: 0.6em,
+  // 正文 1.25 倍行距，字体大小的 1.25 倍
+  leading: 1.25em,
+  // 正文段前段后 0 磅：段落间距 = 行距，无额外间距
+  spacing: 1.25em,
   justify: true,
   first-line-indent: (amount: 2em, all: true),
-  // 章节编号格式：第1章（阿拉伯数字）
+  // 章节编号格式
   numbering: custom-numbering.with(first-level: "第1章 ", depth: 3, "1.1 "),
   // 正文字体与字号参数
   text-args: auto,
   // 标题字体与字号
-  // 一级标题：四号(14pt)，二级及以下：小四(12pt)
   heading-font: auto,
   heading-size: (字号.四号, 字号.小四, 字号.小四, 字号.小四),
-  heading-weight: ("regular",),
-  // 标题间距，对齐 LaTeX 模板
-  // 一级标题 beforeskip=24pt, afterskip=18pt
-  // 二级标题 beforeskip=24pt, afterskip=6pt
-  // 三级标题 beforeskip=12pt, afterskip=6pt
+  heading-weight: ("bold", "regular", "regular", "regular"),
+  // 标题段前段后间距（规范值）
+  // 一级标题：段前24pt，段后6pt
+  // 二级标题：段前24pt，段后6pt
+  // 三级标题：段前12pt，段后6pt
+  // 四级标题：段前12pt，段后6pt
   heading-above: (24pt, 24pt, 12pt, 12pt),
-  heading-below: (18pt, 6pt, 6pt, 6pt),
+  heading-below: (6pt, 6pt, 6pt, 6pt),
   heading-pagebreak: (true, false),
   heading-align: (center, auto),
   // 页眉
@@ -42,7 +39,7 @@
   header-vspace: 0em,
   display-header: true,
   skip-on-first-level: true,
-  // 页眉分隔线：0.8pt，对齐 LaTeX 模板
+  // 页眉分隔线
   stroke-width: 0.8pt,
   reset-footnote: true,
   // caption 的 separator
@@ -68,9 +65,18 @@
       + info
   )
   fonts = get-fonts(fontset) + fonts
+  // 基础文字参数
+  // 文字边缘设置，用于控制行高计算基准
+  // "cap-height": 大写字母的大致高度
+  // "baseline": 字母的基线
+  let base-text-args = (top-edge: "cap-height", bottom-edge: "baseline")
   if (text-args == auto) {
-    text-args = (font: fonts.宋体, size: 字号.小四)
+    text-args = (font: fonts.宋体, size: 字号.小四) + base-text-args
+  } else {
+    // 合并用户自定义参数与边缘设置
+    text-args = base-text-args + text-args
   }
+
   // 1.1 字体与字号
   if (heading-font == auto) {
     heading-font = (fonts.黑体,)
@@ -92,18 +98,22 @@
   set text(..text-args)
   set par(
     leading: leading,
+    spacing: spacing,
     justify: justify,
     first-line-indent: first-line-indent,
-    spacing: spacing,
   )
   show raw: set text(font: fonts.等宽)
+
   // 3.2 脚注样式
   show footnote.entry: set text(font: fonts.宋体, size: 字号.五号)
+
   // 3.3 设置 figure 的编号
   show heading: i-figured.reset-counters
   show figure: show-figure
+
   // 3.4 设置 equation 的编号和假段落首行缩进
   show math.equation.where(block: true): show-equation
+
   // 3.5 表格表头置顶 + 不用冒号用空格分割 + 样式
   show figure.where(
     kind: table,
@@ -111,6 +121,7 @@
   set figure.caption(separator: separator)
   show figure.caption: caption-style
   show figure.caption: set text(font: fonts.宋体, size: 字号.五号)
+
   // 3.6 优化列表显示
   //     术语列表 terms 不应该缩进
   show terms: set par(first-line-indent: 0pt)
@@ -118,26 +129,42 @@
   // 4.  处理标题
   // 4.1 设置标题的 Numbering
   set heading(numbering: numbering)
-  // 4.2 设置字体字号并加入假段落模拟首行缩进
-  // 标题使用单倍行距 (\linespread{1.0})，对齐 LaTeX 模板
+
+  // 4.2 设置标题的段前段后间距
   show heading: it => {
-    set par(leading: 1em)
+    // 获取当前级别字体大小
+    let current-size = array-at(heading-size, it.level)
+    // 计算实际间距 = 规范值 + 单倍行距(1em = 字体大小)
+    let actual-above = array-at(heading-above, it.level) + current-size
+    let actual-below = array-at(heading-below, it.level) + current-size
+    set block(
+      above: actual-above,
+      below: actual-below,
+    )
+    it
+  }
+
+  // 4.3 设置标题的字体、字号、行距等样式
+  show heading: it => {
+    // 标题使用单倍行距
+    set par(leading: 1em, spacing: 1em)
+    // 设置标题字体、字号、加粗等样式
     set text(
       font: array-at(heading-font, it.level),
       size: array-at(heading-size, it.level),
       weight: array-at(heading-weight, it.level),
-      ..unpairs(heading-text-args-lists.map(pair => (
-        pair.at(0),
-        array-at(pair.at(1), it.level),
-      ))),
+      ..unpairs(
+        heading-text-args-lists.map(
+          pair => (pair.at(0), array-at(pair.at(1), it.level)),
+        ),
+      ),
+      top-edge: "cap-height",
+      bottom-edge: "baseline",
     )
-    set block(above: array-at(heading-above, it.level), below: array-at(
-      heading-below,
-      it.level,
-    ))
     it
   }
-  // 4.3 标题居中与自动换页
+
+  // 4.4 标题居中与自动换页
   show heading: it => {
     if array-at(heading-pagebreak, it.level) {
       // 如果打上了 no-auto-pagebreak 标签，则不自动换页
@@ -193,8 +220,7 @@
             if current-heading != none {
               // 构造章节标题显示内容
               if (
-                current-heading.has("numbering")
-                  and current-heading.numbering != none
+                current-heading.has("numbering") and current-heading.numbering != none
               ) {
                 let counter-values = counter(heading).at(
                   current-heading.location(),
@@ -229,7 +255,6 @@
           }
 
           // 渲染页眉
-          // 页眉字体：宋体，字号使用小五号(9pt)，对齐《指导意见》要求
           set text(font: fonts.宋体, size: 字号.小五)
 
           // 显示页眉内容

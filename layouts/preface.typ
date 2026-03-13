@@ -9,19 +9,20 @@
   fonts: (:),
   fontset: "mac",
   // 其他参数
-  // 行距设置为1.25倍（视觉），符合《指导意见》要求
-  leading: 0.6em,
-  spacing: 0.6em,
+  // 1.25 倍行距，字体大小的 1.25 倍
+  leading: 1.25em,
+  // 段前段后 0 磅：段落间距 = 行距，无额外间距
+  spacing: 1.25em,
   justify: true,
   first-line-indent: (amount: 2em, all: true),
-  // 章节编号格式：第1章（阿拉伯数字）
+  // 章节编号格式
   numbering: custom-numbering.with(first-level: "第1章 ", depth: 3, "1.1 "),
   // 页眉
   header-render: auto,
   header-vspace: 0em,
   display-header: true,
   skip-on-first-level: true,
-  // 页眉分隔线：0.8pt，对齐 LaTeX 模板
+  // 页眉分隔线
   stroke-width: 0.8pt,
   reset-footnote: true,
   ..args,
@@ -111,7 +112,6 @@
           }
 
           // 渲染页眉
-          // 页眉字体：宋体，字号使用小五号(9pt)，对齐《指导意见》要求
           set text(font: fonts.宋体, size: 字号.小五)
 
           // 显示页眉内容

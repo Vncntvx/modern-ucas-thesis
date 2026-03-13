@@ -18,13 +18,10 @@
   min-title-lines: 2, // 控制标题行数的最小值。
   min-supervisor-lines: 2, // 控制指导教师区域的最小行数。
   min-reviewer-lines: 5, // 控制评审人区域的最小行数。
-  info-inset: (
-    x: 0pt,
-    bottom: 0.5pt,
-  ), // 控制信息区域的内边距。x 左右间距，bottom 底部间距
+  info-inset: (x: 0pt, bottom: 0.5pt), // 控制信息区域的内边距。x 左右间距，bottom 底部间距
   info-key-width: 70pt, // 控制信息标签（如“论文题目”、“作者姓名”）的宽度。
-  info-column-gutter: 18pt, // 控制信息列之间的间距。
-  info-row-gutter: 12pt, // 控制信息行之间的间距。
+  info-column-gutter: 6pt, // 控制信息列之间的间距。
+  info-row-gutter: 1.2em, // 控制信息行之间的间距，2 倍行距(1~1.2 em)
   meta-block-inset: (left: -15pt), // 控制元数据块的内边距。
   meta-info-inset: (x: 0pt, bottom: 2pt), // 控制元信息区域的内边距。
   meta-info-key-width: 35pt, // 控制元信息标签的宽度（如“学位”、“提交日期”）。
@@ -88,12 +85,10 @@
     info.title + range(min-title-lines - info.title.len()).map(it => "　")
   )
   info.reviewer = (
-    info.reviewer
-      + range(min-reviewer-lines - info.reviewer.len()).map(it => "　")
+    info.reviewer + range(min-reviewer-lines - info.reviewer.len()).map(it => "　")
   )
   info.supervisors = (
-    info.supervisors
-      + range(min-supervisor-lines - info.supervisors.len()).map(it => "　")
+    info.supervisors + range(min-supervisor-lines - info.supervisors.len()).map(it => "　")
   )
   // 2.3 处理日期
   assert(
@@ -137,6 +132,7 @@
         "bold"
       },
     )
+
     rect(
       width: 100%,
       inset: info-inset,
@@ -225,7 +221,6 @@
 
   v(26pt)
 
-  // 将中文之间的空格间隙从 0.25 em 调整到 0.5 em
   text(
     size: 字号.一号,
     font: fonts.黑体,
@@ -263,17 +258,14 @@
       info-key("作者姓名："),
       info-value("author", info.author),
       info-key("指导教师："),
-      ..info
-        .supervisors
-        .map(s => info-value("supervisors", s))
-        .intersperse(info-key("　")),
+      ..info.supervisors.map(s => info-value("supervisors", s)).intersperse(info-key("　")),
       info-key("学位类别："),
       info-value("category", info.category),
       ..(
         if degree == "professional" {
           (
             {
-              set text(font: fonts.楷体, size: 字号.四号, weight: "bold")
+              set text(font: fonts.宋体, size: 字号.四号, weight: "bold")
               move(dy: 0.3em, scale(x: 55%, box(
                 width: 10em,
                 "专业学位类别（领域）",
@@ -306,7 +298,7 @@
     ),
   )
 
-  v(42pt)
+  v(50pt)
 
   text(font: fonts.宋体, size: 字号.四号, weight: "bold", datetime-display(
     info.submit-date,
@@ -387,11 +379,9 @@
     ))
 
     // 利用 intersperse 在各个supervisor之间加入换行和空格（缩进）
-    // TODO: 丑陋的实现，但效果还行，有时间再优化
     text(
       weight: "bold",
-      "Supervisors: "
-        + supers.intersperse("\n                               ").sum(),
+      "Supervisors: " + supers.intersperse("\n                               ").sum(),
     )
   }
 

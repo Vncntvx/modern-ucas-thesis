@@ -19,9 +19,9 @@
   // 字体与字号
   font: auto,
   size: 字号.四号,
-  // 条目垂直间距
-  above: 14pt,
-  below: 14pt,
+  // 段前段后间距规范值
+  above: 6pt,
+  below: 0pt,
   ..args,
 ) = {
   // 1. 默认参数
@@ -51,9 +51,13 @@
 
   v(title-below)
 
+  // 计算段前段后间距：规范值 + 单倍行距（字体大小）
+  // 段前不加行距，优化视觉效果 (不知道为什么，不去除会导致间距过大)
+  let actual-above = above
+  let actual-below = below + size
   show outline.entry: set block(
-    above: above,
-    below: below,
+    above: actual-above,
+    below: actual-below,
   )
 
   // 先渲染图目录
