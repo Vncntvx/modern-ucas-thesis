@@ -1,6 +1,6 @@
 // 显示中文日期
 #let datetime-display(date) = {
-  date.display("[year] 年 [month] 月")
+  date.display("[year] 年 [month padding:none] 月")
 }
 
 // 显示英文日期
