@@ -134,6 +134,7 @@ modern-ucas-thesis/
 
 ## 文档
 
+- [定制指南](docs/CUSTOMIZE.md)
 - [常见问题](docs/FAQ.md)
 - [格式化工具](docs/FORMAT.md)
 

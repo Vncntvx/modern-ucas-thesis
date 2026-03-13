@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/github/license/Vncntvx/modern-ucas-thesis?style=flat-square" alt="License">
 </p>
 
-A thesis template for the University of Chinese Academy of Sciences (UCAS) based on [Typst](https://typst.app/), following the format requirements of the "UCAS Graduate Thesis Writing Guidelines (2022)".
+A thesis for the University of Chinese Academy of Sciences (UCAS) based on [Typst](https://typst.app/), following the format requirements of the "UCAS Graduate Thesis Writing Guidelines (2022)".
 
 > ⚠️ **Disclaimer**: This project is not officially produced. Please verify the latest format requirements from the university before use.
 ---
@@ -134,8 +134,9 @@ modern-ucas-thesis/
 
 ## Documentation
 
-- [FAQ](FAQ.md)
-- [Formatting Tool](FORMAT.md)
+- [CUSTOMIZE](docs/CUSTOMIZE.md)
+- [FAQ](docs/FAQ.md)
+- [Formatting Tool](docs/FORMAT.md)
 
 ---
 
