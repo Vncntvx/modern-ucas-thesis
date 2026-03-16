@@ -34,7 +34,7 @@
     ..args,
   )
 
-  // 返回 figure，但如果 args 中有 label，我们需要特殊处理
+  // 返回 figure，但如果 args 中有 label，需要特殊处理
   // i-figured 会自动添加 fig: 前缀到标签
   fig
 }
@@ -69,8 +69,6 @@
     ..args,
   )
 
-  // 返回 figure，但如果 args 中有 label，我们需要特殊处理
-  // i-figured 会自动添加 tbl: 前缀到标签
   fig
 }
 
@@ -83,34 +81,49 @@
   // 获取编号
   let num = it.counter.display(it.numbering)
 
-  // 渲染图片主体
-  it.body
+  // 构建图片内容（包含图片主体和标题）
+  let fig-content = [
+    // 渲染图片主体
+    #it.body
 
-  // 渲染中文标题
-  parbreak()
-  set align(center)
-  set text(font: fonts.宋体, size: 字号.五号, weight: "bold")
-  // 图片标题使用1.25倍行距
-  set par(leading: 1.25em)
-  // 中文段前6磅，段后0磅
-  block(above: 6pt + 1.25em, below: 0pt + 1.25em)[
-    #supp-zh #num #h(char-width) #cap-zh
+    // 渲染中文标题
+    #parbreak()
+    #set align(center)
+    #set text(font: fonts.宋体, size: 字号.五号, weight: "bold")
+    // 图片标题使用1.25倍行距
+    #set par(leading: 1.25em)
+    // 中文段前6磅，段后0磅
+    #block(above: 6pt + 1.25em, below: 0pt + 1.25em)[
+      #supp-zh #num #h(char-width) #cap-zh
+    ]
+
+    // 英文段前0磅，段后12磅
+    #if cap-en != none {
+      block(above: 0pt + 1.25em, below: 12pt)[
+        #supp-en #num #h(char-width) #cap-en
+      ]
+    }
+
+    // 渲染图注（可选）
+    #if note != none {
+      set align(left)
+      set par(leading: 1.25em)
+      block(above: 6pt + 1.25em, below: 0pt + 1.25em, inset: (left: 2em))[
+        *注：* #note
+      ]
+    }
   ]
 
-  // 英文段前0磅，段后12磅
-  if cap-en != none {
-    block(above: 0pt + 1.25em, below: 12pt)[
-      #supp-en #num #h(char-width) #cap-en
+  // 根据 placement 参数决定渲染方式
+  if it.placement != none {
+    // 浮动到指定位置（top, bottom等），使用 float: true 确保不重叠
+    // 使用 width: 100% 和 align: center 确保居中显示
+    place(it.placement, float: true, clearance: 1.5em)[
+      #align(center, block(width: 100%, fig-content))
     ]
-  }
-
-  // 渲染图注（可选）
-  if note != none {
-    set align(left)
-    set par(leading: 1.25em)
-    block(above: 6pt + 1.25em, below: 0pt + 1.25em, inset: (left: 2em))[
-      *注：* #note
-    ]
+  } else {
+    // 内联渲染
+    fig-content
   }
 }
 
@@ -123,34 +136,49 @@
   // 获取编号
   let num = it.counter.display(it.numbering)
 
-  // 渲染中文标题：段前6磅，段后0磅
-  set align(center)
-  set text(font: fonts.宋体, size: 字号.五号, weight: "bold")
-  // 表格标题使用1.25倍行距
-  set par(leading: 1.25em)
-  // 中文段前6磅，段后0磅
-  block(above: 6pt + 1.25em, below: 0pt + 1.25em)[
-    #supp-zh #num #h(char-width) #cap-zh
+  // 构建表格内容（包含标题和表格主体）
+  let tbl-content = [
+    // 渲染中文标题：段前6磅，段后0磅
+    #set align(center)
+    #set text(font: fonts.宋体, size: 字号.五号, weight: "bold")
+    // 表格标题使用1.25倍行距
+    #set par(leading: 1.25em)
+    // 中文段前6磅，段后0磅
+    #block(above: 6pt + 1.25em, below: 0pt + 1.25em)[
+      #supp-zh #num #h(char-width) #cap-zh
+    ]
+
+    // 英文段前0磅，段后12磅
+    #if cap-en != none {
+      block(above: 0pt + 1.25em, below: 12pt)[
+        #supp-en #num #h(char-width) #cap-en
+      ]
+    }
+
+    // 渲染表格主体
+    #it.body
+
+    // 渲染表注（可选）：位于表格下方
+    #if note != none {
+      parbreak()
+      set align(left)
+      set par(leading: 1.25em)
+      block(above: 6pt + 1.25em, below: 0pt + 1.25em, inset: (left: 2em))[
+        *注：* #note
+      ]
+    }
   ]
 
-  // 英文段前0磅，段后12磅
-  if cap-en != none {
-    block(above: 0pt + 1.25em, below: 12pt)[
-      #supp-en #num #h(char-width) #cap-en
+  // 根据 placement 参数决定渲染方式
+  if it.placement != none {
+    // 浮动到指定位置（top, bottom等），使用 float: true 确保不重叠
+    // 使用 width: 100% 和 align: center 确保居中显示
+    place(it.placement, float: true, clearance: 1.5em)[
+      #align(center, block(width: 100%, tbl-content))
     ]
-  }
-
-  // 渲染表格主体
-  it.body
-
-  // 渲染表注（可选）：位于表格下方
-  if note != none {
-    parbreak()
-    set align(left)
-    set par(leading: 1.25em)
-    block(above: 6pt + 1.25em, below: 0pt + 1.25em, inset: (left: 2em))[
-      *注：* #note
-    ]
+  } else {
+    // 内联渲染
+    tbl-content
   }
 }
 

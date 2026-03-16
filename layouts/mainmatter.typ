@@ -50,10 +50,6 @@
   // caption 样式
   caption-style: strong,
   caption-size: 字号.五号,
-  // figure 计数
-  show-figure: i-figured.show-figure,
-  // equation 计数
-  show-equation: i-figured.show-equation,
   ..args,
   it,
 ) = {
@@ -117,10 +113,10 @@
 
   // 3.3 设置 figure 的编号
   show heading: i-figured.reset-counters
-  show figure: show-figure
+  show figure: i-figured.show-figure
 
   // 3.3.1 双语图表的 show 规则
-  // 必须在 i-figured 之后，匹配 i-figured 创建的新 kind
+  // 匹配 i-figured 创建的新 kind
   show figure: it => {
     // 检查 kind 是否是 i-figured 创建的双语图表
     let fig-kind = it.kind
@@ -138,7 +134,7 @@
   }
 
   // 3.4 设置 equation 的编号和假段落首行缩进
-  show math.equation.where(block: true): show-equation
+  show math.equation.where(block: true): i-figured.show-equation
 
   // 3.5 表格表头置顶 + 不用冒号用空格分割 + 样式
   show figure.where(
@@ -149,7 +145,7 @@
   show figure.caption: set text(font: fonts.宋体, size: 字号.五号)
 
   // 3.6 优化列表显示
-  //     术语列表 terms 不应该缩进
+  // 术语列表 terms 不应该缩进
   show terms: set par(first-line-indent: 0pt)
 
   // 4.  处理标题

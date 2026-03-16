@@ -212,28 +212,45 @@
 
 == 功能介绍
 
-=== 无序列表
+=== 图片
 
-- 无序列表项一
-- 无序列表项二
-  - 无序子列表项一
-  - 无序子列表项二
+论文中图片的插入通常分为单图和多图，下面分别加以介绍：
 
-=== 有序列表
+(a) 单图插入
 
-+ 有序列表项一
-+ 有序列表项二
-  + 有序子列表项一
-  + 有序子列表项二
+使用 `bifigure` 函数插入单图，该函数基于原生 `figure` 函数封装，支持双语标题。通过 `<label>` 添加标签后，可直接使用 `@label` 引用；若需启用按章节编号（如"图 1-1"），本模板通过 `i-figured` 包实现，此时引用需添加 `fig:` 前缀，即 `@fig:label`。
 
-=== 术语列表
+#bifigure(
+  image("images/ucas-emblem.svg", width: 10%),
+  caption-zh: [中国科学院],
+  caption-en: [Chinese Academy of Sciences],
+) <ucasLogo>
 
-/ 术语一: 术语解释
-/ 术语二: 术语解释
+(b) 多图插入
 
-=== 图表
+使用 `figure` 包裹 `grid` 布局实现多图排列，每个子图仍使用 `bifigure` 函数以支持独立的双语标题。通过 `<label>` 添加标签后。子图可通过 `note` 参数添加注释，注释会显示在子图标题下方，并以"注："开头。
 
-引用@timing，引用@timing-tlt，以及@ucas-logo。引用图表时，表格和图片分别需要加上 `tbl:`和`fig:` 前缀才能正常显示编号。
+#figure(
+  grid(
+    columns: 2,
+    gutter: 1em,
+    bifigure(
+      image("images/ucas-emblem.svg", width: 20%),
+      caption-zh: [中国科学院注释],
+      caption-en: [UCAS Emblem with Note],
+      note: [这是SVG矢量格式的图片],
+    ),
+    bifigure(
+      image("images/ucas-emblem.svg", width: 20%),
+      caption-zh: [中国科学院],
+      caption-en: [Chinese Academy of Sciences],
+    ),
+  ),
+)<ucasLogos>
+
+=== 表格
+
+引用表格时需要加上 `tbl:` 前缀才能正常显示编号，如@timing、@timing-tlt、@tab:with-note。
 
 #align(center, (
   stack(dir: ltr)[
