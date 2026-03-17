@@ -1,11 +1,11 @@
-#import "@preview/i-figured:0.2.4"
+#import "../utils/bilingual-figured.typ"
+#import "../utils/custom-figure.typ": thesis-bilingual-caption-style
 #import "../utils/style.typ": get-fonts, 字号
 #import "../utils/custom-numbering.typ": custom-numbering
 #import "../utils/custom-heading.typ": (
   active-heading, current-heading, heading-display,
 )
 #import "../utils/unpairs.typ": unpairs
-#import "../utils/bilingual-figure.typ": show-bifigure, show-bitable
 
 #let mainmatter(
   // documentclass 传入参数
@@ -112,29 +112,17 @@
   show footnote.entry: set text(font: fonts.宋体, size: 字号.五号)
 
   // 3.3 设置 figure 的编号
-  show heading: i-figured.reset-counters
-  show figure: i-figured.show-figure
+  show heading: bilingual-figured.reset-counters
+  show figure: bilingual-figured.show-figure
 
-  // 3.3.1 双语图表的 show 规则
-  // 匹配 i-figured 创建的新 kind
-  show figure: it => {
-    // 检查 kind 是否是 i-figured 创建的双语图表
-    let fig-kind = it.kind
-    if type(fig-kind) == str {
-      if fig-kind == "i-figured-\"bifigure\"" {
-        show-bifigure(fonts, kind: "bifigure")(it)
-      } else if fig-kind == "i-figured-\"bitable\"" {
-        show-bitable(fonts, kind: "bitable")(it)
-      } else {
-        it
-      }
-    } else {
-      it
-    }
-  }
+  let bilingual-caption-style = thesis-bilingual-caption-style(fonts)
+  show figure: bilingual-figured.show-bilingual.with(
+    figure_style: bilingual-caption-style,
+    table_style: bilingual-caption-style,
+  )
 
   // 3.4 设置 equation 的编号和假段落首行缩进
-  show math.equation.where(block: true): i-figured.show-equation
+  show math.equation.where(block: true): bilingual-figured.show-equation
 
   // 3.5 表格表头置顶 + 不用冒号用空格分割 + 样式
   show figure.where(

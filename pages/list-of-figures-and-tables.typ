@@ -1,4 +1,4 @@
-#import "@preview/i-figured:0.2.4"
+#import "../utils/bilingual-figured.typ"
 #import "../utils/invisible-heading.typ": invisible-heading
 #import "../utils/style.typ": get-fonts, 字号
 
@@ -56,110 +56,32 @@
   let actual-above = above
   let actual-below = below + size
 
-  // 辅助函数，从 figure caption 中提取中文标题
-  let extract-caption-zh(fig, default-supp) = {
-    let caption = fig.caption
-    let cap-zh = none
-    let supp-zh = default-supp
-
-    if caption != none and caption.has("body") and caption.body != none {
-      let body = caption.body
-
-      // 检查 body 是否有 value 字段（metadata 特征）
-      let is-meta = type(body) == metadata
-      if not is-meta and type(body) == content and body.has("value") {
-        is-meta = true
-      }
-
-      if is-meta {
-        let data = body.value
-        if type(data) == array and data.len() >= 1 {
-          cap-zh = data.at(0)
-          supp-zh = if data.len() >= 4 { data.at(3) } else { default-supp }
-        }
-      }
-    }
-
-    return (cap-zh, supp-zh)
-  }
-
-  // 自定义 outline entry 显示，使用函数形式检查 kind
+  // 自定义 outline entry：双语图表目录仅显示中文标题
   show outline.entry: it => {
     let fig = it.element
-
-    // 检查是否是 figure 且是自定义的 bilingual figure
-    let is-bilingual = false
-    let kind-str = ""
-
-    if fig != none and type(fig) == content {
-      // 检查是否有 kind 字段
-      if fig.has("kind") {
-        let kind = fig.kind
-        kind-str = str(kind)
-        is-bilingual = (
-          kind-str.contains("bifigure") or kind-str.contains("bitable")
-        )
-      }
+    let kind = if fig != none and type(fig) == content and fig.has("kind") {
+      fig.kind
+    } else {
+      none
     }
+    let is-bilingual = (
+      bilingual-figured.is-kind(kind, "bifigure")
+        or bilingual-figured.is-kind(kind, "bitable")
+    )
 
     if is-bilingual {
-      let (cap-zh, supp-zh) = if kind-str.contains("bitable") {
-        extract-caption-zh(fig, "表")
-      } else {
-        extract-caption-zh(fig, "图")
-      }
-
-      if cap-zh != none {
-        return context {
-          let page-num = counter(page).at(fig.location()).first()
-          // 获取章节编号
-          let heading-counter = counter(heading)
-          let heading-values = heading-counter.at(fig.location())
-          let chapter-num = if heading-values.len() > 0 {
-            heading-values.at(0)
-          } else { 1 }
-
-          // 查询当前章节内的同类型图表数量，计算相对编号
-          let fig-kind = if kind-str.contains("bitable") { "bitable" } else {
-            "bifigure"
-          }
-          let all-figs = query(figure.where(kind: fig-kind))
-          let figs-in-chapter = all-figs.filter(f => {
-            let f-heading-values = heading-counter.at(f.location())
-            let f-chapter = if f-heading-values.len() > 0 {
-              f-heading-values.at(0)
-            } else { 1 }
-            f-chapter == chapter-num
-          })
-
-          // 找到当前图表在章节内的位置
-          let fig-num = 1
-          for (i, f) in figs-in-chapter.enumerate() {
-            if f.location() == fig.location() {
-              fig-num = i + 1
-            }
-          }
-
-          block(above: actual-above, below: actual-below)[
-            #link(fig.location())[
-              #supp-zh #chapter-num.#fig-num #h(1em) #cap-zh
-              #box(width: 1fr)[#repeat(".")]
-              #page-num
-            ]
-          ]
-        }
-      }
+      bilingual-figured.show-bilingual-outline-entry.with(
+        lang: "zh",
+        above: actual-above,
+        below: actual-below,
+      )(it)
+    } else {
+      it
     }
-
-    // 默认显示
-    it
   }
 
   // 渲染图目录
-  outline(
-    target: figure.where(kind: "bifigure"),
-    title: none,
-  )
+  bilingual-figured.outline(target-kind: "bifigure", title: none)
 
   v(title-above)
 
@@ -172,10 +94,7 @@
   v(title-below)
 
   // 渲染表目录
-  outline(
-    target: figure.where(kind: "bitable"),
-    title: none,
-  )
+  bilingual-figured.outline(target-kind: "bitable", title: none)
 
   // 手动分页：若需要单双面排版，章节结束后对齐到奇数页
   if twoside {

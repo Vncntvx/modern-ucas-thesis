@@ -445,8 +445,8 @@
 | `separator` | string | `"  "` | 图表标题分隔符 |
 | `caption-style` | function | `strong` | 图表标题样式 |
 | `caption-size` | length | `字号.五号` | 图表标题字号 |
-| `show-figure` | function | `i-figured.show-figure` | 图编号函数 |
-| `show-equation` | function | `i-figured.show-equation` | 公式编号函数 |
+| `show-figure` | function | `bilingual-figured.show-figure` | 图编号函数 |
+| `show-equation` | function | `bilingual-figured.show-equation` | 公式编号函数 |
 
 #### 标题样式配置
 
@@ -505,9 +505,11 @@
 
 ### 8. 图表配置 (Figures & Tables)
 
+`bilingual-figured` 的完整 API、样式参数与示例见：[BILINGUAL_FIGURED.md](BILINGUAL_FIGURED.md)。
+
 #### 图表编号
 
-使用 `i-figured` 包实现分章编号：
+使用 `bilingual-figured` 模块实现分章编号：
 
 - 图：`图 1-1`、`图 1-2` ...
 - 表：`表 1-1`、`表 1-2` ...
@@ -522,13 +524,17 @@
 @tbl:label-name
 ```
 
-#### 图的配置
+#### 图（双语）示例
 
 ```typst
-#figure(
+#bifigure(
   image("path/to/image.svg", width: 60%),
-  caption: [图题说明],
-) <fig:label-name>
+  caption-zh: [中文图题],
+  caption-en: [English Caption],
+  note: [可选图注内容],
+) <label-name>
+
+见 @fig:label-name。
 ```
 
 规范要求：
@@ -538,17 +544,21 @@
 - 图序与图题间空一格
 - 建议使用中英文双语图题
 
-#### 表的配置
+#### 表（双语）示例
 
 ```typst
-#figure(
+#bitable(
   table(
     columns: 3,
     table.header([列1], [列2], [列3]),
     [数据1], [数据2], [数据3],
   ),
-  caption: [表题说明],
-) <tbl:label-name>
+  caption-zh: [中文表题],
+  caption-en: [English Caption],
+  note: [可选表注内容],
+) <label-name>
+
+见 @tbl:label-name。
 ```
 
 规范要求：
@@ -558,13 +568,27 @@
 - 表序与表题间空一格
 - 表内同一栏数字上下对齐
 
-#### caption 配置
+#### 双语图表样式配置（模板内）
 
-| 参数名 | 类型 | 默认值 | 说明 |
-|-------|------|--------|------|
-| `separator` | string | `"  "` | 编号与标题间的分隔符 |
-| `caption-style` | function | `strong` | 标题样式 |
-| `caption-size` | length | `字号.五号` | 标题字号 |
+模板默认通过 `utils/custom-figure.typ` 中的 `thesis-bilingual-caption-style(...)` 统一配置双语图表样式。  
+该函数内部调用 `bilingual-figured.bilingual-caption-style(...)`，推荐优先使用以下原生参数：
+
+- `caption_par`：标题段落参数（如 `leading`）
+- `note_par`：注释段落参数（默认继承 `caption_par`）
+- `zh_block` / `en_block` / `note_block`：中英文标题与注释的段前段后（及 inset）
+- `keep_together`：是否尽量保持“图表主体 + 双语标题 + 注释”在同页（默认 `true`）
+
+示例（在 `utils/custom-figure.typ` 中）：
+
+```typst
+#let thesis-bilingual-caption-style(fonts) = bilingual-figured.bilingual-caption-style(
+  caption_par: (leading: 1.25em),
+  zh_block: (above: 6pt + 1.25em, below: 0pt + 1.25em),
+  en_block: (above: 0pt + 1.25em, below: 12pt),
+  note_block: (above: 6pt + 1.25em, below: 0pt + 1.25em, inset: (left: 2em)),
+  keep_together: true,
+)
+```
 
 ---
 
@@ -572,9 +596,9 @@
 
 #### 公式编号
 
-使用 `i-figured` 包实现分章编号：
+使用 `bilingual-figured` 模块实现分章编号：
 
-- 格式：`(1.1)`、`(1.2)` ...
+- 格式：`(1-1)`、`(1-2)` ...
 
 #### 公式引用
 
@@ -676,8 +700,8 @@ $ y = integral_1^2 x^2 dif x $ <->
 | 参数名 | 类型 | 默认值 | 说明 |
 |-------|------|--------|------|
 | `numbering` | function | `custom-numbering` | 章节编号格式 |
-| `show-figure` | function | `i-figured.show-figure` | 图编号格式 |
-| `show-equation` | function | `i-figured.show-equation` | 公式编号格式 |
+| `show-figure` | function | `bilingual-figured.show-figure` | 图编号格式 |
+| `show-equation` | function | `bilingual-figured.show-equation` | 公式编号格式 |
 | `reset-counter` | boolean | `false` | 是否重置章节计数器 |
 
 默认编号格式：

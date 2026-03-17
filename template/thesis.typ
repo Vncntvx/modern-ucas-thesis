@@ -218,7 +218,7 @@
 
 (a) 单图插入
 
-使用 `bifigure` 函数插入单图，该函数基于原生 `figure` 函数封装，支持双语标题。通过 `<label>` 添加标签后，可直接使用 `@label` 引用；若需启用按章节编号（如"图 1-1"），本模板通过 `i-figured` 包实现，此时引用需添加 `fig:` 前缀，即 `@fig:label`。
+使用 `bifigure` 函数插入单图，该函数基于原生 `figure` 函数封装，支持双语标题。模板默认启用分章编号，建议统一使用带前缀引用：图片 `@fig:label`、表格 `@tbl:label`、公式 `@eqt:label`。模板中的双语图表样式由 `thesis-bilingual-caption-style` 统一配置。
 
 #bifigure(
   image("images/ucas-emblem.svg", width: 10%),
@@ -226,31 +226,16 @@
   caption-en: [Chinese Academy of Sciences],
 ) <ucasLogo>
 
+如 @fig:ucasLogo 所示。
+
 (b) 多图插入
 
-使用 `figure` 包裹 `grid` 布局实现多图排列，每个子图仍使用 `bifigure` 函数以支持独立的双语标题。通过 `<label>` 添加标签后。子图可通过 `note` 参数添加注释，注释会显示在子图标题下方，并以"注："开头。
+使用 `grid` 函数实现多图排列，每个子图仍使用 `bifigure` 函数以支持独立的双语标题。子图可通过 `note` 参数添加注释，注释会显示在子图标题下方，并以"注："开头。
 
-#figure(
-  grid(
-    columns: 2,
-    gutter: 1em,
-    bifigure(
-      image("images/ucas-emblem.svg", width: 20%),
-      caption-zh: [中国科学院注释],
-      caption-en: [UCAS Emblem with Note],
-      note: [这是SVG矢量格式的图片],
-    ),
-    bifigure(
-      image("images/ucas-emblem.svg", width: 20%),
-      caption-zh: [中国科学院],
-      caption-en: [Chinese Academy of Sciences],
-    ),
-  ),
-)<ucasLogos>
+若需要调整双语标题行距、段前段后间距或跨页策略，可在
+`utils/thesis-bilingual-figure.typ` 中修改 `thesis-bilingual-caption-style`。
 
 === 表格
-
-引用表格时需要加上 `tbl:` 前缀才能正常显示编号，如@timing、@timing-tlt、@tab:with-note。
 
 #align(center, (
   stack(dir: ltr)[

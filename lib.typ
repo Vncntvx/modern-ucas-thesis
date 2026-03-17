@@ -21,12 +21,10 @@
 #import "pages/acknowledgement.typ": acknowledgement
 #import "pages/backmatter.typ": backmatter
 #import "utils/bilingual-bibliography.typ": bilingual-bibliography
-#import "utils/bilingual-figure.typ": bifigure, bitable
+#import "utils/custom-figure.typ": bifigure, bitable
+#import "utils/bilingual-figured.typ": show-equation, show-figure
 #import "utils/custom-numbering.typ": custom-numbering
-#import "utils/custom-heading.typ": (
-  active-heading, current-heading, heading-display,
-)
-#import "@preview/i-figured:0.2.4": show-equation, show-figure
+#import "utils/custom-heading.typ": active-heading, current-heading, heading-display
 #import "utils/style.typ": get-fonts, 字体组, 字号
 
 // 使用函数闭包特性，通过 `documentclass` 函数类进行全局信息配置，然后暴露出拥有了全局配置的、具体的 `layouts` 和 `templates` 内部函数。
