@@ -16,9 +16,6 @@
   title-above: 24pt,
   title-below: 18pt,
   title-text-args: auto,
-  // 引用页数的字体，这里用于显示 Times New Roman
-  reference-font: auto,
-  reference-size: 字号.小四,
   // 字体与字号
   font: auto,
   size: (字号.四号, 字号.小四),
@@ -31,16 +28,11 @@
   // 全都显示点号
   fill: (repeat([.], gap: 0.15em),),
   gap: .3em,
-  ..args,
 ) = {
   // 1.  默认参数
   fonts = get-fonts(fontset) + fonts
   if title-text-args == auto {
     title-text-args = (font: fonts.黑体, size: 字号.四号, weight: "bold")
-  }
-  // 引用页数的字体，这里用于显示 Times New Roman
-  if reference-font == auto {
-    reference-font = fonts.宋体
   }
   // 字体与字号
   if font == auto {
@@ -57,9 +49,8 @@
     foreground: preface-foreground(info: info, fonts: fonts),
   )
 
-  // 默认显示的字体
-  set text(font: reference-font, size: reference-size)
-
+  // 条目字号（含点线与页码，见 show outline.entry 内 text()）由各级 size 落实，
+  // 此处不再设全局字号
   v(title-above)
   {
     set align(center)
@@ -94,6 +85,11 @@
       link(entry.element.location(), entry.indented(
         none,
         {
+          // 点线与页码置于同字号 text 内：整行统一为条目字号（一级四号，
+          // 二三级小四；数字走字体表的 Times 回退），与 LaTeX 参考实现
+          // （\@pnumwidth 框内 \normalfont 继承条目字号）一致。
+          // 若置于 text 之外，页码将继承外层小四，一级条目会出现
+          // 14pt 标题配 12pt 页码的不一致。
           text(
             font: font.at(entry.level - 1, default: font.last()),
             size: current-size,
@@ -103,13 +99,13 @@
                 h(gap)
               }
               entry.body()
+              box(width: 1fr, inset: (x: .25em), fill.at(
+                entry.level - 1,
+                default: fill.last(),
+              ))
+              entry.page()
             },
           )
-          box(width: 1fr, inset: (x: .25em), fill.at(
-            entry.level - 1,
-            default: fill.last(),
-          ))
-          entry.page()
         },
         gap: 0pt,
       )),
