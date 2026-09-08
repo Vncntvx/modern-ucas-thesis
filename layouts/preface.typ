@@ -24,14 +24,10 @@
     "1.1\u{3000}",
   ),
   // 页眉
-  header-render: auto,
-  header-vspace: 0em,
   display-header: true,
-  skip-on-first-level: true,
   // 页眉分隔线
   stroke-width: 0.8pt,
   reset-footnote: true,
-  ..args,
   it,
 ) = {
   // 1.  默认参数

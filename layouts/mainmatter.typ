@@ -3,9 +3,6 @@
 #import "../utils/style.typ": get-fonts, 字号, 行距
 #import "../utils/page-foreground.typ": mainmatter-foreground
 #import "../utils/custom-numbering.typ": custom-numbering
-#import "../utils/custom-heading.typ": (
-  active-heading, current-heading, heading-display,
-)
 #import "../utils/citation-range-hyphen.typ": citation-range-hyphen
 #import "../utils/unpairs.typ": unpairs
 
@@ -50,10 +47,7 @@
   heading-pagebreak: (true, false),
   heading-align: (center, auto),
   // 页眉
-  header-render: auto,
-  header-vspace: 0em,
   display-header: true,
-  skip-on-first-level: true,
   // 页眉分隔线
   stroke-width: 0.8pt,
   reset-footnote: true,
@@ -177,15 +171,20 @@
 
   // 4.2 设置标题的段前段后间距
   show heading: it => {
-    // 段前一律用 4.4 中的显式 v 落实规范值，此处块上间距取 0：
-    // 块上间距在页顶会被裁剪（页顶保留实测），而显式 v 在换页符后保留、
-    // 在页中与前序间距按 max 折叠；被自然换页带到页顶的 v 会被丢弃
-    // （等价于裁剪，不留空洞，实测）。全静态，无运行时判断。
+    // 段前分两种落实（实测见 layouts/mainmatter 探针：block/below 与显式 v 相加，
+    // block/above 与前序 block 间距按 max 折叠——与 TeX \addvspace 语义一致）：
+    // - L1 仍用 4.4 中的显式 v：L1 恒另起一页（4.4 换页符），v 在换页符后保留，
+    //   保证章标题距正文区上边界；L1 前无须折叠（换页已分隔），此处块上间距取 0。
+    // - L2+ 用块上间距：与前序标题的段后（below）按 max 折叠，避免"段后补偿 +
+    //   段前 v"双重全额叠加（如章→节 63.8pt，LaTeX 参考仅 34.8pt）；自然换页被
+    //   带到页顶时块上间距自动裁剪，同 TeX 丢弃 beforeskip。
     // 段后：规范值 + 13.2pt（一个正文 leading 的绝对值；
     // 增量相对正文行距而非标题字号，故不用 size-relative 的 leading）。
     // TeX 的 afterskip 是叠加在整行行距之上的（LaTeX 实测 L2→正文
     // 27.58pt = 行距 21.6pt + 段后 6pt）；L→标题相邻仍按 max 语义。
-    let actual-above = 0pt
+    let actual-above = if it.level == 1 { 0pt } else {
+      array-at(heading-above, it.level)
+    }
     let actual-below = array-at(heading-below, it.level) + 13.2pt
     set block(
       above: actual-above,
@@ -223,9 +222,12 @@
         pagebreak(weak: true)
       }
     }
-    // 各级标题段前一律用显式 v 落实规范值（换页符后保留、页中取 max、
-    // 自然换页带到页顶则丢弃，见 4.2 注释；全静态）。
-    v(array-at(heading-above, it.level))
+    // L1 段前用显式 v 落实规范值（换页符后保留，见 4.2 注释）。
+    // L2+ 段前已由 4.2 的块上间距落实（max 折叠 + 页顶裁剪），此处不再发射 v
+    // （v 会与块段后相加，破坏折叠）。
+    if it.level == 1 {
+      v(array-at(heading-above, it.level))
+    }
     if array-at(heading-align, it.level) != auto {
       set align(array-at(heading-align, it.level))
       it

@@ -26,9 +26,6 @@
 #import "utils/continued-table.typ": auto-table, continued-table
 #import "utils/aligned-equation.typ": aligned-equation
 #import "utils/custom-numbering.typ": custom-numbering
-#import "utils/custom-heading.typ": (
-  active-heading, current-heading, heading-display,
-)
 #import "utils/supervisor.typ": (
   normalize-supervisors, supervisor-en-line, supervisor-line,
 )
