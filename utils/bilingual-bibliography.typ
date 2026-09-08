@@ -1,5 +1,12 @@
 // Authors: csimide, OrangeX4
 // Tested only on GB-7714-2015-Numeric
+//
+// ⚠️ 升级警示（2026-09 审计）：本文件的中英转换逻辑（等/译/卷/版 → et al./
+// trans/Vol./ed）挂载于 `show grid.cell.where(x: 1)`，前提是"参考文献条目内部
+// 以两列 grid 排版、第 1 列为条目文本"。这是 Typst 当前 bibliography 渲染的
+// 实现细节，官方文档未作任何承诺（非公开 API）。若升级 Typst 后转换静默失效
+// （英文条目中文残留），应优先排查此处。
+// 已验证路径（Typst 0.15.1，PDF 实测）："第2版"→"2nd ed"、"第3卷"→"Vol. 3"。
 #import "style.typ": get-fonts
 #import "page-foreground.typ": mainmatter-foreground
 #let bilingual-bibliography(

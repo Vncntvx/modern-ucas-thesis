@@ -24,3 +24,5 @@ template/thesis.pdf
 
 # test files
 test/
+# Ignore build artifacts in tests folder
+tests/*.pdf
