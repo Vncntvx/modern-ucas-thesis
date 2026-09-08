@@ -86,6 +86,9 @@
       clc: "O643.12",
       udc: "544.4",
       secret-level: "公开",
+      // 涉密/延迟公开论文的保密期限（如 "10年"），封面渲染为"密级：秘密★10年"；
+      // 公开论文保持 secret-level 为"公开"（默认）即不标注。
+      secret-year: none,
       email: "xyz@mails.ucas.ac.cn",
       school-code: "14430",
       degree: auto,
@@ -143,6 +146,7 @@
         fontset: fontset,
         ..args,
         fonts: fonts + args.named().at("fonts", default: (:)),
+        info: info + args.named().at("info", default: (:)),
       )
     },
     // 字体展示页
@@ -263,6 +267,7 @@
         fontset: fontset,
         ..args,
         fonts: fonts + args.named().at("fonts", default: (:)),
+        info: info + args.named().at("info", default: (:)),
       )
     },
     // 图表目录页
@@ -272,14 +277,17 @@
         fontset: fontset,
         ..args,
         fonts: fonts + args.named().at("fonts", default: (:)),
+        info: info + args.named().at("info", default: (:)),
       )
     },
     // 符号表页
     notation: (..args) => {
       notation(
         twoside: twoside,
+        fontset: fontset,
         ..args,
         fonts: fonts + args.named().at("fonts", default: (:)),
+        info: info + args.named().at("info", default: (:)),
       )
     },
     // 参考文献页
@@ -287,7 +295,10 @@
       bilingual-bibliography(
         bibliography: bibliography,
         twoside: twoside,
+        fontset: fontset,
         ..args,
+        fonts: fonts + args.named().at("fonts", default: (:)),
+        info: info + args.named().at("info", default: (:)),
       )
     },
     // 致谢页
@@ -295,8 +306,11 @@
       acknowledgement(
         anonymous: anonymous,
         twoside: twoside,
+        fontset: fontset,
         date: info.at("submit-date", default: none),
         ..args,
+        fonts: fonts + args.named().at("fonts", default: (:)),
+        info: info + args.named().at("info", default: (:)),
       )
     },
     // 个人信息页
@@ -304,7 +318,10 @@
       backmatter(
         anonymous: anonymous,
         twoside: twoside,
+        fontset: fontset,
         ..args,
+        fonts: fonts + args.named().at("fonts", default: (:)),
+        info: info + args.named().at("info", default: (:)),
       )
     },
     // 双语图表函数
