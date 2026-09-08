@@ -1,6 +1,6 @@
 #import "../utils/datetime-display.typ": datetime-display, datetime-en-display
 #import "../utils/justify-text.typ": justify-text
-#import "../utils/style.typ": get-fonts, 字号
+#import "../utils/style.typ": get-fonts, 字号, 行距
 #import "../utils/supervisor.typ": (
   normalize-supervisors, supervisor-en-line, supervisor-line,
 )
@@ -217,6 +217,20 @@
   // 4.  正式渲染
   pagebreak(weak: true)
 
+  // 密级（规范一·（一）·1）：公开论文不标注；涉密/延迟公开论文标注密级，
+  // 有保密期限的一并标注（如"秘密★10年"）。置于封面右上角，五号字。
+  // secret-level/secret-year 经 info 传入（见 lib.typ 默认值）。
+  let secret-level = info.at("secret-level", default: "公开")
+  let secret-year = info.at("secret-year", default: none)
+  if secret-level not in ("公开", "", none) {
+    align(right, text(
+      font: fonts.宋体,
+      size: 字号.五号,
+      weight: "bold",
+      [密级：#secret-level#if secret-year != none [★#secret-year]],
+    ))
+  }
+
   v(80pt)
 
   // 居中对齐
@@ -246,17 +260,21 @@
 
   v(28pt)
 
-  text(
-    size: 字号.小三,
-    font: fonts.黑体,
-    spacing: 100%,
-    weight: "bold",
-    underline(
-      offset: .4em,
-      stroke: .05em,
-      evade: false,
-    )[#(info.title.sum())],
-  )
+  // 中文题目单倍行距（多行标题才显现差异；text.spacing 是字距参数，不管行距）
+  [
+    #set par(leading: 行距.单倍, spacing: 0pt)
+    #text(
+      size: 字号.小三,
+      font: fonts.黑体,
+      spacing: 100%,
+      weight: "bold",
+      underline(
+        offset: .4em,
+        stroke: .05em,
+        evade: false,
+      )[#(info.title.sum())],
+    )
+  ]
 
   v(56pt)
 
@@ -311,14 +329,15 @@
   pagebreak(weak: true)
 
   set text(font: fonts.楷体, size: 字号.四号)
-  set par(leading: 1.3em)
+  // 英文正文取正文行距（规范无定量；旧 1.3em 为额外间隙语义误用，约 2.3 倍行距）。
+  set par(leading: 行距.正文, spacing: 行距.正文)
 
   v(80pt)
 
-  // 英文题目单倍行距：用 block 限定 set par 作用域，覆盖页面级 1.3em。
-  // 题目下方英文正文段落仍用页面级 1.3em（在该 block 之外）。
+  // 英文题目单倍行距：用 block 限定 set par 作用域，覆盖页面级正文行距。
+  // 题目下方英文正文段落仍用页面级行距（在该 block 之外）。
   block[
-    #set par(leading: 1em)
+    #set par(leading: 行距.单倍, spacing: 0pt)
     #text(
       font: "Times New Roman",
       size: 字号.小三,

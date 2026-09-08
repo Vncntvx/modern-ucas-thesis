@@ -1,4 +1,5 @@
-#import "../utils/style.typ": get-fonts, 字号
+#import "../utils/style.typ": get-fonts, 字号, 行距
+#import "../utils/page-foreground.typ": preface-foreground
 #import "../utils/double-underline.typ": double-underline
 #import "../utils/invisible-heading.typ": invisible-heading
 #import "../utils/supervisor.typ": normalize-supervisors
@@ -17,8 +18,9 @@
   outline-title: [摘#h(1em)要],
   outlined: false,
   anonymous-info-keys: ("author", "supervisors"),
-  leading: 1.28em,
-  spacing: 1.28em,
+  // Typst leading/spacing 是额外间隙：取 1.25 倍行距等值（与研究生页同口径）。
+  leading: 行距.正文,
+  spacing: 行距.正文,
   body,
 ) = {
   // 1.  默认参数
@@ -52,7 +54,14 @@
   }
 
   // 4.  正式渲染
+  // 起始三件套（P30）：先清样式（填充页干净），再换页，最后重申前言域样式。
+  set page(numbering: none, foreground: none)
   pagebreak(weak: true, to: if twoside { "odd" })
+  set page(
+    numbering: "I",
+    footer: none,
+    foreground: preface-foreground(info: info, fonts: fonts),
+  )
 
   [
     #set text(font: fonts.楷体, size: 字号.小四)
@@ -65,7 +74,8 @@
     #align(center)[
       #set text(size: 字号.小二, weight: "bold")
 
-      #v(1em)
+      // 关键词与摘要间空一行：一行高度 = 正文基线距 21.6pt
+      #v(21.6pt)
 
       #double-underline[*中国科学院大学本科生毕业论文（设计、作品）中文摘要*]
     ]
@@ -97,4 +107,8 @@
 
     *关键词：*#(("",) + keywords.intersperse("，")).sum()
   ]
+
+  // 结尾 reset（P30）：覆盖后续自定义组装顺序下可能出现的填充页；
+  // 标准顺序下由下一部分起始 reset 覆盖，此处幂等、无副作用。
+  set page(numbering: none, foreground: none)
 }

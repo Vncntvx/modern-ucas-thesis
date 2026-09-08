@@ -1,5 +1,7 @@
 // Authors: csimide, OrangeX4
 // Tested only on GB-7714-2015-Numeric
+#import "style.typ": get-fonts
+#import "page-foreground.typ": mainmatter-foreground
 #let bilingual-bibliography(
   bibliography: none,
   title: "参考文献",
@@ -13,14 +15,29 @@
   // 双面印刷时参考文献须由奇数页（右页）开始
   // 单面时退化为普通分页。默认 false（单面）。
   twoside: false,
+  fontset: "mac",
+  fonts: (:),
+  info: (:),
 ) = {
   assert(
     bibliography != none,
     message: "请传入带有 source 的 bibliography 函数。",
   )
 
-  // 另页右页（奇数页）开始：与摘要/目录/致谢等部分统一的分页策略。
+  // 另页右页（奇数页）开始：起始三件套（P30）——先清样式（填充页干净），
+  // 再换页，最后重申正文域样式（计数器延续，不重置）。全静态。
+  fonts = get-fonts(fontset) + fonts
+  set page(numbering: none, foreground: none)
   pagebreak(weak: true, to: if twoside { "odd" })
+  set page(
+    numbering: "1",
+    footer: none,
+    foreground: mainmatter-foreground(
+      twoside: twoside,
+      info: info,
+      fonts: fonts,
+    ),
+  )
 
   // Please fill in the remaining mapping table here
   mapping = (
@@ -184,4 +201,8 @@
     full: full,
     style: style,
   )
+
+  // 结尾 reset（P30）：function 体内的 set page 会泄漏到后续文档流，
+  // 使附录起始换页产生的填充页保持干净，而本页已有样式不受影响。
+  set page(numbering: none, foreground: none)
 }

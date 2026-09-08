@@ -1,4 +1,5 @@
-#import "../utils/style.typ": get-fonts, 字号
+#import "../utils/style.typ": get-fonts, 字号, 行距
+#import "../utils/page-foreground.typ": preface-foreground
 #import "../utils/invisible-heading.typ": invisible-heading
 #import "@preview/cuti:0.4.0": fakebold
 
@@ -27,8 +28,10 @@
   column-gutter: 0pt,
   row-gutter: 10pt,
   anonymous-info-keys: ("author", "grade", "supervisors"),
-  leading: 1.25em,
-  spacing: 1.25em,
+  // 1.25 倍行距：Typst leading 是额外间隙，取 行距.正文，勿写 1.25em。
+  leading: 行距.正文,
+  // 段前段后 0 磅：段间距不含行距，取与 leading 等值使段间基线距与行内一致。
+  spacing: 行距.正文,
   body,
 ) = {
   // 1.  默认参数
@@ -82,9 +85,14 @@
   }
 
   // 4.  正式渲染
-  pagebreak(weak: true, to: if twoside {
-    "odd"
-  })
+  // 起始三件套（P30）：先清样式（填充页干净），再换页，最后重申前言域样式。
+  set page(numbering: none, foreground: none)
+  pagebreak(weak: true, to: if twoside { "odd" })
+  set page(
+    numbering: "I",
+    footer: none,
+    foreground: preface-foreground(info: info, fonts: fonts),
+  )
 
   [
     #set text(font: fonts.宋体, size: 字号.小四)
@@ -96,12 +104,16 @@
 
     #v(title-above)
 
-    #align(center, text(
-      font: fonts.黑体,
-      size: 字号.四号,
-      weight: abstract-title-weight,
-      strong[摘#h(1em)要],
-    ))
+    // 标题单倍行距：作用域内覆盖页面级的 1.25 倍行距
+    #[
+      #set par(leading: 行距.单倍, spacing: 0pt)
+      #align(center, text(
+        font: fonts.黑体,
+        size: 字号.四号,
+        weight: abstract-title-weight,
+        strong[摘#h(1em)要],
+      ))
+    ]
 
     #v(title-below)
 
@@ -111,7 +123,8 @@
       #body
     ]
 
-    #v(15pt)
+    // 关键词与摘要间空一行：一行高度 = 正文基线距 21.6pt
+    #v(21.6pt)
 
     #[
       #set text(font: fonts.宋体, size: 字号.小四)
@@ -119,4 +132,8 @@
     ]
 
   ]
+
+  // 结尾 reset（P30）：覆盖后续自定义组装顺序下可能出现的填充页；
+  // 标准顺序下由下一部分起始 reset 覆盖，此处幂等、无副作用。
+  set page(numbering: none, foreground: none)
 }

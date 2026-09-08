@@ -1,6 +1,7 @@
 #import "../utils/bilingual-figured.typ"
 #import "../utils/invisible-heading.typ": invisible-heading
-#import "../utils/style.typ": get-fonts, 字号
+#import "../utils/style.typ": get-fonts, 字号, 行距
+#import "../utils/page-foreground.typ": preface-foreground
 
 // 图表目录
 #let list-of-figures-and-tables(
@@ -8,6 +9,7 @@
   twoside: false,
   fontset: "mac",
   fonts: (:),
+  info: (:),
   // 其他参数
   title: "图表目录", // 不显示
   fig-title: "图目录",
@@ -33,8 +35,15 @@
     font = fonts.黑体
   }
 
-  // 2. 正式渲染
+  // 2. 正式渲染：起始三件套（P30）——先清样式（填充页干净），
+  // 再换页（双面须奇数页起），最后重申前言域样式。全静态。
+  set page(numbering: none, foreground: none)
   pagebreak(weak: true, to: if twoside { "odd" })
+  set page(
+    numbering: "I",
+    footer: none,
+    foreground: preface-foreground(info: info, fonts: fonts),
+  )
 
   // 默认显示的字体
   set text(font: font, size: size)
@@ -43,21 +52,24 @@
   invisible-heading(level: 1, outlined: outlined, title)
 
   v(title-above)
-  // ——— 插图目录标题 ———
+  // ——— 插图目录标题 ———（单倍行距）
   {
     set align(center)
+    set par(leading: 行距.单倍, spacing: 0pt)
     text(..title-text-args, fig-title)
   }
 
   v(title-below)
 
-  // 计算段前段后间距：规范值 + 单倍行距（字体大小）
-  // 段前不加行距，优化视觉效果 (不知道为什么，不去除会导致间距过大)
+  // 段前段后取规范值：相邻 block 间距取 max 不叠加，
+  // 行距由 leading 提供，勿再叠加字号。
   let actual-above = above
-  let actual-below = below + size
+  let actual-below = below
 
   // 自定义 outline entry：双语图表目录仅显示中文标题
   show outline.entry: it => {
+    // 条目单倍行距（规范值；多行条目才显现差异）
+    set par(leading: 行距.单倍, spacing: 0pt)
     let fig = it.element
     let kind = if fig != none and type(fig) == content and fig.has("kind") {
       fig.kind
@@ -87,9 +99,10 @@
 
   v(title-above)
 
-  // ——— 表格目录标题 ———
+  // ——— 表格目录标题 ———（单倍行距）
   {
     set align(center)
+    set par(leading: 行距.单倍, spacing: 0pt)
     text(..title-text-args, tbl-title)
   }
 
@@ -98,8 +111,9 @@
   // 渲染表目录
   bilingual-figured.outline(target-kind: "bitable", title: none)
 
-  // 手动分页：若需要单双面排版，章节结束后对齐到奇数页
-  if twoside {
-    pagebreak() + " "
-  }
+  // 结尾 reset（P30）：function 体内的 set page 会泄漏到后续文档流，
+  // 使符号说明起始换页产生的填充页保持干净（旧 `pagebreak() + " "` 会留
+  // 带页眉页脚的空内容页，已删除）；本页已有样式不受影响。
+  // 标准顺序下由下一部分起始 reset 覆盖，此处幂等、无副作用。
+  set page(numbering: none, foreground: none)
 }
