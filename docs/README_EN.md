@@ -93,7 +93,7 @@ modern-ucas-thesis/
 | **Document Configuration** | Global configuration (document type, degree type, fonts, etc.) | Completed |
 | | Anonymous review mode | Completed |
 | | Double-sided printing mode | Completed |
-| **Cover and Front Matter** | Bachelor cover (Chinese/English) | In Progress |
+| **Cover and Front Matter** | Bachelor cover (Chinese/English) | Completed |
 | | Graduate cover (Chinese/English) | Completed |
 | | Originality statement and authorization | Graduate completed, Bachelor in progress |
 | | Chinese abstract (with keywords) | Completed |
@@ -101,14 +101,14 @@ modern-ucas-thesis/
 | | Table of contents (with list of figures/tables) | Completed |
 | | Notation list (terms and symbols) | Completed |
 | **Main Text Typesetting** | Chapter heading numbering | Completed |
-| | Header and footer settings | In Progress |
+| | Header and footer settings | Completed |
 | | Footnotes and endnotes | Not Started |
 | | Cross-references (figures, tables, equations, chapters) | Completed |
 | **Figures and Tables** | Bilingual captions (Chinese/English) | Completed |
 | | Figure/table notes | Completed |
 | | Chapter-based numbering | Completed |
-| | Automatic/manual continued tables | In Progress |
-| | Appendix prefix for figures/tables | In Progress |
+| | Automatic/manual continued tables | Completed |
+| | Appendix prefix for figures/tables | Completed |
 | **Equations and Math** | Display equation numbering | Completed |
 | | Multi-line equation alignment and numbering | Completed |
 | | Chapter-based equation numbering | Completed |
@@ -133,9 +133,10 @@ modern-ucas-thesis/
 ## Documentation
 
 - [Customization Guide](CUSTOMIZE.md)
-- [bilingual-figured Guide](BILINGUAL_FIGURED.md)
+- [Format Requirements (Chinese)](RULES.md)
 - [FAQ](FAQ.md)
 - [Formatting Tools](FORMAT.md)
+- [UCAS Logo Copyright](LOGO_COPYRIGHT.md)
 
 ---
 

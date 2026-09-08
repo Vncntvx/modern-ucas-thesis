@@ -289,7 +289,7 @@ Typst CLI 提供两种编译方式：
 
 (e) `aligned-equation.typ`：多行对齐公式。
 
-(f) `custom-numbering.typ` / `custom-heading.typ`：自定义编号和标题样式。
+(f) `custom-numbering.typ`：自定义章节编号样式。
 
 (g) `style.typ`：字体和样式定义。
 

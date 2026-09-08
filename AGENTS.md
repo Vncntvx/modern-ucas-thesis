@@ -2,92 +2,99 @@
 
 This file provides guidance to Code Agent when working with code in this repository.
 
-## 项目概览
+## Project overview
 
-基于 Typst 的中国科学院大学（UCAS）学位论文模板，包名 `modern-ucas-thesis`（v0.2.0，入口 `lib.typ`，`typst.toml` 声明 `compiler = "0.15.0"`）。遵循《中国科学院大学研究生学位论文撰写规范指导意见（2022年）》。本地 Typst CLI 可能为更高版本（如 0.15.x），通常可正常编译。
+A Typst-based thesis template for the University of Chinese Academy of Sciences (UCAS), package `modern-ucas-thesis` (v0.2.0, entry point `lib.typ`, `typst.toml` declares `compiler = "0.15.0"`). It follows the *UCAS Guidelines on Writing Graduate Degree Theses (2022)* (中国科学院大学研究生学位论文撰写规范指导意见). A newer local Typst CLI (e.g. 0.15.x) normally still compiles.
 
-## 常用命令
+## Common commands
 
 ```bash
-# 编译（必须指定字体目录，否则中文会渲染为豆腐块；必须指定 --root，否则 ../lib.typ 触发 sandbox 逃逸）
+# Compile (`--root` is required, otherwise `../lib.typ` triggers a sandbox escape; `--font-path fonts` is required on machines without system CJK fonts, otherwise Chinese renders as tofu; omittable on this macOS machine, which has system Songti/Heiti)
 typst compile template/thesis.typ --root . --font-path fonts
-typst watch   template/thesis.typ --root . --font-path fonts   # 实时预览
+typst watch   template/thesis.typ --root . --font-path fonts   # live preview
 
-# 格式化（工具为 typstyle，需先 brew install typstyle 或 cargo install typstyle）—— 提交前必跑
-make format                 # 格式化所有 .typ
-make format-main            # 仅 lib.typ 与 template/thesis.typ
-make format-check           # 只检查不改，CI 守门
+# Format (tool is typstyle, install via brew install typstyle or cargo install typstyle first); always run before committing
+make format                 # format all .typ files
+make format-main            # only lib.typ and template/thesis.typ
+make format-check           # check only, no writes; enforced by CI
 make format-file FILE=path/to/file.typ
 
-# 包检查
-make lint-quick             # 不依赖外部 index，检查 typst.toml 字段与入口
-make lint                   # 需 typst/package-check（make lint-install 安装，且要本地 package index）
+# Package checks
+make lint-quick             # no external index needed; checks typst.toml fields and entry point
+make lint                   # needs typst/package-check (install via make lint-install, plus a local package index)
 ```
 
-无测试套件；"验证"等于 `make format-check` + `typst compile` 能出 PDF。
+No test suite; "verification" means `make format-check` plus a `typst compile` that produces a PDF.
 
-## 架构
+## Architecture
 
-### 核心模式：`documentclass` 闭包工厂（`lib.typ`）
+### Core pattern: the `documentclass` closure factory (`lib.typ`)
 
-`documentclass(...)` 是整个模板的中枢。它接收全局配置（`doctype`/`degree`/`fontset`/`fonts`/`info`/`bibliography`/`twoside`/`anonymous`），返回一个字典，其中每个值都是**已闭包绑定了全局配置的函数**。这是理解全项目的关键——所有页面/布局函数都不直接调用，而是由 `documentclass` 包装后暴露。**调用这些函数时不要重复传 `fontset`/`fonts`/`info` 等已被闭包持有的参数**，只在 `documentclass` 顶层设置一次。
+`documentclass(...)` is the single entry point. It takes global configuration (`doctype`/`degree`/`nl-cover`/`fontset`/`fonts`/`info`/`bibliography`/`twoside`/`anonymous`) and returns a dictionary of functions with the global configuration bound via closure. Never call a page or layout function directly; everything comes wrapped by `documentclass`. **When calling these functions, do not re-pass `fontset`/`fonts`/`info` and other closure-held parameters**. Set them once at the `documentclass` top level.
 
-返回的函数分两类：
+Returned functions fall into three groups: **layouts** (`doc`/`preface`/`mainmatter`/`appendix`, switched via `#show:`) / **pages** (`cover`/`decl-page`/`abstract`/`abstract-en`, dispatched by `doctype` to `master-*`/`bachelor-*`, `postdoc` currently `panic`s; plus `outline-page`/`list-of-figures-and-tables`/`notation`/`bilingual-bibliography`/`acknowledgement`/`backmatter`/`fonts-display-page`) / **pass-through tools** (`bifigure`/`bitable`/`continued-table`/`auto-table`/`aligned-equation`).
 
-1. **按 `doctype` 分发的页面函数**（`cover`/`decl-page`/`abstract`/`abstract-en`）：内部 `if doctype == "master" or "doctor"` 路由到 `pages/master-*.typ`，否则到 `pages/bachelor-*.typ`；`postdoc` 当前 `panic`（未实现）。
-2. **直接透传的工具函数**（`bifigure`/`bitable`/`continued-table`/`auto-table`/`aligned-equation`）。
+See `template/thesis.typ` for usage: destructure the returned dictionary, then follow the fixed order `#show: doc` → `#cover()` → `#decl-page()` → `#show: preface` → abstract / outline / list of figures and tables / notation → `#show: mainmatter` → body → `#bilingual-bibliography(full: true)` → `#show: appendix` → `#acknowledgement()` → `#backmatter()`. Preface/mainmatter/appendix switch layouts via `#show:` (page numbering, headers/footers, numbering change accordingly). Do not turn them into plain function calls; the call order mirrors the thesis's physical structure and must not be rearranged.
 
-使用方式见 `template/thesis.typ`：解构返回的字典，再按固定顺序 `#show: doc` → `#cover()` → `#decl-page()` → `#show: preface` → 摘要/目录/符号表 → `#show: mainmatter` → 正文 → `#bilingual-bibliography(full: true)` → `#show: appendix` → `#acknowledgement()` → `#backmatter()`。前言/正文/附录靠 `#show:` 触发布局切换（页码制式、页眉、编号随之改变），**不要**改成普通函数调用；调用顺序对应论文物理结构，不能随意调换。
+### Layer responsibilities
 
-### 分层职责
+- `layouts/`: page-level layouts; control page numbering, headers/footers, heading numbering.
+  - `doc.typ`: global `set page` (A4, top/bottom 2.54cm, left/right 3.17cm), PDF metadata, CJK fake bold (enabled via `@preview/cuti:0.4.0`'s `show-cn-fakebold` for non-fandol fontsets; keep this `show` rule when editing `doc.typ`). The 1.5cm header/footer-to-edge distance is not in `doc.typ`; `preface.typ`/`mainmatter.typ` implement it with absolute positioning via `page.foreground` plus `place(top+center, dy:1.5cm)` / `place(bottom+center, dy:-1.5cm)`. Never use `header-ascent`/`footer-descent` here: their semantics is "amount intruding into the margin", not distance-to-edge.
+  - `preface.typ`: front matter, roman page numbers.
+  - `mainmatter.typ`: body, arabic page numbers, chapter numbering (`custom-numbering`, defaults `第1章` / `1.1`), 1.25× line spacing, 2em first-line indent, header shows current chapter name. Level-1 headings get `pagebreak(weak: true)` by default; to suppress it (e.g. for "致谢" continuing previous content), tag the heading `<no-auto-pagebreak>`, which `mainmatter.typ` recognizes. Heading above-spacing differs by level: L1 uses explicit `v()` (preserved after page breaks), while L2+ uses `block(above:)` (max-folds with preceding spacing, clipped at page top). See "Verified conclusions".
+  - `appendix.typ`: appendix. It declares only the deltas vs. the body (unnumbered level-1 headings via `first-level: ""`, 附图/附表 prefixes, L2+ excluded from the outline, counter resets, page + header/footer). Base styling (fonts/leading/heading glyphs/figure captions/footnotes) is deliberately not repeated: in the standard order the appendix region sits inside the `#show: mainmatter` scope (nested show rules) and inherits everything automatically. Subsections `1.1`, figures/tables `1-1`, equations `(1-1)`.
+- `pages/`: concrete page implementations, with `bachelor-*` / `master-*` pairs.
 
-- `layouts/`：页面级布局，控制页码制式、页眉页脚、标题编号。
-  - `doc.typ`：全局 `set page`（A4，上下 2.54cm / 左右 3.17cm）、PDF 元信息、中文伪加粗（非 fandol 字体组经 `@preview/cuti:0.4.0` 的 `show-cn-fakebold` 启用——改 `doc.typ` 时不要漏掉这条 `show` 规则）。页眉/页脚距页边界 1.5cm 不在 `doc.typ`，而由 `preface.typ`/`mainmatter.typ` 的 `page.foreground` + `place(top+center, dy:1.5cm)` / `place(bottom+center, dy:-1.5cm)` 绝对定位实现（不使用 `header-ascent`/`footer-descent`——其语义是侵入 margin 的量，非距边界）。
-  - `preface.typ`：前置部分，罗马数字页码。
-  - `mainmatter.typ`：正文，阿拉伯页码，章节编号（`custom-numbering`，默认 `第1章` / `1.1`），1.25 倍行距，首行缩进 2em，页眉显示当前章名。一级标题前默认 `pagebreak(weak: true)`；若需禁止（如"致谢"紧接上文），给标题打标签 `<no-auto-pagebreak>`，`mainmatter.typ` 会识别。
-  - `appendix.typ`：附录。一级标题无编号（`custom-numbering` 的 `first-level: ""`），子节 `1.1`，图表 `1-1`，公式 `(1-1)`。
-- `pages/`：具体页面内容实现，`bachelor-*` 与 `master-*` 成对存在。
-- `utils/`：可复用构件（见下）。
+### Key utils
 
-### 关键 utils
+- `style.typ`: `字号` (CJK size-name to pt dictionary), `字体组` (four presets `windows`/`mac`/`fandol`/`adobe`, each with 宋体/黑体/楷体/仿宋/等宽), `get-fonts(fontset)`. `documentclass`'s `fontset` selects a preset, the `fonts` dict overrides individual entries (e.g. `fonts: (楷体: (...))`); the two merge.
+- `bilingual-figured.typ`: general bilingual figure/table engine. Provides `bifigure`/`bitable`/`bilingual-caption-style` plus counter-reset logic, distinguishing bilingual figure kinds via `prefixed-kind`.
+- `custom-figure.typ`: in-template wrapper applying the UCAS-mandated style to the engine via `thesis-bilingual-caption-style` (宋体 五号 bold, `*注：*` prefix, `keep_together: true` against page breaks by default, outer block spacing at spec values except the English caption's `above`, which gets one extra `leading`; see "Verified conclusions"). Edit bilingual caption leading / page-break policy here.
+- `continued-table.typ`: `auto-table` (auto continued tables across pages, actively breakable, unconstrained by `keep_together`, for long tables; with `landscape: true` the whole table rotates instead and is forced `breakable: false`) plus `continued-table` (manual continuation, needs the source table's label). All three of `bifigure`/`bitable`/`auto-table` take a `landscape` parameter: the first two rotate via `bilingual-figured._render-bilingual`, the last via its own logic in this file with `rotate(-90deg, reflow: true, ...)` (top-left, bottom-right orientation per spec).
+- `aligned-equation.typ`: multi-line aligned equations, pure pass-through (semantic marker); bottom-aligned numbering comes from the global `set math.equation(number-align: bottom + end)` in `mainmatter`/`appendix`.
 
-- `style.typ`：`字号`（中文字号→pt 字典）、`字体组`（`windows`/`mac`/`fandol`/`adobe` 四套预设，每套含宋体/黑体/楷体/仿宋/等宽）、`get-fonts(fontset)`。`documentclass` 的 `fontset` 选预设、`fonts` 字典覆盖单项（如 `fonts: (楷体: (...))`），二者合并。
-- `bilingual-figured.typ`：**通用双语图表引擎**（源自 RubixDev，可独立作为外部包使用）。提供 `bifigure`/`bitable`/`bilingual-caption-style` 及计数器重置逻辑，通过 `prefixed-kind` 区分双语图表种类。
-- `custom-figure.typ`：模板内层封装，用 `thesis-bilingual-caption-style` 给引擎套上 UCAS 规范样式（宋体五号加粗、`*注：*` 前缀、`keep_together: true` 默认防跨页、块外间距"规范值 + 1.25em 行距"舒展口径）。修改双语标题行距/跨页策略改这里。
-- `continued-table.typ`：`auto-table`（自动跨页续表，主动分页，不受 `keep_together` 约束，适合长表；`landscape: true` 时改为整表卧排并强制 `breakable: false`）+ `continued-table`（手动续表，需先有原表 label）。`bifigure`/`bitable`/`auto-table` 三者均有 `landscape` 参数，由 `bilingual-figured._render-bilingual` 的 `rotate(-90deg, reflow: true, ...)` 实现卧排（顶左底右）。
-- `aligned-equation.typ`：多行对齐公式，纯透传（语义标记）；编号底部对齐由 `mainmatter`/`appendix` 全局 `set math.equation(number-align: bottom + end)` 提供。
-- `custom-heading.typ`：`active-heading`/`current-heading` 供页眉显示当前章名。
+### Cross-reference conventions
 
-### 交叉引用约定
+Body text uniformly uses prefixed references: figures `@fig:label`, tables `@tbl:label`, display equations `@eqt:label` (`aligned-equation` likewise uses `@eqt:label`). Tag a display equation `<->` for no number. Bilingual captions go through `caption-zh`/`caption-en`, or the `caption: metadata((zh, en, none, [表], [Table]))` form (`bitable` accepts the native-`figure` metadata style).
 
-正文统一使用带前缀引用：图 `@fig:label`、表 `@tbl:label`、行间公式 `@eqt:label`（`aligned-equation` 同样用 `@eqt:label`）。行间公式加 `<->` 标签表示不编号。双语标题通过 `caption-zh`/`caption-en` 传入，或用 `caption: metadata((zh, en, none, [表], [Table]))` 形式（`bitable` 兼容原生 `figure` 的 metadata 写法）。
+### External dependencies
 
-### 外部依赖
+`@preview/cuti:0.4.0` (CJK fake bold, used in `doc.typ`/`master-abstract.typ`). Re-verify compatibility when upgrading this dependency or the Typst compiler version.
 
-`@preview/cuti:0.4.0`（中文伪加粗）、`@preview/tablex:0.0.9`。升级这些依赖或 Typst compiler 版本时需同步核验兼容性。
+### Working requirements
 
-### 工作要求
+Typst is a young language with fast-moving syntax and APIs. **Never write Typst from memory.** For syntax, function signatures, parameters, or package usage, check Context7 first:
 
-Typst 是较新的语言，语法和 API 演进快，**不要凭记忆写 Typst**。涉及语法、函数签名、参数、包用法时，先用 Context7 查证再写：
+- Syntax/function docs: `/websites/typst_app` (official live docs, freshest).
+- **Do not** treat `/typst/typst` (GitHub source) release-tag snapshots as "latest". They lag; the latest version is whatever local `typst --version` or [GitHub Releases](https://github.com/typst/typst/releases) says.
 
-- 语法/函数文档：`/websites/typst_app`（官网实时文档，时效性最好）。
-- **不要**把 `/typst/typst`（GitHub 源）的 release tag 快照当作"最新版本"，它有滞后性；查最新版本以本地 `typst --version` 或 [GitHub Releases](https://github.com/typst/typst/releases) 为准。
+## Verified conclusions (baseline: Typst 0.15.x + 2026-09 PDF; re-verify per the last bullet after upgrading the compiler)
 
-## 边界与红线
+- Nested show-rule inheritance: in the standard order, the appendix/acknowledgement/backmatter region sits inside the `#show: mainmatter` scope and automatically inherits all of its `set`/`show` rules. The leanness of `appendix.typ` is deliberate design. **Do not** add font/leading/heading styling to `appendix.typ`/`acknowledgement.typ`/`backmatter.typ` (it stacks on top of the outer rules, e.g. doubling heading spacing).
+- Spacing combination rules (proven with micro-probes): `block(above/below)` max-folds with adjacent block spacing (≈ TeX `\addvspace`); explicit `v()` adds to block spacing instead of folding. Hence L2+ heading above-spacing must use `block(above:)`. **Do not** switch it back to `v()` (that produced 63.8pt chapter-to-section gaps vs. 34.8pt in the LaTeX reference; the current model gives ≈39.8pt, whose residual is the below-compensation required by the heading-to-body path).
+- Leading semantics: `行距.正文 = 1.1em` (Typst `leading` is extra inter-line gap), measured body baseline distance 21.54pt ≈ LaTeX reference 21.60pt; Word's "1.25×" is nominal only (≈15pt literally), and neither side follows it literally. **Do not** write `1.25em`. Setting `spacing` equal to `leading` implements the "0pt before/after" semantics. Comparison table: `docs/CUSTOMIZE.md §8.9`.
+- Outline indent: the `level` passed to the `outline(indent:)` callback is 0-based (unlike `outline.entry.level`, which is 1-based; undocumented, measured 0/12/24pt hitting "flush/one-char/two-char" exactly). The `slice(0, level+1)` logic in `outline-page.typ` is correct. **Do not** "fix" it as an off-by-one. Also: dots and `entry.page()` must stay inside the entry's `text()`; otherwise level-1 page numbers render smaller than the entry text.
+- Chinese-English caption gap: the English caption's `above` of one `leading` is intentional (baseline distance between two single-line blocks excludes `leading`); the spec's literal "0pt above for English captions" is unimplementable directly. Measured zh-to-en 18.5pt (LaTeX 21.6pt); both look fine. **Do not** change it to `0pt`.
+- Equation number size: inheriting body 小四 is a known deviation (`docs/CUSTOMIZE.md §19.1`; the LaTeX reference does the same). **Do not** fix it with a `numbering` function returning `text(五号)`. Probes prove it also shrinks in-text `@eqt:` references to 五号.
+- Latin font fallback is deterministic by design: every font group lists Times New Roman first, so Latin/digits/punctuation always resolve to Times; English cover and English abstract verified all-Times. **Do not** add explicit font wrappers for this.
+- Layout verification method: after `make format-check` plus compiling to PDF, measure baselines via span `origin` with PyMuPDF (`fitz`, available on this machine) and compare against the `docs/CUSTOMIZE.md §8.9` table; the LaTeX reference numbers are archived, so recompiling LaTeX is usually unnecessary (that requires a batch of `--usermode` packages plus `fontset=fandol`; see the audit record).
+- Validity period: the above conclusions depend on three current-Typst behaviors: `block`/`v` folding semantics, the 0-based `outline(indent:)` level, and `math.equation` having no independent number styling. After bumping `compiler` in `typst.toml`, re-run the measurements above before touching code.
 
-- `others/`：**独立**的本科生/研究生开题报告（`bachelor-proposal.typ`、`master-proposal.typ`），只 `#import "style.typ"`（自带一份），不走 `documentclass`。改主模板时不要顺手碰这里。
-- `fonts/`：只放 README 和子目录占位，**不要提交字体文件**（版权原因，见 `fonts/README.md` 与 `docs/LOGO_COPYRIGHT.md`）。本地编译必须用 `--font-path fonts` 指向用户自行放入的字体。
-- `assets/vi/`：校徽等 UCAS 视觉标识版权归学校，仅限个人学位论文合理使用，不得商用。
-- `.env`：被 gitignore 且含密钥——绝不提交、绝不写进文档。
+## Boundaries & red lines
 
-## 仓库约定
+- `others/`: undergrad/grad research proposals (`bachelor-proposal.typ`, `master-proposal.typ`) that stand alone. They only `#import "style.typ"` (their own copy) and bypass `documentclass`. Don't touch these when editing the main template.
+- `fonts/`: only README and subdirectory placeholders. **Never commit font files** (licensing; see `fonts/README.md` and `docs/LOGO_COPYRIGHT.md`). Local builds must use `--font-path fonts` pointing at user-supplied fonts.
+- `assets/vi/`: UCAS visual-identity assets belong to the university; personal-thesis fair use only, no commercial use.
+- `.env`: gitignored and contains secrets. Never commit it, never write it into docs.
 
-- 主分支 `main`；另有 `style` 长期分支。提交信息沿用现有 gitmoji 风格（`feat(utils): ✨ ...`、`fix(layouts): 🐛 ...`、`docs(docs): 📝 ...`）。
-- `.editorconfig`：`.typ` 2 空格缩进，`Makefile` 用 tab，`.sh` 4 空格，`.md` 不裁尾随空格。
-- `template/thesis.pdf` 被 gitignore；其他 `*.pdf` 由 `make clean` 清理。
+## Repo conventions
 
-## 模式开关
+- Main branch `main`, plus a long-lived `style` branch. Commit messages follow the existing gitmoji style (`feat(utils): ✨ ...`, `fix(layouts): 🐛 ...`, `docs(docs): 📝 ...`).
+- `.editorconfig`: 2-space indent for `.typ`, tabs for `Makefile`, 4 spaces for `.sh`, no trailing-whitespace trimming for `.md`.
+- `template/thesis.pdf` is gitignored; other `*.pdf` files are cleaned by `make clean`.
 
-- `twoside: true`：双面打印，自动插入空白页使各部分从奇数页（右页）开始。
-- `anonymous: true`：盲审模式，隐藏作者/导师等身份信息。
-- `degree: "academic" | "professional"`：学术型 / 专业学位，影响封面与摘要的学位类别显示。
+## Mode switches
+
+- `twoside: true`: duplex printing, auto-inserts blank pages so each part starts on an odd (right-hand) page.
+- `anonymous: true`: blind-review mode, hides author/supervisor identity info.
+- `degree: "academic" | "professional"`: academic vs. professional degree; affects the degree-category display on the cover and abstract.
