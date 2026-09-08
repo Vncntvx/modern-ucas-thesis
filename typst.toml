@@ -15,7 +15,7 @@ keywords = [
     "template",
 ]
 categories = ["thesis"]
-exclude = ["imgs"]
+exclude = ["tests", "docs"]
 compiler = "0.15.0"
 
 [template]
