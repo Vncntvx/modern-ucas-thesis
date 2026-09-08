@@ -4,7 +4,7 @@ This file provides guidance to Code Agent when working with code in this reposit
 
 ## Project overview
 
-A Typst-based thesis template for the University of Chinese Academy of Sciences (UCAS), package `modern-ucas-thesis` (v0.2.0, entry point `lib.typ`, `typst.toml` declares `compiler = "0.15.0"`). It follows the *UCAS Guidelines on Writing Graduate Degree Theses (2022)* (中国科学院大学研究生学位论文撰写规范指导意见). A newer local Typst CLI (e.g. 0.15.x) normally still compiles.
+A Typst-based thesis template for the University of Chinese Academy of Sciences (UCAS), package `modern-ucas-thesis` (v0.3.0, entry point `lib.typ`, `typst.toml` declares `compiler = "0.15.0"`). It follows the *UCAS Guidelines on Writing Graduate Degree Theses (2022)* (中国科学院大学研究生学位论文撰写规范指导意见). A newer local Typst CLI (e.g. 0.15.x) normally still compiles.
 
 ## Common commands
 

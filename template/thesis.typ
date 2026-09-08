@@ -1,4 +1,4 @@
-//#import "@preview/modern-ucas-thesis:0.2.0": documentclass
+//#import "@preview/modern-ucas-thesis:0.3.0": documentclass
 #import "../lib.typ": documentclass
 #import "../pages/degree-table.typ": degree-table
 // 你首先应该安装 fonts下的所有字体，或在编译的时候指定字体路径：
