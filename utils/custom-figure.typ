@@ -1,12 +1,13 @@
 #import "bilingual-figured.typ"
-#import "style.typ": 字号
+#import "style.typ": 字号, 行距
 
 #let bifigure = bilingual-figured.bifigure
 #let bitable = bilingual-figured.bitable
 
 #let thesis-bilingual-caption-style(
   fonts,
-  leading: 1.25em,
+  // 1.25 倍行距：Typst leading 是额外间隙，取 行距.正文，勿写 1.25em。
+  leading: 行距.正文,
   keep_together: true,
   caption_par: auto,
   note_par: auto,
@@ -25,22 +26,24 @@
   } else {
     note_par
   }
-  // 块外间距：规范值 + 行距（leading）。caption 上下与图表主体、外部段落、
-  // 中英标题相互之间均按"规范值 + 1.25em 行距"取值——相邻 block 取 max，
-  // 中英标题间距恰为 1.25em（规范"1.25 倍行距"），整体视觉舒展。此为模板
-  // 长期使用的间距口径，保留。
+  // 块外间距：取规范值，但中英标题之间需保留一行行距。Typst 的 leading
+  // 只在段落内部行间生效，两个单行 block 之间基线距 = 行盒 + max(段后, 段前)，
+  // 不含 leading；其实测见 docs/CUSTOMIZE.md（SVG/PDF 基线法）。
+  // 故中文题段前 6pt / 段后 0pt（规范值），英文题段前取一个 leading
+  // （中英题基线距 ≈ 行盒 + leading，随正文行距口径，即规范"1.25 倍行距"），
+  // 英文题段后 12pt（规范值）。勿再叠加旧式 1.25em（会远超规范）。
   let zh = if zh_block == auto {
-    (above: 6pt + leading, below: 0pt + leading)
+    (above: 6pt, below: 0pt)
   } else {
     zh_block
   }
   let en = if en_block == auto {
-    (above: 0pt + leading, below: 12pt)
+    (above: leading, below: 12pt)
   } else {
     en_block
   }
   let note = if note_block == auto {
-    (above: 6pt + leading, below: 0pt + leading, inset: note_inset)
+    (above: 6pt, below: 0pt, inset: note_inset)
   } else if "inset" in note_block {
     note_block
   } else {

@@ -18,6 +18,22 @@
   小七: 5pt,
 )
 
+// 行距换算（Typst leading 为行盒之间的额外间隙，不是 Word 的"倍行距"）。
+// 校准基准：LaTeX 参考实现（ctexbook 小四 + \linespread{1.5}）实测正文基线距
+// 21.6pt（Songti SC 12pt），单倍（\linespread{1.0}）基线距 14.4pt。
+// 模板统一 top-edge: cap-height / bottom-edge: baseline 修剪行盒，
+// 小四行盒实测约 8.34pt，故：正文 leading 取约 13.26pt ≈ 1.1em；
+// 单倍 leading 取约 6.06pt ≈ 0.5em。相对单位使五号等字号自动按比例缩放。
+// 注意：规范"1.25倍行距"若按字面 1.25×字号仅 15pt，但 LaTeX 参考实现与
+// 实际送审效果均为 21.6pt 量级，模板以参考实现为准（见 docs/CUSTOMIZE.md）。
+// 标定方法：见 docs/CUSTOMIZE.md（SVG/PDF 基线法）。
+#let 行距 = (
+  // 单倍行距：标题等"单倍行距"场景，基线距约 1.0×ctex 单倍（14.4pt@小四）
+  单倍: 0.5em,
+  // 正文行距：正文/摘要/题注，基线距约 21.6pt@小四（对齐 LaTeX 参考实现）
+  正文: 1.1em,
+)
+
 #let 等宽字体 = (
   // 优先使用 Typst 内置字体
   "DejaVu Sans Mono",

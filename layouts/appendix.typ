@@ -1,4 +1,5 @@
 #import "../utils/bilingual-figured.typ"
+#import "../utils/page-foreground.typ": mainmatter-foreground
 #import "../utils/style.typ": get-fonts, 字号
 #import "../utils/custom-numbering.typ": custom-numbering
 #import "../utils/citation-range-hyphen.typ": citation-range-hyphen
@@ -41,6 +42,7 @@
   twoside: false,
   fontset: "mac",
   fonts: (:),
+  info: (:),
   numbering: custom-numbering.with(first-level: "", depth: 4, "1.1\u{3000}"),
   // figure 计数（附录图表前缀为"附图/附表"，编号 1-1）
   show-figure: _appendix-show-figure.with(numbering: "1-1"),
@@ -53,10 +55,22 @@
   it,
 ) = {
   // 附录须由另页右页（奇数页）开始（双面印刷时）。
-  // 与摘要/目录/致谢/简历等部分一致，由函数内部 pagebreak(to:"odd") 自包含处理，
-  // 单面时 to:"odd" 退化为普通分页（无奇偶概念）。
-  pagebreak(weak: true, to: if twoside { "odd" })
+  // 起始三件套（P30）：先清样式（填充页干净），再换页，最后重申正文域样式。
+  // reset 必须与 break 同处一个 show 体内（见 mainmatter 注释）。
+  // 全静态，无运行时判断。info 由 documentclass 传入（偶数页论文题目用）。
+  // 注意顺序：先解析 fonts 再 assert（foreground 工厂需要完整字体组）。
   fonts = get-fonts(fontset) + fonts
+  set page(numbering: none, foreground: none)
+  pagebreak(weak: true, to: if twoside { "odd" })
+  set page(
+    numbering: "1",
+    footer: none,
+    foreground: mainmatter-foreground(
+      twoside: twoside,
+      info: info,
+      fonts: fonts,
+    ),
+  )
   set heading(numbering: numbering)
   // 标记附录模式：bifigure/bitable 经 _appendix-show-figure 改写前缀为"附图/附表"，
   // auto-table 等通过 in-appendix() 读取此标记自行解析 supplement。
@@ -69,8 +83,7 @@
   show heading.where(level: 4): set heading(outlined: false)
   // 公式编号对齐到最后一行右侧（UCAS 规范：序号编于最后一行右顶格）
   set math.equation(number-align: bottom + end)
-  // 公式编号字体：宋体（与正文 mainmatter 一致；字号继承正文，Typst 固有限制）
-  show math.equation.where(block: true): set text(font: fonts.宋体)
+  // 公式编号字体：不覆盖（与正文 mainmatter 一致；set text 会破坏数学字形，见该文件注释）。
   if reset-counter {
     counter(heading).update(0)
   }

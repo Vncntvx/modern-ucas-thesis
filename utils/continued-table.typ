@@ -1,30 +1,34 @@
 #import "bilingual-figured.typ"
-#import "style.typ": 字号
+#import "style.typ": 字号, 行距
 
 #let _typst-numbering = numbering
 
 #let continuation-style(
   separator: h(1em),
   caption_align: center,
-  caption_par: (leading: 1.25em),
+  // 1.25 倍行距：Typst leading 是额外间隙，取 行距.正文，勿写 1.25em。
+  caption_par: (leading: 行距.正文),
   note_par: auto,
   zh_text: (size: 字号.五号, weight: "bold"),
   en_text: (size: 字号.五号, weight: "bold"),
   note_text: (size: 字号.五号),
   note_prefix: [*注：* ],
   note_align: left,
-  // 块外间距：规范值 + 行距（1.25em），与 custom-figure 同口径。相邻 block 取 max，
-  // 中英标题间距恰为 1.25em（规范"1.25 倍行距"）。仅 _render-caption（手动续表）
-  // 使用 zh_block/en_block；_render-auto-header-caption 用显式 v(caption_gap) 分隔。
-  zh_block: (above: 6pt + 1.25em, below: 0pt + 1.25em),
-  en_block: (above: 0pt + 1.25em, below: 12pt),
-  note_block: (above: 6pt + 1.25em, below: 0pt + 1.25em, inset: (left: 2em)),
+  // 块外间距：取规范值，但中英标题之间需保留一行行距（与 custom-figure
+  // 同口径）。Typst leading 只在段落内部生效，两个单行 block 之间基线距
+  // 不含 leading，其实测见 docs/CUSTOMIZE.md，故英文题段前取一个 leading。
+  // 仅 _render-caption（手动续表）使用 zh_block/en_block；
+  // _render-auto-header-caption 用显式 v(caption_gap) 分隔。
+  zh_block: (above: 6pt, below: 0pt),
+  en_block: (above: 行距.正文, below: 12pt),
+  note_block: (above: 6pt, below: 0pt, inset: (left: 2em)),
   continued_mark_zh: [（续表）],
   continued_mark_en: [(continued)],
-  // 续表表头中英文标题间距，与普通表 zh_block.below / en_block.above 取较大值的语义对齐
-  caption_gap: 1.25em,
+  // 续表表头中英文标题间距：同上，取一个 leading 使中英题基线距约 1.25×字号。
+  caption_gap: 行距.正文,
   header_cell: (stroke: none, inset: (x: 0pt, top: 0pt, bottom: 0.6em)),
-  auto_header_gap: 0.2em,
+  // 表题与表体间距：规范未定量，取 8pt（与 LaTeX 模板 caption skip 一致）。
+  auto_header_gap: 8pt,
   table_align: center,
   cell_align: center,
   continued_block: (above: 1.25em, below: 1em),
@@ -72,7 +76,8 @@
 ) = [
   #set align(style.caption_align)
   #set text(..style.zh_text)
-  #block(above: 0pt, below: 0pt)[
+  // 中文表题段前 6pt（规范值；表头首行内渲染，以上边距实现）。
+  #block(above: 6pt, below: 0pt)[
     #supplement_zh #number #style.separator #caption_zh
     #if continued { [#style.continued_mark_zh] }
   ]
