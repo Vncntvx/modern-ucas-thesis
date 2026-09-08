@@ -29,7 +29,10 @@ THE SOFTWARE.
 // auto-table 等不经 show-figure 的工具在构造时读取此 state 自行解析。
 #let _appendix-state = state("bilingual-figured-appendix", false)
 
-// 标记进入附录模式，返回不可见内容，须插入文档流生效。
+// 标记进入附录模式，返回不可见内容，须进入文档流生效。
+// `appendix.typ` 中以裸语句调用即可：Typst 代码块的值是全部表达式值的拼接
+// （官方文档：Scripting > Blocks），update 内容因此并入函数返回内容，无需显式
+// 拼接；不要把它当作"被丢弃但仍生效"的未文档化行为。
 #let enter-appendix-mode() = _appendix-state.update(true)
 
 // 在 context 内查询当前是否处于附录模式。

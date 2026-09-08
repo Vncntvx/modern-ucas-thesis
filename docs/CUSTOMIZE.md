@@ -893,6 +893,16 @@ Typst 的 `leading` 是行盒之间的**额外间隙**（默认 `0.65em`），�
 
 用户标签缺少前缀时会自动补全（如 `<ucasLogo>` → `fig:ucasLogo`）；已带正确前缀的不会被重复添加。
 
+**引用渲染为裸编号（无"图/表"前缀）**——这是有意约定：`bifigure`/`bitable` 构造 figure 时显式 `supplement: none`，因此 `@fig:ucasLogo` 实际渲染为 `1-1` 而非 `图 1-1`（`@eqt:` 亦渲染为裸 `(1-1)`）。行文中需前缀时请手写补充：
+
+```typst
+如 图@fig:ucasLogo 所示。      // 渲染为"如图 1-1 所示"
+如表@tbl:with-note 所示。      // 渲染为"如表 1-1 所示"
+由 式@eqt:golden-ratio 可知…   // 渲染为"由 式(1-1) 可知…"
+```
+
+> 2026-09 审计实测：附录中引用亦为裸编号（`@fig:app-emblem` → `1-1`，无"附图"前缀），如需"附图 1-1"须手写"附图@fig:app-emblem"。
+
 ### 9.6 双语图表样式定制
 
 模板默认通过 `utils/custom-figure.typ:7-69` 的 `thesis-bilingual-caption-style(fonts)` 统一配置双语图表样式，取值为 UCAS 规范值：

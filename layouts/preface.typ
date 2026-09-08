@@ -17,7 +17,9 @@
   spacing: 行距.正文,
   justify: true,
   first-line-indent: (amount: 2em, all: true),
-  // 章节编号格式
+  // 章节编号格式（遗留占位参数，当前不生效：前言域各页面不设 heading 编号，
+  // 摘要/目录等的标题由各自页面函数直接渲染。保留仅为与 mainmatter 参数面
+  // 对称；删除属破坏性变更，修改此处不会影响任何输出）。
   numbering: custom-numbering.with(
     first-level: "第1章\u{3000}",
     depth: 3,
