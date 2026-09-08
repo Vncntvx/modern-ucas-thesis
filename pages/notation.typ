@@ -19,7 +19,6 @@
   font: auto,
   size: 字号.小四,
   body,
-  ..args,
 ) = {
   // 1.  默认参数
   fonts = get-fonts(fontset) + fonts

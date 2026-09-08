@@ -16,6 +16,8 @@
 ) = {
   if (not anonymous) {
     // 起始三件套（P30）：先清样式（填充页干净），再换页，最后重申正文域样式。
+    // 标题（黑体四号加粗居中）与正文字体行距继承自外层 mainmatter 作用域
+    // （show 规则嵌套，标准顺序下本函数位于其内），此处不重复设置。
     fonts = get-fonts(fontset) + fonts
     set page(numbering: none, foreground: none)
     pagebreak(weak: true, to: if twoside { "odd" })

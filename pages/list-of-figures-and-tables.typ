@@ -24,7 +24,6 @@
   // 段前段后间距规范值
   above: 6pt,
   below: 0pt,
-  ..args,
 ) = {
   // 1. 默认参数
   fonts = get-fonts(fontset) + fonts

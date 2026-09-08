@@ -20,20 +20,10 @@
   stroke-width: 0.5pt, // 控制元素边框（如框架、分隔线等）的线宽度。
   min-title-lines: 2, // 控制标题行数的最小值。
   min-supervisor-lines: 2, // 控制指导教师区域的最小行数。
-  min-reviewer-lines: 5, // 控制评审人区域的最小行数。
   info-inset: (x: 0pt, bottom: 0pt), // 信息区域内边距；2 倍行距由 row-gutter 控制，bottom 清零避免干扰
   info-key-width: 70pt, // 控制信息标签（如“论文题目”、“作者姓名”）的宽度。
   info-column-gutter: 6pt, // 控制信息列之间的间距。
   info-row-gutter: 1em, // 2 倍行距：相邻行 baseline 间距 = 行高(1em) + gutter(1em) = 2em
-  meta-block-inset: (left: -15pt), // 控制元数据块的内边距。
-  meta-info-inset: (x: 0pt, bottom: 2pt), // 控制元信息区域的内边距。
-  meta-info-key-width: 35pt, // 控制元信息标签的宽度（如“学位”、“提交日期”）。
-  meta-info-column-gutter: 10pt, // 控制元信息列之间的间距。
-  meta-info-row-gutter: 1pt, // 控制元信息行之间的间距。
-  defence-info-inset: (x: 0pt, bottom: 0pt), // 控制答辩信息区域的内边距。
-  defence-info-key-width: 110pt, // 控制答辩信息标签的宽度。
-  defence-info-column-gutter: 2pt, // 控制答辩信息列之间的间距。
-  defence-info-row-gutter: 12pt, // 控制答辩信息区域行与行之间的间距。
   anonymous-info-keys: (
     // 控制需要匿名化处理的字段。
     "student-id",
@@ -84,13 +74,9 @@
   // 2.1 导师信息校验并归一化为字典列表 (name:, title:, affiliation:)。
   info.supervisors = normalize-supervisors(info.supervisors)
   info.supervisors-en = normalize-supervisors(info.supervisors-en)
-  // 2.2 根据 min-title-lines 和 min-reviewer-lines 填充标题和评阅人
+  // 2.2 根据 min-title-lines 填充标题
   info.title = (
     info.title + range(min-title-lines - info.title.len()).map(it => "　")
-  )
-  info.reviewer = (
-    info.reviewer
-      + range(min-reviewer-lines - info.reviewer.len()).map(it => "　")
   )
   // 填充导师列表至 min-supervisor-lines 行，空行用空字典占位（渲染为空下划线栏）
   info.supervisors = (
@@ -125,72 +111,30 @@
   }
 
   // 3.  内置辅助函数
-  let info-key(body, info-inset: info-inset, is-meta: false) = {
-    set text(
-      font: if is-meta {
-        fonts.宋体
-      } else {
-        fonts.宋体
-      },
-      size: if is-meta {
-        字号.小五
-      } else {
-        字号.四号
-      },
-      weight: if is-meta {
-        "regular"
-      } else {
-        "bold"
-      },
-    )
+  let info-key(body, info-inset: info-inset) = {
+    set text(font: fonts.宋体, size: 字号.四号, weight: "bold")
 
     rect(
       width: 100%,
       inset: info-inset,
       stroke: none,
-      justify-text(with-tail: is-meta, body),
+      justify-text(body),
     )
   }
 
-  let info-value(
-    key,
-    body,
-    info-inset: info-inset,
-    is-meta: false,
-    no-stroke: false,
-  ) = {
+  let info-value(key, body, info-inset: info-inset) = {
     set align(center)
     rect(
       width: 100%,
       inset: info-inset,
-      stroke: if no-stroke {
-        none
-      } else {
-        (bottom: stroke-width + black)
-      },
+      stroke: (bottom: stroke-width + black),
       text(
-        font: if is-meta {
-          fonts.宋体
-        } else {
-          fonts.宋体
-        },
-        weight: if is-meta {
-          "regular"
-        } else {
-          "bold"
-        },
-        size: if is-meta {
-          字号.小五
-        } else {
-          字号.四号
-        },
+        font: fonts.宋体,
+        weight: "bold",
+        size: 字号.四号,
         bottom-edge: "descender",
         if (anonymous and (key in anonymous-info-keys)) {
-          if is-meta {
-            "█████"
-          } else {
-            "██████████"
-          }
+          "██████████"
         } else {
           body
         },
@@ -205,14 +149,6 @@
       body
     }
   }
-
-  let meta-info-key = info-key.with(info-inset: meta-info-inset, is-meta: true)
-  let meta-info-value = info-value.with(
-    info-inset: meta-info-inset,
-    is-meta: true,
-  )
-  let defence-info-key = info-key.with(info-inset: defence-info-inset)
-  let defence-info-value = info-value.with(info-inset: defence-info-inset)
 
   // 4.  正式渲染
   pagebreak(weak: true)
