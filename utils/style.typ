@@ -26,7 +26,7 @@
 // 单倍 leading 取约 6.06pt ≈ 0.5em。相对单位使五号等字号自动按比例缩放。
 // 注意：规范"1.25倍行距"若按字面 1.25×字号仅 15pt，但 LaTeX 参考实现与
 // 实际送审效果均为 21.6pt 量级，模板以参考实现为准（见 docs/CUSTOMIZE.md）。
-// 标定方法：见 docs/CUSTOMIZE.md（SVG/PDF 基线法）。
+// 测量方法：SVG/PDF 基线法，见 docs/CUSTOMIZE.md。
 #let 行距 = (
   // 单倍行距：标题等"单倍行距"场景，基线距约 1.0×ctex 单倍（14.4pt@小四）
   单倍: 0.5em,

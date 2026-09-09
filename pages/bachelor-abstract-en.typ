@@ -6,7 +6,7 @@
 
 // 本科生英文摘要页
 #let bachelor-abstract-en(
-  // documentclass 传入的参数
+  // documentclass 传入参数
   anonymous: false,
   twoside: false,
   fontset: "mac",
@@ -17,7 +17,8 @@
   outline-title: "Abstract",
   outlined: false,
   anonymous-info-keys: ("author-en", "supervisors-en"),
-  // Typst leading/spacing 是额外间隙：取 1.25 倍行距等值（与研究生页同口径）。
+  // 1.25 倍行距：Typst leading 是行盒之间的额外间隙，取 行距.正文，勿写 1.25em。
+  // 段前段后 0 磅：段间距不含行距，取与 leading 等值，使段间基线距与行内一致。
   leading: 行距.正文,
   spacing: 行距.正文,
   body,
@@ -54,8 +55,9 @@
 
   // 4.  正式渲染
   [
-    // 起始三件套（P30 变体）：先挂完整前言域样式（填充空白页同样显示页眉页脚——
-    // 偶数页论文题目、奇数页章名/部分名，页码罗马数字居中），再换页。全静态。
+    // 起始页面样式：先设置页眉页脚（page.foreground）再换页，使双面模式下
+    // to:"odd" 换页自动插入的填充空白页同样显示页眉页脚（偶数页论文题目、
+    // 奇数页章名/部分名，页码罗马数字居中）。全静态实现，无运行时判断。
     #set page(
       numbering: "I",
       footer: none,
@@ -73,7 +75,7 @@
     #align(center)[
       #set text(size: 字号.小二, weight: "bold")
 
-      // 关键词与摘要间空一行：一行高度 = 正文基线距 21.6pt
+      // 页首空一行：一行高度 = 正文基线距 21.6pt
       #v(21.6pt)
 
       #double-underline[*中国科学院大学本科生毕业论文（设计、作品）英文摘要*]
@@ -104,7 +106,8 @@
     #strong[Key Words:] #(("",) + keywords.intersperse(", ")).sum()
   ]
 
-  // 结尾 reset（P30）：覆盖后续自定义组装顺序下可能出现的填充页；
-  // 标准顺序下由下一部分起始 reset 覆盖，此处幂等、无副作用。
+  // 结尾重置页面样式：function 体内的 set page 会泄漏到后续文档流，此处显式
+  // 清除，使后续换页产生的填充页不残留本部分样式；标准组装顺序下由下一部分
+  // 起始的页面样式覆盖，此处幂等、无副作用。
   set page(numbering: none, foreground: none)
 }

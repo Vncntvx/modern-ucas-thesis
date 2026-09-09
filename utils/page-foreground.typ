@@ -1,11 +1,10 @@
 // 前言 / 正文页眉页脚 foreground 工厂。
 //
-// 原实现分别内联于 layouts/preface.typ 与 layouts/mainmatter.typ，
-// 此处逐字搬运（仅缩进与自由变量参数化），行为完全一致。
-// 使用方式（P30 变体）：各部分起始处先 set page(foreground: ...) 再 pagebreak，
-// 使 to:"odd" 自动填充页与正文页一样显示页眉页脚（偶数页题目、奇数页章名/部分名）。
-// 标定（P20）：页眉/页脚距页边界 1.5cm 由 place 绝对定位实现，
-// 字体宋体小五（数字走 Times fallback），见各函数内注释。
+// 使用方式：各部分起始处先 set page(foreground: ...) 再 pagebreak，使双面模式下
+// to:"odd" 换页自动插入的填充空白页与正文页一样显示页眉页脚
+//（偶数页题目、奇数页章名/部分名）。
+// 页眉/页脚距页边界 1.5cm 由 place 绝对定位实现，字体宋体小五
+//（数字走 Times 回退），见各函数内注释。
 
 #import "style.typ": 字号
 
@@ -83,7 +82,7 @@
       }
     }
 
-    // 递归把 content 转为 str（复用 bilingual-bibliography.typ:38-50 的 to-string 模式）
+    // 递归把 content 转为 str（与 bilingual-bibliography.typ 的 to-string 同构）
     let content-to-str(c) = {
       if c == none { "" } else if type(c) == str { c } else if c.has("text") {
         c.text
@@ -130,8 +129,8 @@
           top-edge: "bounds",
           bottom-edge: "bounds",
         )
-        // 行距段距清零：默认 par spacing（1.2em）会盖掉 v(0.5em) 并把分隔线（旧 v(0.5em)，现 v(2pt)，见下）
-        // 顶到 16pt 开外（LaTeX 参考仅约 4pt）；清零后由显式 v(2pt) 精确定位。
+        // 行距段距清零：默认 par spacing（1.2em）会把分隔线顶到 16pt 开外
+        //（LaTeX 参考仅约 4pt）；清零后由下方显式 v(2pt) 精确定位。
         set par(leading: 0pt, spacing: 0pt)
         // 页眉盒顶定位于距页边界 1.5cm（与 LaTeX headheight 盒模型一致，
         // 盒高 12pt，文字底对齐，基线约 1.5cm+12pt；分隔线在盒下 0.5em）。
@@ -249,8 +248,8 @@
           top-edge: "bounds",
           bottom-edge: "bounds",
         )
-        // 行距段距清零：默认 par spacing（1.2em）会盖掉 v(0.5em) 并把分隔线（旧 v(0.5em)，现 v(2pt)，见下）
-        // 顶到 16pt 开外（LaTeX 参考仅约 4pt）；清零后由显式 v(2pt) 精确定位。
+        // 行距段距清零：默认 par spacing（1.2em）会把分隔线顶到 16pt 开外
+        //（LaTeX 参考仅约 4pt）；清零后由下方显式 v(2pt) 精确定位。
         set par(leading: 0pt, spacing: 0pt)
         // 页眉盒顶定位于距页边界 1.5cm（与 LaTeX headheight 盒模型一致，
         // 盒高 12pt，文字底对齐，基线约 1.5cm+12pt；分隔线在盒下 0.5em）。

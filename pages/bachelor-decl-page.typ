@@ -51,7 +51,7 @@
     #set par(
       justify: true,
       first-line-indent: (amount: 2em, all: true),
-      // 声明正文取正文行距（旧 2.42em 为额外间隙语义误用，约 3 倍行距）。
+      // 声明正文取正文行距。
       leading: 行距.正文,
     )
 

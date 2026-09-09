@@ -1,7 +1,7 @@
 // Authors: csimide, OrangeX4
-// Tested only on GB-7714-2015-Numeric
+// 仅在 GB-7714-2015-Numeric 样式下测试。
 //
-// ⚠️ 升级警示（2026-09 审计）：本文件的中英转换逻辑（等/译/卷/版 → et al./
+// ⚠️ 升级警示：本文件的中英转换逻辑（等/译/卷/版 → et al./
 // trans/Vol./ed）挂载于 `show grid.cell.where(x: 1)`，前提是"参考文献条目内部
 // 以两列 grid 排版、第 1 列为条目文本"。这是 Typst 当前 bibliography 渲染的
 // 实现细节，官方文档未作任何承诺（非公开 API）。若升级 Typst 后转换静默失效
@@ -31,8 +31,9 @@
     message: "请传入带有 source 的 bibliography 函数。",
   )
 
-  // 另页右页（奇数页）开始：起始三件套（P30 变体）——先挂完整正文域样式
-  //（填充空白页同样显示页眉页脚），再换页。计数器延续，不重置。全静态。
+  // 另页右页（奇数页）开始（双面印刷时）：先设置页眉页脚（page.foreground）
+  // 再换页，使 to:"odd" 换页自动插入的填充空白页同样显示页眉页脚。
+  // 页码计数器延续，不重置；全静态实现，无运行时判断。
   fonts = get-fonts(fontset) + fonts
   set page(
     numbering: "1",
@@ -45,7 +46,7 @@
   )
   pagebreak(weak: true, to: if twoside { "odd" })
 
-  // Please fill in the remaining mapping table here
+  // 内置映射表；用户传入的 mapping 同名条目会覆盖内置项：
   mapping = (
     (
       //"等": "et al",
@@ -133,7 +134,8 @@
           如果工作不正常，可以考虑换为简单关键词替换，即注释这段情况，取消 13 行 mapping 内 `译` 条目的注释。
       */
       reptext = reptext.replace(regex("\].+?译"), itt => {
-        // 我想让上面这一行匹配变成非贪婪的，但加问号后没啥效果？
+        // 注：曾尝试将上一行正则改为非贪婪匹配（`.+?`），实测与贪婪行为无差异，
+        // 故保持现状。
         let comma-in-itt = itt.text.replace(regex(",?\s?译"), "").matches(",")
         if (
           type(comma-in-itt) == array
@@ -208,7 +210,8 @@
     style: style,
   )
 
-  // 结尾 reset（P30）：function 体内的 set page 会泄漏到后续文档流，
-  // 使附录起始换页产生的填充页保持干净，而本页已有样式不受影响。
+  // 结尾重置页面样式：function 体内的 set page 会泄漏到后续文档流，此处显式
+  // 清除，使后续换页产生的填充页不残留本部分样式（本页已有样式不受影响）；
+  // 标准组装顺序下由下一部分起始的页面样式覆盖，此处幂等、无副作用。
   set page(numbering: none, foreground: none)
 }

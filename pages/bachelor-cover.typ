@@ -4,7 +4,7 @@
 
 // 本科生封面
 #let bachelor-cover(
-  // documentclass 传入的参数
+  // documentclass 传入参数
   anonymous: false,
   twoside: false,
   fontset: "mac",
@@ -58,7 +58,7 @@
   info.title = (
     info.title + range(min-title-lines - info.title.len()).map(it => "　")
   )
-  // 2.3 处理提交日期
+  // 2.4 处理提交日期
   if type(info.submit-date) == datetime {
     info.submit-date = datetime-display(info.submit-date)
   }

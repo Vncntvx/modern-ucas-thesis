@@ -7,7 +7,7 @@
 
 // 硕士研究生封面
 #let master-cover(
-  // documentclass 传入的参数
+  // documentclass 传入参数
   doctype: "master",
   degree: "academic",
   anonymous: false,
@@ -75,10 +75,10 @@
   if type(info.title-en) == str {
     info.title-en = info.title-en.split("\n")
   }
-  // 2.1 导师信息校验并归一化为字典列表 (name:, title:, affiliation:)。
+  // 2.2 导师信息校验并归一化为字典列表 (name:, title:, affiliation:)。
   info.supervisors = normalize-supervisors(info.supervisors)
   info.supervisors-en = normalize-supervisors(info.supervisors-en)
-  // 2.2 根据 min-title-lines 填充标题
+  // 2.3 根据 min-title-lines 填充标题
   info.title = (
     info.title + range(min-title-lines - info.title.len()).map(it => "　")
   )
@@ -91,12 +91,12 @@
         affiliation: "",
       ))
   )
-  // 2.3 处理日期
+  // 2.4 处理日期
   assert(
     type(info.submit-date) == datetime,
     message: "submit-date must be datetime.",
   )
-  // 2.4 处理 degree
+  // 2.5 处理 degree
   if (info.degree == auto) {
     if (doctype == "doctor") {
       info.degree = "工程博士"
@@ -260,7 +260,7 @@
   pagebreak(weak: true)
 
   set text(font: fonts.楷体, size: 字号.四号)
-  // 英文正文取正文行距（规范无定量；旧 1.3em 为额外间隙语义误用，约 2.3 倍行距）。
+  // 英文正文取正文行距（规范无定量）。
   set par(leading: 行距.正文, spacing: 行距.正文)
 
   v(80pt)

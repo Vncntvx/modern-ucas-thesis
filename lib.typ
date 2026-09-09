@@ -31,7 +31,8 @@
 )
 #import "utils/style.typ": get-fonts, 字体组, 字号
 
-// 使用函数闭包特性，通过 `documentclass` 函数类进行全局信息配置，然后暴露出拥有了全局配置的、具体的 `layouts` 和 `templates` 内部函数。
+// 借助函数闭包特性：`documentclass` 集中进行全局信息配置，返回携带该配置的
+// 布局（layouts）与页面（pages）函数字典。
 
 #let documentclass(
   doctype: "doctor", // "bachelor" | "master" | "doctor"，文档类型，默认为博士生 doctor

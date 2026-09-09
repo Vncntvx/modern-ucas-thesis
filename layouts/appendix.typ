@@ -36,7 +36,7 @@
   )
 }
 
-// 后记，重置 heading 计数器
+// 附录布局。
 //
 // 设计说明：本函数只声明附录与正文的*差异项*（编号前缀、无编号一级标题、
 // 图表目录收录、计数器重置、页面与页眉页脚）。正文字体/行距/标题字号字形/
@@ -52,9 +52,9 @@
   fonts: (:),
   info: (:),
   numbering: custom-numbering.with(first-level: "", depth: 4, "1.1\u{3000}"),
-  // figure 计数（附录图表前缀为"附图/附表"，编号 1-1）
+  // figure 编号（附录图表前缀为"附图/附表"，编号 1-1）
   show-figure: _appendix-show-figure.with(numbering: "1-1"),
-  // equation 计数
+  // equation 编号（(1-1)）
   show-equation: bilingual-figured.show-equation.with(numbering: "(1-1)"),
   // 重置计数：附录作为独立编号单元，图表/公式编号从 1 开始（附图1-1、附表1-1），
   // 而非继承正文章号（否则会显示附图4-1）。reset-counter 同时重置 heading 计数器，
@@ -63,9 +63,10 @@
   it,
 ) = {
   // 附录须由另页右页（奇数页）开始（双面印刷时）。
-  // 起始三件套（P30 变体）：先挂完整正文域样式（填充空白页同样显示页眉页脚），
-  // 再换页。全静态，无运行时判断。info 由 documentclass 传入（偶数页论文题目用）。
-  // 注意顺序：先解析 fonts 再 assert（foreground 工厂需要完整字体组）。
+  // 起始页面样式：先设置页眉页脚（page.foreground）再换页，使双面模式下
+  // to:"odd" 换页自动插入的填充空白页同样显示页眉页脚（偶数页论文题目、
+  // 奇数页章名，页码按双面左右分置）。全静态实现，无运行时判断；info 由
+  // documentclass 传入，供偶数页显示论文题目。
   fonts = get-fonts(fontset) + fonts
   set page(
     numbering: "1",
@@ -89,7 +90,8 @@
   show heading.where(level: 4): set heading(outlined: false)
   // 公式编号对齐到最后一行右侧（UCAS 规范：序号编于最后一行右顶格）
   set math.equation(number-align: bottom + end)
-  // 公式编号字体：不覆盖（与正文 mainmatter 一致；set text 会破坏数学字形，见该文件注释）。
+  // 公式编号字体：不覆盖（与正文 mainmatter 一致；set text 会破坏数学字形，
+  // 见 mainmatter 同名注释）。
   if reset-counter {
     counter(heading).update(0)
   }

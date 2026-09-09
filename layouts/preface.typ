@@ -11,9 +11,9 @@
   fontset: "mac",
   // 其他参数（保留的行距默认值占位；preface 本体只负责页眉页脚与页码，
   // 不直接 set par，各前言页面的行距以各自函数的 set par 为准）
-  // 1.25 倍行距：Typst leading 是额外间隙，取 行距.正文，勿写 1.25em。
+  // 1.25 倍行距：Typst leading 是行盒之间的额外间隙，取 行距.正文，勿写 1.25em。
   leading: 行距.正文,
-  // 段前段后 0 磅：段间距不含行距，取与 leading 等值使段间基线距与行内一致。
+  // 段前段后 0 磅：段间距不含行距，取与 leading 等值，使段间基线距与行内一致。
   spacing: 行距.正文,
   justify: true,
   first-line-indent: (amount: 2em, all: true),
@@ -41,8 +41,8 @@
   )
   fonts = get-fonts(fontset) + fonts
 
-  // 2. 分页：双面印刷时，自摘要起进入双面对开，强制摘要从奇数页（右页）开始。
-  //    封面段（封面/英文封面/声明页）已改为单面连续分页，不再依赖 to:odd 隐式保证
+  // 2.  分页：双面印刷时，自摘要起进入双面对开，强制摘要从奇数页（右页）开始。
+  //    封面段（封面/英文封面/声明页）为单面连续分页，不依赖 to:odd 隐式保证
   //    声明页落在奇数页，故此处须显式 pagebreak(to: "odd") 强制摘要奇数页起始。
   //    单面时 twoside 为 false，用 pagebreak(weak: true) 确保摘要从新页开始（若声明页
   //    末尾已在页首则不重复换页），使下方 counter(page).update(1) 在摘要首页起始处生效。
@@ -56,8 +56,8 @@
   //
   //    此处不可在换页前挂 preface-foreground：摘要前若插入填充空白页，会沿用封面段
   //    物理计数被渲染成罗马数字（如 IV），而摘要首页才 update(1) 显示 I。故首个
-  //    pagebreak 让空白页继承封面段无页码样式；摘要之后各节的填充页由各自起始
-  //    三件套在计数器已连续的前提下挂完整页眉页脚，页码正确。
+  //    pagebreak 让空白页继承封面段无页码样式；摘要之后各节的填充页由各自起始处
+  //    的页面样式在计数器已连续的前提下提供完整页眉页脚，页码正确。
   if twoside {
     pagebreak(to: "odd")
   } else {
@@ -68,7 +68,7 @@
   // 页码（auto footer），与下方 foreground 定制的页码重影，必须显式关闭。
   set page(numbering: "I", footer: none)
 
-  // 3  页眉与页脚：页眉、页脚距页边界 1.5cm）
+  // 3.  页眉与页脚：页眉、页脚距页边界 1.5cm
   // 不使用 page 的 header/footer + header-ascent/footer-descent（语义为"侵入 margin 的量"，
   // 无法精确表达"距边界 1.5cm"且会挤压正文区）。改用 page.foreground + place 绝对定位：
   //   place(top + center, dy: 1.5cm, ...)    —— 页眉锚定到页面顶边下方 1.5cm

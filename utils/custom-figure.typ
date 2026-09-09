@@ -6,7 +6,7 @@
 
 #let thesis-bilingual-caption-style(
   fonts,
-  // 1.25 倍行距：Typst leading 是额外间隙，取 行距.正文，勿写 1.25em。
+  // 1.25 倍行距：Typst leading 是行盒之间的额外间隙，取 行距.正文，勿写 1.25em。
   leading: 行距.正文,
   keep_together: true,
   caption_par: auto,
@@ -31,7 +31,7 @@
   // 不含 leading；其实测见 docs/CUSTOMIZE.md（SVG/PDF 基线法）。
   // 故中文题段前 6pt / 段后 0pt（规范值），英文题段前取一个 leading
   // （中英题基线距 ≈ 行盒 + leading，随正文行距口径，即规范"1.25 倍行距"），
-  // 英文题段后 12pt（规范值）。勿再叠加旧式 1.25em（会远超规范）。
+  // 英文题段后 12pt（规范值）。勿再叠加 1.25em（会远超规范）。
   let zh = if zh_block == auto {
     (above: 6pt, below: 0pt)
   } else {

@@ -25,7 +25,7 @@
   above: 6pt,
   below: 0pt,
 ) = {
-  // 1. 默认参数
+  // 1.  默认参数
   fonts = get-fonts(fontset) + fonts
   if title-text-args == auto {
     title-text-args = (font: fonts.黑体, size: 字号.四号, weight: "bold")
@@ -34,8 +34,9 @@
     font = fonts.黑体
   }
 
-  // 2. 正式渲染：起始三件套（P30 变体）——先挂完整前言域样式（填充空白页
-  // 同样显示页眉页脚），再换页。全静态。
+  // 2.  正式渲染：先设置页眉页脚（page.foreground）再换页，使双面模式下
+  // to:"odd" 换页自动插入的填充空白页同样显示页眉页脚（偶数页论文题目、
+  // 奇数页章名/部分名，页码罗马数字居中）。全静态实现，无运行时判断。
   set page(
     numbering: "I",
     footer: none,
@@ -50,7 +51,7 @@
   invisible-heading(level: 1, outlined: outlined, title)
 
   v(title-above)
-  // ——— 插图目录标题 ———（单倍行距）
+  // 插图目录标题（单倍行距）
   {
     set align(center)
     set par(leading: 行距.单倍, spacing: 0pt)
@@ -97,7 +98,7 @@
 
   v(title-above)
 
-  // ——— 表格目录标题 ———（单倍行距）
+  // 表格目录标题（单倍行距）
   {
     set align(center)
     set par(leading: 行距.单倍, spacing: 0pt)
@@ -109,9 +110,8 @@
   // 渲染表目录
   bilingual-figured.outline(target-kind: "bitable", title: none)
 
-  // 结尾 reset（P30）：function 体内的 set page 会泄漏到后续文档流，
-  // 使符号说明起始换页产生的填充页保持干净（旧 `pagebreak() + " "` 会留
-  // 带页眉页脚的空内容页，已删除）；本页已有样式不受影响。
-  // 标准顺序下由下一部分起始 reset 覆盖，此处幂等、无副作用。
+  // 结尾重置页面样式：function 体内的 set page 会泄漏到后续文档流，此处显式
+  // 清除，使后续换页产生的填充页不残留本部分样式（本页已有样式不受影响）；
+  // 标准组装顺序下由下一部分起始的页面样式覆盖，此处幂等、无副作用。
   set page(numbering: none, foreground: none)
 }
