@@ -30,7 +30,7 @@ No test suite; "verification" means `make format-check` plus a `typst compile` t
 
 ### Core pattern: the `documentclass` closure factory (`lib.typ`)
 
-`documentclass(...)` is the single entry point. It takes global configuration (`doctype`/`degree`/`nl-cover`/`fontset`/`fonts`/`info`/`bibliography`/`twoside`/`anonymous`) and returns a dictionary of functions with the global configuration bound via closure. Never call a page or layout function directly; everything comes wrapped by `documentclass`. **When calling these functions, do not re-pass `fontset`/`fonts`/`info` and other closure-held parameters**. Set them once at the `documentclass` top level.
+`documentclass(...)` is the single entry point. It takes global configuration (`doctype`/`degree`/`fontset`/`fonts`/`info`/`bibliography`/`twoside`/`anonymous`) and returns a dictionary of functions with the global configuration bound via closure. Never call a page or layout function directly; everything comes wrapped by `documentclass`. **When calling these functions, do not re-pass `fontset`/`fonts`/`info` and other closure-held parameters**. Set them once at the `documentclass` top level.
 
 Returned functions fall into three groups: **layouts** (`doc`/`preface`/`mainmatter`/`appendix`, switched via `#show:`) / **pages** (`cover`/`decl-page`/`abstract`/`abstract-en`, dispatched by `doctype` to `master-*`/`bachelor-*`, `postdoc` currently `panic`s; plus `outline-page`/`list-of-figures-and-tables`/`notation`/`bilingual-bibliography`/`acknowledgement`/`backmatter`/`fonts-display-page`) / **pass-through tools** (`bifigure`/`bitable`/`continued-table`/`auto-table`/`aligned-equation`).
 

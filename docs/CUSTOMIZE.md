@@ -14,7 +14,7 @@
   - [0.3 论文结构与调用顺序](#03-论文结构与调用顺序)
   - [0.4 编译与字体准备](#04-编译与字体准备)
 - [1. 文档级配置](#1-文档级配置)
-  - [1.1 `doctype` / `degree` / `nl-cover`](#11-doctype--degree--nl-cover)
+  - [1.1 `doctype` / `degree`](#11-doctype--degree)
   - [1.2 `twoside`（双面打印）](#12-twoside双面打印)
   - [1.3 `anonymous`（盲审模式）](#13-anonymous盲审模式)
   - [1.4 `fontset` 与 `fonts`（字体配置）](#14-fontset-与-fonts字体配置)
@@ -122,7 +122,7 @@
 
 ### 0.2 闭包工厂设计
 
-理解全项目的关键：`documentclass(...)` 是一个**闭包工厂**。它接收全局配置（`doctype`/`degree`/`nl-cover`/`fontset`/`fonts`/`info`/`bibliography`/`twoside`/`anonymous`），返回一个**字典**，字典的每个值都是**已闭包绑定全局配置的函数**。
+理解全项目的关键：`documentclass(...)` 是一个**闭包工厂**。它接收全局配置（`doctype`/`degree`/`fontset`/`fonts`/`info`/`bibliography`/`twoside`/`anonymous`），返回一个**字典**，字典的每个值都是**已闭包绑定全局配置的函数**。
 
 返回的函数分两类：
 
@@ -189,13 +189,12 @@ typst watch   template/thesis.typ --root . --font-path fonts   # 实时预览
 
 `documentclass` 是模板的入口函数，定义于 `lib.typ:39-335`。
 
-### 1.1 `doctype` / `degree` / `nl-cover`
+### 1.1 `doctype` / `degree`
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `doctype` | string | `"doctor"` | 文档类型：`"bachelor"` \| `"master"` \| `"doctor"` \| `"postdoc"`（`"postdoc"` 当前 `panic`，未实现） |
 | `degree` | string | `"academic"` | 学位类型：`"academic"`（学术型） \| `"professional"`（专业型）。影响封面"学位类别"字段显示与封面分类逻辑 |
-| `nl-cover` | boolean | `false` | 是否使用国家图书馆封面（含密级/中图分类号/UDC/学校代码）。**当前未实现**，仅预留参数 |
 
 > 规范依据：《指导意见》一·（一）·5「学位类别包括学科门类（学术型）或专业学位类别以及学位级别」。
 
@@ -274,8 +273,8 @@ typst watch   template/thesis.typ --root . --font-path fonts   # 实时预览
 | `supervisors-en` | array | `((name: "Si Li", title: "Professor", affiliation: "×× Institute, CAS"),)` | 英文导师列表，结构同 `supervisors`；用于英文封面 |
 | `submit-date` | datetime | `datetime.today()` | 论文提交年月，夏季填 6 月、冬季填 12 月（一·（一）·8）；用于封面、致谢末尾 |
 | `degree` / `degree-en` | string/auto | `auto` | 学位名称，`auto` 时按 `doctype` 自动生成（"工程博士"/"工程硕士"）；用于封面（专业型） |
-
-**国图封面预留字段**（`nl-cover` 未实现，见 [§2.6](#26-待实现的封面元素)）：`defend-date`（答辩日期）、`confer-date`（学位授予日期）、`bottom-date`（封面底部日期）、`chairman`（答辩委员会主席）、`reviewer`（答辩委员会成员）、`clc`（中图分类号）、`udc`（UDC 分类号）、`secret-level`（密级）、`email`（作者邮箱）、`school-code`（学校代码，UCAS 固定 `"14430"`）。这些字段已在 `lib.typ` 定义，但当前封面不渲染。
+| `secret-level` | string | `"公开"` | 密级（一·（一）·1）；非"公开"时在研究生封面右上角渲染 |
+| `secret-year` | string/none | `none` | 保密年限（如 `"10年"`）；与非公开密级一并渲染为 `密级：秘密★10年` |
 
 > 换行规则：字符串中的 `\n` 会被按行拆成数组（`pages/master-cover.typ:78-80`）。中文各行以 `.sum()` 拼成一行，长标题靠自然换行（`master-cover.typ:275`）；英文各行以 `intersperse("\n")` 渲染，一元素一行（`master-cover.typ:346`）；页眉中英文均以 `join("")` 拼成单行（`utils/page-foreground.typ:111,230`）。
 
@@ -343,13 +342,11 @@ typst watch   template/thesis.typ --root . --font-path fonts   # 实时预览
 `anonymous: true` 时：封面图标（UCAS Logo）不渲染，留空。`anonymous-info-keys` 列表中的字段以黑块代替：
 
 ```
-student-id, author, author-en, supervisors, supervisors-en,
-chairman, reviewer, department
+student-id, author, author-en, supervisors, supervisors-en, department
 ```
 
 ### 2.6 待实现的封面元素
 
-- **国家图书馆封面**（含密级/中图分类号/UDC/学校代码）: 未实现。`nl-cover` 参数已预留（`lib.typ:42` 标注 TODO），`secret-level`/`clc`/`udc`/`school-code` 字段已定义（`lib.typ:88-93`），但封面未渲染。
 - **书脊**（规范三·（三））: **不实现**。书脊宽度随论文厚度而定，请交文印部门处理。
 
 ---

@@ -130,7 +130,6 @@ modern-ucas-thesis/
 | 全局信息配置（文档类型、学位类型、字体等） | ✅ | `documentclass` 闭包工厂统一注入 |
 | 盲审模式 | ✅ | `anonymous: true` 自动隐藏作者/导师等字段 |
 | 双面打印模式 | ✅ | `twoside: true` 自动插入空白页使各部分从奇数页开始 |
-| 国家图书馆封面（含密级/中图分类号/UDC/学校代码） | ❌ | `nl-cover` 参数已预留；`secret-level`/`clc`/`udc`/`school-code` 字段已在 `lib.typ` 定义但未渲染 |
 
 ### 封面与前置页
 
