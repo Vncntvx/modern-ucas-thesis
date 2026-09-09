@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/github/license/Vncntvx/modern-ucas-thesis?style=flat-square" alt="License">
 </p>
 
-基于 [Typst](https://typst.app/) 的中国科学院大学学位论文模板，遵循《中国科学院大学研究生学位论文撰写规范指导意见（2022年）》格式要求。
+基于 [Typst](https://typst.app/) 的中国科学院大学学位论文模板，遵循《中国科学院大学研究生学位论文撰写规范指导意见（2022年）》与《中国科学院大学本科生毕业论文（设计）撰写规范指导意见（2023年10月修订）》格式要求。
 
 > ⚠️ **免责声明**：本项目非官方出品，使用前请自行核对学校最新格式要求。
 ---
@@ -59,7 +59,7 @@ typst watch template/thesis.typ --root . --font-path fonts
   bilingual-bibliography, acknowledgement, backmatter,
   bifigure, bitable, continued-table, auto-table, aligned-equation,
 ) = documentclass(
-  doctype: "doctor",       // "bachelor" | "master" | "doctor" | "postdoc"
+  doctype: "doctor",       // "bachelor" | "master" | "doctor"
   degree: "academic",      // "academic" | "professional"
   anonymous: false,        // 盲审模式
   twoside: true,           // 双面打印模式
@@ -121,7 +121,7 @@ modern-ucas-thesis/
 
 ## 功能特性
 
-> 实现状态对照《中国科学院大学研究生学位论文撰写规范指导意见（2022年）》`docs/RULES.md` 逐项核验代码现状。状态含义：✅ 已完成｜🟡 部分实现／待完善｜❌ 未开始｜➖ 规范未强制要求。
+> 实现状态对照《中国科学院大学研究生学位论文撰写规范指导意见（2022年）》`docs/RULES-GRAD.md` 逐项核验代码现状。状态含义：✅ 已完成｜🟡 部分实现／待完善｜❌ 未开始｜➖ 规范未强制要求。
 
 ### 文档配置
 
@@ -130,7 +130,6 @@ modern-ucas-thesis/
 | 全局信息配置（文档类型、学位类型、字体等） | ✅ | `documentclass` 闭包工厂统一注入 |
 | 盲审模式 | ✅ | `anonymous: true` 自动隐藏作者/导师等字段 |
 | 双面打印模式 | ✅ | `twoside: true` 自动插入空白页使各部分从奇数页开始 |
-| 国家图书馆封面（含密级/中图分类号/UDC/学校代码） | ❌ | `nl-cover` 参数已预留；`secret-level`/`clc`/`udc`/`school-code` 字段已在 `lib.typ` 定义但未渲染 |
 
 ### 封面与前置页
 
@@ -138,7 +137,7 @@ modern-ucas-thesis/
 |--------|------|----------------|
 | 研究生封面（中/英文，硕/博） | ✅ | 标题黑体小三号加粗、字段宋体四号加粗 2 倍行距、日期 Times New Roman 四号加粗 |
 | 本科生封面 | ✅ | 经 `bachelor-cover.typ` 实现，由 `doctype` 分发 |
-| 书脊 | ❌ | 规范要求：黑体小四号，上=题目、中=作者、下="中国科学院大学"，距上下边界 3cm |
+| 书脊 | 🟡 | 规范要求：黑体小四号，上=题目、中=作者、下="中国科学院大学"，距上下边界 3cm |
 | 原创性声明与授权说明 | ✅ | 研究生与本科生均已实现（含统一声明模板，样张3） |
 | 中文摘要（含关键词） | ✅ | "摘　要"二字间空一字符，黑体四号加粗居中；3~5 关键词，中文逗号分隔 |
 | 英文摘要（含关键词） | ✅ | "Key Words"加粗，首字母大写，英文逗号分隔 |
@@ -171,7 +170,7 @@ modern-ucas-thesis/
 | 附录图表编号 | ✅ | 沿用正文编号形式（`1-1`），与规范"附录图表参考正文编号方式"一致 |
 | 三线表 | ✅ | 通过 `table.hline()` 组合实现，模板内置示例 |
 | 卧排表（横向表格） | ✅ | `bitable`/`bifigure`/`auto-table` 内置 `landscape: true`，逆时针旋转 90°，方位"顶左底右" |
-| 地图审图号注释辅助 | ❌ | 规范要求涉国界图件注明"审图号 GS(2021)××××号"，需用户手动添加 |
+| 地图审图号注释辅助 | 🟡 | 规范要求涉国界图件注明"审图号 GS(2021)××××号"，需用户手动添加 |
 
 ### 公式与数学
 
@@ -194,7 +193,6 @@ modern-ucas-thesis/
 | GB/T 7714-2015 格式（著者—出版年制） | 🟡 | 可经 `style: "gb-7714-2015-author-date"` 切换，但未提供默认配置与样式校验 |
 | 中英文文献格式自动转换 | ✅ | 自动识别中英文文献并转换"等/卷/册/译/版"等术语 |
 | 文献引用与交叉引用 | ✅ | `@citekey` |
-| 荐读书目（未引用文献） | ❌ | 规范要求"正文中未被引用但被阅读的文献可集中列入附录，标题为'荐读书目'"，未提供专门支持 |
 
 ### 附录与后置
 
@@ -218,7 +216,6 @@ modern-ucas-thesis/
 
 | 功能项 | 状态 | 规范依据 / 说明 |
 |--------|------|----------------|
-| 博士后学位论文 | ❌ | `postdoc` 调用时 `panic`，未实现 |
 | 本科生开题报告 | ✅ | `others/bachelor-proposal.typ`（独立，不走 `documentclass`） |
 | 研究生开题报告 | ✅ | `others/master-proposal.typ`（独立，不走 `documentclass`） |
 
@@ -226,8 +223,9 @@ modern-ucas-thesis/
 
 ## 文档
 
+- [研究生撰写规范](docs/RULES-GRAD.md)（中国科学院大学研究生学位论文撰写规范指导意见 2022）
+- [本科生撰写规范](docs/RULES-BACHELOR.md)（中国科学院大学本科生毕业论文（设计）撰写规范指导意见 2023年10月修订）
 - [定制指南](docs/CUSTOMIZE.md)
-- [格式规范原文](docs/RULES.md)（中国科学院大学研究生学位论文撰写规范指导意见 2022）
 - [常见问题](docs/FAQ.md)
 - [格式化工具](docs/FORMAT.md)
 - [UCAS 标识版权说明](docs/LOGO_COPYRIGHT.md)

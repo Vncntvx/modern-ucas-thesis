@@ -1,6 +1,6 @@
 # modern-ucas-thesis 定制指南
 
-> 本指南以《中国科学院大学研究生学位论文撰写规范指导意见（2022 年 3 月 7 日校长办公会议审议修订）》（见 [`docs/RULES.md`](./RULES.md)，以下简称《指导意见》）为标尺，结合本仓库 `lib.typ`、`layouts/`、`pages/`、`utils/`、`template/` 的实际代码与 `typst 0.15.x` 实测渲染输出（逐条核对结论见 [§19](#19-已知偏差与待办)），逐项说明每条规范要求由哪个文件、哪个参数落实，以及用户在撰写过程中应当如何配置、调用与定制。
+> 本指南以《中国科学院大学研究生学位论文撰写规范指导意见（2022 年 3 月 7 日校长办公会议审议修订）》（见 [`docs/RULES-GRAD.md`](./RULES-GRAD.md)，以下简称《指导意见》）为标尺，结合本仓库 `lib.typ`、`layouts/`、`pages/`、`utils/`、`template/` 的实际代码与 `typst 0.15.x` 实测渲染输出（逐条核对结论见 [§19](#19-已知偏差与待办)），逐项说明每条规范要求由哪个文件、哪个参数落实，以及用户在撰写过程中应当如何配置、调用与定制。
 >
 > 阅读建议：先看 [§0 总览](#0-总览) 理解 `documentclass` 闭包工厂的设计哲学，再按论文物理顺序阅读各章节；遇到具体格式问题可直接跳至对应小节查表。已知与规范的偏差集中在 [§19 已知偏差与待办](#19-已知偏差与待办)，每个偏差均标注规范依据与受影响代码位置。
 
@@ -14,7 +14,7 @@
   - [0.3 论文结构与调用顺序](#03-论文结构与调用顺序)
   - [0.4 编译与字体准备](#04-编译与字体准备)
 - [1. 文档级配置](#1-文档级配置)
-  - [1.1 `doctype` / `degree` / `nl-cover`](#11-doctype--degree--nl-cover)
+  - [1.1 `doctype` / `degree`](#11-doctype--degree)
   - [1.2 `twoside`（双面打印）](#12-twoside双面打印)
   - [1.3 `anonymous`（盲审模式）](#13-anonymous盲审模式)
   - [1.4 `fontset` 与 `fonts`（字体配置）](#14-fontset-与-fonts字体配置)
@@ -114,7 +114,7 @@
 
 ### 0.1 规范依据
 
-`modern-ucas-thesis`（v0.3.0，入口 `lib.typ`，`typst.toml` 声明 `compiler = "0.15.0"`）用于撰写中国科学院大学硕士、博士学位论文，遵循《指导意见》从 2023 年冬季批次开始实施的要求。本科生毕业论文（设计、作品）另设独立的封面/声明/摘要分支（见 §2.2、§3.2、§4.2 各节"代码实现"中的本科对应文件），但同样适用本《指导意见》中正文、图表、参考文献等通用条款。
+`modern-ucas-thesis`（v0.3.0，入口 `lib.typ`，`typst.toml` 声明 `compiler = "0.15.0"`）用于撰写中国科学院大学硕士、博士学位论文，遵循《指导意见》（[`docs/RULES-GRAD.md`](./RULES-GRAD.md)）从 2023 年冬季批次开始实施的要求。本科生毕业论文（设计、作品）另设独立的封面/声明/摘要分支（见 §2.2、§3.2、§4.2 各节"代码实现"中的本科对应文件），对应《本科生撰写规范》（[`docs/RULES-BACHELOR.md`](./RULES-BACHELOR.md)）。
 
 《指导意见》自身参照《学位论文编写规则》（GB/T 7713.1—2006）、《信息与文献 参考文献著录规则》（GB/T 7714—2015）、《学术出版规范 期刊学术不端行为界定》（CY/T 174—2019）；正文中另涉《标点符号用法》（GB/T 15834—2011）、《出版物上数字用法》（GB/T 15835—2011）、《中国人名汉语拼音字母拼写规则》（GB/T 28039—2011）、《国际单位制及其应用》（GB 3100-93）、《有关量、单位和符号的一般原则》（GB 3101—93）等国家标准。
 
@@ -122,11 +122,11 @@
 
 ### 0.2 闭包工厂设计
 
-理解全项目的关键：`documentclass(...)` 是一个**闭包工厂**。它接收全局配置（`doctype`/`degree`/`nl-cover`/`fontset`/`fonts`/`info`/`bibliography`/`twoside`/`anonymous`），返回一个**字典**，字典的每个值都是**已闭包绑定全局配置的函数**。
+理解全项目的关键：`documentclass(...)` 是一个**闭包工厂**。它接收全局配置（`doctype`/`degree`/`fontset`/`fonts`/`info`/`bibliography`/`twoside`/`anonymous`），返回一个**字典**，字典的每个值都是**已闭包绑定全局配置的函数**。
 
 返回的函数分两类：
 
-1. **按 `doctype` 分发的页面函数**（`cover`/`decl-page`/`abstract`/`abstract-en`）：内部按 `doctype` 路由到 `pages/master-*.typ`（硕士/博士）或 `pages/bachelor-*.typ`（本科）；`postdoc` 当前 `panic` 未实现。
+1. **按 `doctype` 分发的页面函数**（`cover`/`decl-page`/`abstract`/`abstract-en`）：内部按 `doctype` 路由到 `pages/master-*.typ`（硕士/博士）或 `pages/bachelor-*.typ`（本科）。
 2. **直接透传的工具函数**（`bifigure`/`bitable`/`continued-table`/`auto-table`/`aligned-equation`）：来自 `utils/custom-figure.typ`、`utils/continued-table.typ`、`utils/aligned-equation.typ`。
 
 > ⚠️ **重要**：调用这些返回函数时，**不要重复传 `fontset`/`fonts`/`info` 等已被闭包持有的参数**。它们已在 `documentclass` 顶层设置一次，下游函数会自动接收。仅在需要"覆盖单次调用"的少数高级场景下才显式传参（如临时改字体）。
@@ -189,13 +189,12 @@ typst watch   template/thesis.typ --root . --font-path fonts   # 实时预览
 
 `documentclass` 是模板的入口函数，定义于 `lib.typ:39-335`。
 
-### 1.1 `doctype` / `degree` / `nl-cover`
+### 1.1 `doctype` / `degree`
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `doctype` | string | `"doctor"` | 文档类型：`"bachelor"` \| `"master"` \| `"doctor"` \| `"postdoc"`（`"postdoc"` 当前 `panic`，未实现） |
+| `doctype` | string | `"doctor"` | 文档类型：`"bachelor"` \| `"master"` \| `"doctor"` |
 | `degree` | string | `"academic"` | 学位类型：`"academic"`（学术型） \| `"professional"`（专业型）。影响封面"学位类别"字段显示与封面分类逻辑 |
-| `nl-cover` | boolean | `false` | 是否使用国家图书馆封面（含密级/中图分类号/UDC/学校代码）。**当前未实现**，仅预留参数 |
 
 > 规范依据：《指导意见》一·（一）·5「学位类别包括学科门类（学术型）或专业学位类别以及学位级别」。
 
@@ -214,7 +213,7 @@ typst watch   template/thesis.typ --root . --font-path fonts   # 实时预览
 
 `anonymous: true` 启用盲审模式：
 
-- 封面：作者、导师、学号、答辩主席、评阅人、培养单位等字段以黑块"██████"代替（具体清单见 [§2.5](#25-盲审模式下的封面)）
+- 封面：作者、导师、学号、培养单位等字段以黑块"██████"代替（具体清单见 [§2.5](#25-盲审模式下的封面)）
 - 摘要页只渲染标题、正文、关键词，不渲染身份信息，无需额外处理
 - 原创性声明页、致谢页、作者简历页**整体跳过**（`pages/master-decl-page.typ:11-13`、`pages/acknowledgement.typ:21`、`pages/backmatter.typ:17`）
 
@@ -274,8 +273,8 @@ typst watch   template/thesis.typ --root . --font-path fonts   # 实时预览
 | `supervisors-en` | array | `((name: "Si Li", title: "Professor", affiliation: "×× Institute, CAS"),)` | 英文导师列表，结构同 `supervisors`；用于英文封面 |
 | `submit-date` | datetime | `datetime.today()` | 论文提交年月，夏季填 6 月、冬季填 12 月（一·（一）·8）；用于封面、致谢末尾 |
 | `degree` / `degree-en` | string/auto | `auto` | 学位名称，`auto` 时按 `doctype` 自动生成（"工程博士"/"工程硕士"）；用于封面（专业型） |
-
-**国图封面预留字段**（`nl-cover` 未实现，见 [§2.6](#26-待实现的封面元素)）：`defend-date`（答辩日期）、`confer-date`（学位授予日期）、`bottom-date`（封面底部日期）、`chairman`（答辩委员会主席）、`reviewer`（答辩委员会成员）、`clc`（中图分类号）、`udc`（UDC 分类号）、`secret-level`（密级）、`email`（作者邮箱）、`school-code`（学校代码，UCAS 固定 `"14430"`）。这些字段已在 `lib.typ` 定义，但当前封面不渲染。
+| `secret-level` | string | `"公开"` | 密级（一·（一）·1）；非"公开"时在研究生封面右上角渲染 |
+| `secret-year` | string/none | `none` | 保密年限（如 `"10年"`）；与非公开密级一并渲染为 `密级：秘密★10年` |
 
 > 换行规则：字符串中的 `\n` 会被按行拆成数组（`pages/master-cover.typ:78-80`）。中文各行以 `.sum()` 拼成一行，长标题靠自然换行（`master-cover.typ:275`）；英文各行以 `intersperse("\n")` 渲染，一元素一行（`master-cover.typ:346`）；页眉中英文均以 `join("")` 拼成单行（`utils/page-foreground.typ:111,230`）。
 
@@ -343,13 +342,11 @@ typst watch   template/thesis.typ --root . --font-path fonts   # 实时预览
 `anonymous: true` 时：封面图标（UCAS Logo）不渲染，留空。`anonymous-info-keys` 列表中的字段以黑块代替：
 
 ```
-student-id, author, author-en, supervisors, supervisors-en,
-chairman, reviewer, department
+student-id, author, author-en, supervisors, supervisors-en, department
 ```
 
 ### 2.6 待实现的封面元素
 
-- **国家图书馆封面**（含密级/中图分类号/UDC/学校代码）: 未实现。`nl-cover` 参数已预留（`lib.typ:42` 标注 TODO），`secret-level`/`clc`/`udc`/`school-code` 字段已定义（`lib.typ:88-93`），但封面未渲染。
 - **书脊**（规范三·（三））: **不实现**。书脊宽度随论文厚度而定，请交文印部门处理。
 
 ---
@@ -1478,8 +1475,6 @@ $ y = integral_1^2 x^2 dif x $ <->
 - **书脊**：未实现。书脊宽度随论文厚度而定，请交文印部门按实际厚度排版。
 
   > 规范依据：《指导意见》三·（三）。
-
-- **博士后学位论文**：`postdoc` 传入时 `panic`，未实现。代码：`lib.typ`。
 
 ---
 

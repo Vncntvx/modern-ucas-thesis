@@ -4,7 +4,7 @@ This file provides guidance to Code Agent when working with code in this reposit
 
 ## Project overview
 
-A Typst-based thesis template for the University of Chinese Academy of Sciences (UCAS), package `modern-ucas-thesis` (v0.3.0, entry point `lib.typ`, `typst.toml` declares `compiler = "0.15.0"`). It follows the *UCAS Guidelines on Writing Graduate Degree Theses (2022)* (中国科学院大学研究生学位论文撰写规范指导意见). A newer local Typst CLI (e.g. 0.15.x) normally still compiles.
+A Typst-based thesis template for the University of Chinese Academy of Sciences (UCAS), package `modern-ucas-thesis` (v0.3.0, entry point `lib.typ`, `typst.toml` declares `compiler = "0.15.0"`). It follows the *UCAS Guidelines on Writing Graduate Degree Theses (2022)* (`docs/RULES-GRAD.md`) and the *UCAS Guidelines on Writing Undergraduate Theses/Designs (2023-10)* (`docs/RULES-BACHELOR.md`). A newer local Typst CLI (e.g. 0.15.x) normally still compiles.
 
 ## Common commands
 
@@ -30,9 +30,9 @@ No test suite; "verification" means `make format-check` plus a `typst compile` t
 
 ### Core pattern: the `documentclass` closure factory (`lib.typ`)
 
-`documentclass(...)` is the single entry point. It takes global configuration (`doctype`/`degree`/`nl-cover`/`fontset`/`fonts`/`info`/`bibliography`/`twoside`/`anonymous`) and returns a dictionary of functions with the global configuration bound via closure. Never call a page or layout function directly; everything comes wrapped by `documentclass`. **When calling these functions, do not re-pass `fontset`/`fonts`/`info` and other closure-held parameters**. Set them once at the `documentclass` top level.
+`documentclass(...)` is the single entry point. It takes global configuration (`doctype`/`degree`/`fontset`/`fonts`/`info`/`bibliography`/`twoside`/`anonymous`) and returns a dictionary of functions with the global configuration bound via closure. Never call a page or layout function directly; everything comes wrapped by `documentclass`. **When calling these functions, do not re-pass `fontset`/`fonts`/`info` and other closure-held parameters**. Set them once at the `documentclass` top level.
 
-Returned functions fall into three groups: **layouts** (`doc`/`preface`/`mainmatter`/`appendix`, switched via `#show:`) / **pages** (`cover`/`decl-page`/`abstract`/`abstract-en`, dispatched by `doctype` to `master-*`/`bachelor-*`, `postdoc` currently `panic`s; plus `outline-page`/`list-of-figures-and-tables`/`notation`/`bilingual-bibliography`/`acknowledgement`/`backmatter`/`fonts-display-page`) / **pass-through tools** (`bifigure`/`bitable`/`continued-table`/`auto-table`/`aligned-equation`).
+Returned functions fall into three groups: **layouts** (`doc`/`preface`/`mainmatter`/`appendix`, switched via `#show:`) / **pages** (`cover`/`decl-page`/`abstract`/`abstract-en`, dispatched by `doctype` to `master-*`/`bachelor-*`; plus `outline-page`/`list-of-figures-and-tables`/`notation`/`bilingual-bibliography`/`acknowledgement`/`backmatter`/`fonts-display-page`) / **pass-through tools** (`bifigure`/`bitable`/`continued-table`/`auto-table`/`aligned-equation`).
 
 See `template/thesis.typ` for usage: destructure the returned dictionary, then follow the fixed order `#show: doc` → `#cover()` → `#decl-page()` → `#show: preface` → abstract / outline / list of figures and tables / notation → `#show: mainmatter` → body → `#bilingual-bibliography(full: true)` → `#show: appendix` → `#acknowledgement()` → `#backmatter()`. Preface/mainmatter/appendix switch layouts via `#show:` (page numbering, headers/footers, numbering change accordingly). Do not turn them into plain function calls; the call order mirrors the thesis's physical structure and must not be rearranged.
 

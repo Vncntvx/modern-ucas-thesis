@@ -34,9 +34,8 @@
 // 使用函数闭包特性，通过 `documentclass` 函数类进行全局信息配置，然后暴露出拥有了全局配置的、具体的 `layouts` 和 `templates` 内部函数。
 
 #let documentclass(
-  doctype: "doctor", // "bachelor" | "master" | "doctor" | "postdoc"，文档类型，默认为博士生 doctor
+  doctype: "doctor", // "bachelor" | "master" | "doctor"，文档类型，默认为博士生 doctor
   degree: "academic", // "academic" | "professional"，学位类型，默认为学术型 academic
-  nl-cover: false, // TODO: 是否使用国家图书馆封面，默认关闭
   twoside: false, // 双面模式，会加入空白页，便于打印
   anonymous: false, // 盲审模式
   bibliography: none, // 参考文献函数
@@ -74,20 +73,10 @@
         (name: "Si Li", title: "Professor", affiliation: "×× Institute, CAS"),
       ),
       submit-date: datetime.today(),
-      // 以下为研究生项
-      defend-date: datetime.today(),
-      confer-date: datetime.today(),
-      bottom-date: datetime.today(),
-      chairman: "某某某 教授",
-      reviewer: ("某某某 教授", "某某某 教授"),
-      clc: "O643.12",
-      udc: "544.4",
+      // 密级（规范一·（一）·1）：涉密/延迟公开论文标注，公开论文不标注。
       secret-level: "公开",
-      // 涉密/延迟公开论文的保密期限（如 "10年"），封面渲染为"密级：秘密★10年"；
-      // 公开论文保持 secret-level 为"公开"（默认）即不标注。
+      // 涉密/延迟公开论文的保密期限（如 "10年"），封面渲染为"密级：秘密★10年"。
       secret-year: none,
-      email: "xyz@mails.ucas.ac.cn",
-      school-code: "14430",
       degree: auto,
       degree-en: auto,
     )
@@ -98,7 +87,6 @@
     // 将传入参数再导出
     doctype: doctype,
     degree: degree,
-    nl-cover: nl-cover,
     twoside: twoside,
     anonymous: anonymous,
     fonts: fonts,
@@ -161,7 +149,6 @@
         master-cover(
           doctype: doctype,
           degree: degree,
-          nl-cover: nl-cover,
           anonymous: anonymous,
           twoside: twoside,
           fontset: fontset,
@@ -169,8 +156,6 @@
           fonts: fonts + args.named().at("fonts", default: (:)),
           info: info + args.named().at("info", default: (:)),
         )
-      } else if doctype == "postdoc" {
-        panic("postdoc has not yet been implemented.")
       } else {
         bachelor-cover(
           anonymous: anonymous,
@@ -192,8 +177,6 @@
           ..args,
           fonts: fonts + args.named().at("fonts", default: (:)),
         )
-      } else if doctype == "postdoc" {
-        panic("postdoc has not yet been implemented.")
       } else {
         bachelor-decl-page(
           anonymous: anonymous,
@@ -218,8 +201,6 @@
           fonts: fonts + args.named().at("fonts", default: (:)),
           info: info + args.named().at("info", default: (:)),
         )
-      } else if doctype == "postdoc" {
-        panic("postdoc has not yet been implemented.")
       } else {
         bachelor-abstract(
           anonymous: anonymous,
@@ -244,8 +225,6 @@
           fonts: fonts + args.named().at("fonts", default: (:)),
           info: info + args.named().at("info", default: (:)),
         )
-      } else if doctype == "postdoc" {
-        panic("postdoc has not yet been implemented.")
       } else {
         bachelor-abstract-en(
           anonymous: anonymous,

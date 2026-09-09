@@ -29,7 +29,7 @@
   auto-table,
   aligned-equation,
 ) = documentclass(
-  doctype: "doctor", // "bachelor" | "master" | "doctor" | "postdoc", 文档类型，默认为博士生 doctor
+  doctype: "doctor", // "bachelor" | "master" | "doctor", 文档类型，默认为博士生 doctor
   degree: "academic", // "academic" | "professional", 学位类型，默认为学术型 academic
   anonymous: false, // 盲审模式
   twoside: true, // 双面模式，会加入空白页，便于打印

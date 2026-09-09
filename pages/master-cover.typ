@@ -10,7 +10,6 @@
   // documentclass 传入的参数
   doctype: "master",
   degree: "academic",
-  nl-cover: false,
   anonymous: false,
   twoside: false,
   fontset: "mac",
@@ -31,8 +30,6 @@
     "author-en",
     "supervisors",
     "supervisors-en",
-    "chairman",
-    "reviewer",
     "department",
   ),
   datetime-display: datetime-display, // 用于格式化日期显示。
@@ -52,7 +49,6 @@
         (name: "Si Li", title: "Professor", affiliation: "×× Institute, CAS"),
         (name: "Wu Wang", title: "Professor", affiliation: "×× Institute, CAS"),
       ),
-      reviewer: (),
       grade: "20XX",
       student-id: "1234567890",
       author: "张三",
@@ -92,15 +88,6 @@
     type(info.submit-date) == datetime,
     message: "submit-date must be datetime.",
   )
-  if type(info.defend-date) == datetime {
-    info.defend-date = datetime-display(info.defend-date)
-  }
-  if type(info.confer-date) == datetime {
-    info.confer-date = datetime-display(info.confer-date)
-  }
-  if type(info.bottom-date) == datetime {
-    info.bottom-date = datetime-display(info.bottom-date)
-  }
   // 2.4 处理 degree
   if (info.degree == auto) {
     if (doctype == "doctor") {
