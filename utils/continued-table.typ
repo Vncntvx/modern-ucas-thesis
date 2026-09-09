@@ -18,7 +18,7 @@
   // 同口径）。Typst leading 只在段落内部生效，两个单行 block 之间基线距
   // 不含 leading，其实测见 docs/CUSTOMIZE.md，故英文题段前取一个 leading。
   // 仅 _render-caption（手动续表）使用 zh_block/en_block；
-  // _render-auto-header-caption 用显式 v(caption_gap) 分隔。
+  // _render-caption-outside 与续表 header 行用显式 caption_gap 分隔。
   zh_block: (above: 6pt, below: 0pt),
   en_block: (above: 行距.正文, below: 12pt),
   note_block: (above: 6pt, below: 0pt, inset: (left: 2em)),
@@ -26,7 +26,6 @@
   continued_mark_en: [(continued)],
   // 续表表头中英文标题间距：同上，取一个 leading 使中英题基线距约 1.25×字号。
   caption_gap: 行距.正文,
-  header_cell: (stroke: none, inset: (x: 0pt, top: 0pt, bottom: 0.6em)),
   // 表题与表体间距：规范未定量，取 8pt（与 LaTeX 模板 caption skip 一致）。
   auto_header_gap: 8pt,
   table_align: center,
@@ -51,7 +50,6 @@
   continued_mark_zh: continued_mark_zh,
   continued_mark_en: continued_mark_en,
   caption_gap: caption_gap,
-  header_cell: header_cell,
   auto_header_gap: auto_header_gap,
   table_align: table_align,
   cell_align: cell_align,
@@ -60,41 +58,6 @@
 )
 
 #let _default-continuation-style = continuation-style()
-
-#let _auto-caption-style(style) = (
-  style
-    + (
-      zh_block: (above: 0pt, below: 0pt),
-      en_block: (above: 0pt, below: 0pt),
-    )
-)
-
-#let _render-auto-header-caption(
-  number,
-  caption_zh,
-  caption_en,
-  supplement_zh,
-  supplement_en,
-  style,
-  continued: false,
-) = [
-  #set align(style.caption_align)
-  #set text(..style.zh_text)
-  // 中文表题段前 6pt（规范值；表头首行内渲染，以上边距实现）。
-  #block(above: 6pt, below: 0pt)[
-    #supplement_zh #number #style.separator #caption_zh
-    #if continued { [#style.continued_mark_zh] }
-  ]
-  #if caption_en != none {
-    v(style.caption_gap)
-    set text(..style.en_text)
-    block(above: 0pt, below: 0pt)[
-      #supplement_en #number #style.separator #caption_en
-      #if continued { [#h(0.4em) #style.continued_mark_en] }
-    ]
-  }
-  #v(style.auto_header_gap)
-]
 
 #let _render-caption(
   number,
@@ -123,8 +86,9 @@
   }
 ]
 
-// 表外题注（auto-table）：规范中文段前 6、段后 0；英文段前 0、段后 12；
+// 表外题注（auto-table 首页）：规范中文段前 6、段后 0；英文段前 0、段后 12；
 // 中英题之间用显式 v(行距.正文) 保证视觉间距（勿依赖 block above/below 折叠）。
+// 只在首页渲染，恒不带续表标记。
 #let _render-caption-outside(
   number,
   caption_zh,
@@ -132,7 +96,6 @@
   supplement_zh,
   supplement_en,
   style,
-  continued: false,
 ) = [
   #set align(style.caption_align)
   #if style.caption_par != none and style.caption_par != (:) {
@@ -141,14 +104,12 @@
   #set text(..style.zh_text)
   #block(above: 6pt, below: 0pt)[
     #supplement_zh #number #style.separator #caption_zh
-    #if continued { [#style.continued_mark_zh] }
   ]
   #if caption_en != none {
     v(style.caption_gap)
     set text(..style.en_text)
     block(above: 0pt, below: 12pt)[
       #supplement_en #number #style.separator #caption_en
-      #if continued { [#h(0.4em) #style.continued_mark_en] }
     ]
   }
 ]
@@ -228,6 +189,23 @@
   )
   let index = _table-index-at(loc, kind: kind)
   _typst-numbering(numbering, ..heading-prefix, index)
+}
+
+// 续页判断：给定位置页码是否晚于本表锚点页码。须在 context 内调用
+// （内部含 query）。锚点 figure 经 show-figure 改写为 prefixed kind 后
+// 才能被命中；`.before(loc)` 下本表锚点恒为最后一项，故取 last。
+#let _is-continued(loc) = {
+  let anchors = query(
+    selector(
+      figure.where(kind: bilingual-figured.prefixed-kind("bitable")),
+    ).before(loc),
+  )
+  let anchor-page = if anchors.len() > 0 {
+    anchors.last().location().page()
+  } else {
+    loc.position().page
+  }
+  loc.position().page > anchor-page
 }
 
 #let _source-caption-data(source) = {
@@ -351,11 +329,78 @@
       anchor-figure
     }
 
-    // 表块（含题注与 note）。题注放在表外：若用 table.cell(colspan:) 做表头，
-    // 长中英题注会把整表撑到与题注同宽，auto 列被均分、内容被迫折行。
-    // 卧排时强制不分页；非卧排保持 breakable:true 支持长表跨页。
-    // 外层 block 占满正文宽度，保证题注在页面水平居中，而不是在收缩后的
-    // 小块内居中。
+    // 表块。题注分两处渲染：
+    // - 首页：表外题注（不占列宽，保住 auto 列按内容收缩）。
+    // - 续页：规范要求「在续表表头上方注明续表」。Typst 只会重复 table.header，
+    //   故在 header 顶部放两行 colspan 题注（中/英各一行），首页为空行（cell
+    //   inset 为 0、无内容时高度塌缩），续页经页码比较写出「（续表）」。
+    // 顶线放在题注行之后、列头之前，使续页版式为：中文题 → 英文题 → 顶线 → 列头，
+    // 与规范样张一致。题注行用 block(inset:) 撑出上下间距（cell inset 保持 0）。
+    let continued-cell(body) = table.cell(
+      colspan: col-count,
+      align: center,
+      stroke: none,
+      inset: (x: 0pt, y: 0pt),
+    )[#body]
+    let continued-zh-cell = continued-cell[
+      #context {
+        let loc = here()
+        if _is-continued(loc) {
+          let number = _display-table-number(
+            loc,
+            numbering: numbering,
+            level: level,
+            zero-fill: zero-fill,
+            leading-zero: leading-zero,
+          )
+          // 中英题间距取 caption_gap（= 行距.正文），与表外题注的 v(caption_gap)
+          // 同口径；否则两 header 行直接相贴，基线距仅 ~6.9pt、字形重叠。
+          // set 须在 block 之前：inset 中的相对单位按此处字号解析，
+          // 置于 text 内则回退到正文字号、间距偏大约 1.6pt。
+          // 定宽盒：colspan 行宽被表体 auto 列收窄时，长题注会被迫折行
+          // （首页表外题注为通栏则单行）。按自然宽度定宽装盒后在格内居中
+          // 溢出、两侧对称，与首页同形。题注须短于通栏（首页能单行放下）。
+          set text(..merged-style.zh_text)
+          let cap = [#supp-zh #number #merged-style.separator #caption-zh#merged-style.continued_mark_zh]
+          box(
+            width: measure(cap).width,
+            block(inset: (top: 8pt, bottom: merged-style.caption_gap), cap),
+          )
+        }
+      }
+    ]
+    let continued-en-cell = if caption-en == none {
+      none
+    } else {
+      continued-cell[
+        #context {
+          let loc = here()
+          if _is-continued(loc) {
+            let number = _display-table-number(
+              loc,
+              numbering: numbering,
+              level: level,
+              zero-fill: zero-fill,
+              leading-zero: leading-zero,
+            )
+            // 英文题同中文题：定宽盒防窄表折行（见上）。
+            set text(..merged-style.en_text)
+            let cap = [#supp-en #number #merged-style.separator #caption-en#h(
+                0.4em,
+              )#merged-style.continued_mark_en]
+            box(
+              width: measure(cap).width,
+              block(inset: (top: 0pt, bottom: 8pt), cap),
+            )
+          }
+        }
+      ]
+    }
+    let continued-rows = (
+      continued-zh-cell,
+      ..if continued-en-cell == none { () } else { (continued-en-cell,) },
+    )
+
     let table-block = block(
       breakable: not landscape,
       width: 100%,
@@ -363,45 +408,34 @@
       below: 0.9em,
       {
         context {
-          let number = _display-table-number(
-            here(),
-            numbering: numbering,
-            level: level,
-            zero-fill: zero-fill,
-            leading-zero: leading-zero,
-          )
-          let current-page = here().position().page
-          let anchors = query(
-            selector(
-              figure.where(kind: bilingual-figured.prefixed-kind("bitable")),
-            ).before(here()),
-          )
-          let anchor-page = if anchors.len() > 0 {
-            anchors.last().location().page()
-          } else {
-            current-page
+          // 首页题注在表外
+          let loc = here()
+          if not _is-continued(loc) {
+            let number = _display-table-number(
+              loc,
+              numbering: numbering,
+              level: level,
+              zero-fill: zero-fill,
+              leading-zero: leading-zero,
+            )
+            _render-caption-outside(
+              number,
+              caption-zh,
+              caption-en,
+              supp-zh,
+              supp-en,
+              merged-style,
+            )
           }
-          // 题注在表外：中英题之间用显式 v，避免 block above/below max 折叠后贴在一起
-          _render-caption-outside(
-            number,
-            caption-zh,
-            caption-en,
-            supp-zh,
-            supp-en,
-            merged-style,
-            continued: current-page > anchor-page,
-          )
         }
-        // 表格单元格：关闭两端对齐（窄列会把汉字拉开）；折行用单倍行距。
-        // 规范未对表体行距定量，题注/表注仍为 1.25 倍（见 continuation-style）。
         set par(justify: false, leading: 行距.单倍, spacing: 行距.单倍)
         set align(merged-style.table_align)
         if three-line {
           table(
             columns: resolved-columns,
             ..table-named,
-            rule-top,
-            table.header(..header),
+            // 续页：题注行 → 顶线 → 列头（顶线进 header，随页重复）
+            table.header(..continued-rows, rule-top, ..header),
             rule-mid,
             ..args.pos(),
             rule-bot,
@@ -410,7 +444,7 @@
           table(
             columns: resolved-columns,
             ..table-named,
-            table.header(..header),
+            table.header(..continued-rows, ..header),
             ..args.pos(),
           )
         }
