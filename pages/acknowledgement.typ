@@ -19,12 +19,11 @@
   body,
 ) = {
   if (not anonymous) {
-    // 起始三件套（P30）：先清样式（填充页干净），再换页，最后重申正文域样式。
+    // 起始三件套（P30 变体）：先挂完整正文域样式（填充空白页同样显示页眉页脚——
+    // 偶数页论文题目、奇数页章名，页码按双面左右分置），再换页。
     // 标题（黑体四号加粗居中）与正文（宋体小四、1.25 倍行距）样式继承自外层
     // mainmatter 作用域（show 规则嵌套，标准顺序下本函数位于其内），此处不重复设置。
     fonts = get-fonts(fontset) + fonts
-    set page(numbering: none, foreground: none)
-    pagebreak(weak: true, to: if twoside { "odd" })
     set page(
       numbering: "1",
       footer: none,
@@ -34,6 +33,7 @@
         fonts: fonts,
       ),
     )
+    pagebreak(weak: true, to: if twoside { "odd" })
     [
       #heading(
         level: 1,

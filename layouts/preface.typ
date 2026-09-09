@@ -53,6 +53,11 @@
   //    摘要首页 counter=0（偶），页码渲染为"N"（numbering("I",0)="N"）、页眉误显论文题目。
   //    两种模式下 update(1) 均使首页 counter=1（双面因 pagebreak(to:odd) 后 update 在新页
   //    起点生效；单面因 pagebreak(weak) 后同理），行为统一。
+  //
+  //    此处不可在换页前挂 preface-foreground：摘要前若插入填充空白页，会沿用封面段
+  //    物理计数被渲染成罗马数字（如 IV），而摘要首页才 update(1) 显示 I。故首个
+  //    pagebreak 让空白页继承封面段无页码样式；摘要之后各节的填充页由各自起始
+  //    三件套在计数器已连续的前提下挂完整页眉页脚，页码正确。
   if twoside {
     pagebreak(to: "odd")
   } else {

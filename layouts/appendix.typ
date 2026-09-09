@@ -63,13 +63,10 @@
   it,
 ) = {
   // 附录须由另页右页（奇数页）开始（双面印刷时）。
-  // 起始三件套（P30）：先清样式（填充页干净），再换页，最后重申正文域样式。
-  // reset 必须与 break 同处一个 show 体内（见 mainmatter 注释）。
-  // 全静态，无运行时判断。info 由 documentclass 传入（偶数页论文题目用）。
+  // 起始三件套（P30 变体）：先挂完整正文域样式（填充空白页同样显示页眉页脚），
+  // 再换页。全静态，无运行时判断。info 由 documentclass 传入（偶数页论文题目用）。
   // 注意顺序：先解析 fonts 再 assert（foreground 工厂需要完整字体组）。
   fonts = get-fonts(fontset) + fonts
-  set page(numbering: none, foreground: none)
-  pagebreak(weak: true, to: if twoside { "odd" })
   set page(
     numbering: "1",
     footer: none,
@@ -79,6 +76,7 @@
       fonts: fonts,
     ),
   )
+  pagebreak(weak: true, to: if twoside { "odd" })
   set heading(numbering: numbering)
   // 标记附录模式：bifigure/bitable 经 _appendix-show-figure 改写前缀为"附图/附表"，
   // auto-table 等通过 in-appendix() 读取此标记自行解析 supplement。

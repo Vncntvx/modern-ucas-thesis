@@ -59,18 +59,7 @@
   ..args,
   it,
 ) = {
-  // 0.  起始三件套（P30）：先清样式（to:"odd" 自动填充页继承无样式而干净），
-  // 再换页（双面须奇数页起），最后重申本域样式。
-  // reset 必须与 break 同处一个 show 体内：填充页由本体的 break 创建，
-  // 样式作用域附着规则下，同体 reset 才能覆盖填充页（v6 高清渲染验证）。
-  // 全静态，无运行时判断，布局必然收敛。
-  set page(numbering: none, foreground: none)
-  pagebreak(weak: true, to: if twoside { "odd" })
-  // footer: none 必需（重申）：set page(numbering:) 会自动在页脚渲染一个环境样式的
-  // 页码（auto footer），与下方 foreground 定制的页码重影，必须显式关闭。
-  set page(numbering: "1", footer: none)
-
-  // 1.  默认参数
+  // 0.  默认参数（须在换页前解析：foreground 工厂需要 fonts/info）
   info = (
     (
       title: ("基于 Typst 的", "中国科学院大学学位论文"),
@@ -78,7 +67,27 @@
       + info
   )
   fonts = get-fonts(fontset) + fonts
-  // 基础文字参数
+
+  // 1.  起始三件套（P30 变体）：先挂完整正文域样式（填充空白页同样显示页眉页脚——
+  // 偶数页论文题目、奇数页章名，页码按双面左右分置），再换页。
+  // 全静态，无运行时判断，布局必然收敛。
+  // footer: none 必需：set page(numbering:) 会自动在页脚渲染一个环境样式的
+  // 页码（auto footer），与下方 foreground 定制的页码重影，必须显式关闭。
+  set page(
+    numbering: "1",
+    footer: none,
+    foreground: mainmatter-foreground(
+      twoside: twoside,
+      info: info,
+      fonts: fonts,
+      display-header: display-header,
+      stroke-width: stroke-width,
+      reset-footnote: reset-footnote,
+    ),
+  )
+  pagebreak(weak: true, to: if twoside { "odd" })
+
+  // 2.  基础文字参数
   // 文字边缘设置，用于控制行高计算基准
   // "cap-height": 大写字母的大致高度
   // "baseline": 字母的基线
@@ -236,23 +245,7 @@
     }
   }
 
-  // 5.  处理页眉y页脚：页眉、页脚距页边界 1.5cm）
-  //     不使用 page 的 header/footer + header-ascent/footer-descent（语义为"侵入 margin 的量"，
-  //     无法精确表达"距边界 1.5cm"且会挤压正文区）。改用 page.foreground + place 绝对定位：
-  //       place(top + center, dy: 1.5cm, ...)    —— 页眉锚定到页面顶边下方 1.5cm
-  //       place(bottom + center, dy: -1.5cm, ...) —— 页脚锚定到页面底边上方 1.5cm
-  //     Typst 的 number-align 不支持奇偶页交替，需自定义 footer 查询页码计数器。
-  //     单面打印时居中；双面打印时奇数页(右页)右对齐、偶数页(左页)左对齐。
-  //     页眉分隔线用 block(width: 100% - 3.17cm - 3.17cm) 约束到正文区宽度。
-  set page(foreground: mainmatter-foreground(
-    twoside: twoside,
-    info: info,
-    fonts: fonts,
-    display-header: display-header,
-    stroke-width: stroke-width,
-    reset-footnote: reset-footnote,
-  ))
-  // 奇偶对齐已由开头的 to:"odd" 换页保证，此处不再需要运行时判断。
+  // 5.  页码计数器：奇偶对齐与页眉页脚已由开头挂样式 + to:"odd" 换页保证。
   counter(page).update(1)
 
   it

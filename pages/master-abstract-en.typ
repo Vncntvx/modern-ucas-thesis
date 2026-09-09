@@ -83,14 +83,14 @@
   }
 
   // 4.  正式渲染
-  // 起始三件套（P30）：先清样式（填充页干净），再换页，最后重申前言域样式。
-  set page(numbering: none, foreground: none)
-  pagebreak(weak: true, to: if twoside { "odd" })
+  // 起始三件套（P30 变体）：先挂完整前言域样式（填充空白页同样显示页眉页脚——
+  // 偶数页论文题目、奇数页章名/部分名，页码罗马数字居中），再换页。全静态。
   set page(
     numbering: "I",
     footer: none,
     foreground: preface-foreground(info: info, fonts: fonts),
   )
+  pagebreak(weak: true, to: if twoside { "odd" })
 
   [
     #set text(font: "Times New Roman", size: 字号.小四)

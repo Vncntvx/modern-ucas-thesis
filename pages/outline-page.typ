@@ -39,15 +39,14 @@
     font = (fonts.黑体, fonts.黑体)
   }
 
-  // 2. 正式渲染：起始三件套（P30）——先清样式（填充页干净），
-  // 再换页（双面须奇数页起），最后重申前言域样式。全静态。
-  set page(numbering: none, foreground: none)
-  pagebreak(weak: true, to: if twoside { "odd" })
+  // 2. 正式渲染：起始三件套（P30 变体）——先挂完整前言域样式（填充空白页
+  // 同样显示页眉页脚），再换页。全静态。
   set page(
     numbering: "I",
     footer: none,
     foreground: preface-foreground(info: info, fonts: fonts),
   )
+  pagebreak(weak: true, to: if twoside { "odd" })
 
   // 条目字号（含点线与页码，见 show outline.entry 内 text()）由各级 size 落实，
   // 此处不再设全局字号

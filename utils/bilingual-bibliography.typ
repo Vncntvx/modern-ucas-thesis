@@ -31,11 +31,9 @@
     message: "请传入带有 source 的 bibliography 函数。",
   )
 
-  // 另页右页（奇数页）开始：起始三件套（P30）——先清样式（填充页干净），
-  // 再换页，最后重申正文域样式（计数器延续，不重置）。全静态。
+  // 另页右页（奇数页）开始：起始三件套（P30 变体）——先挂完整正文域样式
+  //（填充空白页同样显示页眉页脚），再换页。计数器延续，不重置。全静态。
   fonts = get-fonts(fontset) + fonts
-  set page(numbering: none, foreground: none)
-  pagebreak(weak: true, to: if twoside { "odd" })
   set page(
     numbering: "1",
     footer: none,
@@ -45,6 +43,7 @@
       fonts: fonts,
     ),
   )
+  pagebreak(weak: true, to: if twoside { "odd" })
 
   // Please fill in the remaining mapping table here
   mapping = (
