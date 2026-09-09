@@ -15,10 +15,14 @@
   supplement-en-figure: [Appendix Figure],
   supplement-zh-table: [附表],
   supplement-en-table: [Appendix Table],
+  ref-supplement: none,
   it,
 ) = {
+  // 原生 `kind: table`（函数，非字符串）同样判为表，见 bilingual-figured
+  // 的 _figure-ref-key；仅用 is-kind 会漏掉该情形。
   let is-table = (
-    bilingual-figured.is-kind(it.kind, "bitable")
+    it.kind == table
+      or bilingual-figured.is-kind(it.kind, "bitable")
       or bilingual-figured.is-kind(
         it.kind,
         "table",
@@ -33,6 +37,7 @@
     supplement-en: if is-table { supplement-en-table } else {
       supplement-en-figure
     },
+    ref-supplement: ref-supplement,
   )
 }
 
@@ -51,6 +56,10 @@
   fontset: "mac",
   fonts: (:),
   info: (:),
+  // 交叉引用量词：none（默认）关闭，量词由作者手写；auto 随题注（附图/附表），
+  // 公式为「式」，定理类随种类（定理/引理/定义/例…）；字典按引用前缀自定义
+  // （fig/tbl/eqt，定理类按 thm/def/ex 三组，缺省项回落）。经 lib.typ 传入。
+  ref-supplements: none,
   numbering: custom-numbering.with(first-level: "", depth: 4, "1.1\u{3000}"),
   // figure 编号（附录图表前缀为"附图/附表"，编号 1-1）
   show-figure: _appendix-show-figure.with(numbering: "1-1"),
@@ -90,13 +99,18 @@
   show heading.where(level: 4): set heading(outlined: false)
   // 公式编号对齐到最后一行右侧（UCAS 规范：序号编于最后一行右顶格）
   set math.equation(number-align: bottom + end)
+  // 引用量词集中解析见 bilingual-figured（与正文 mainmatter 同口径）。
+  set math.equation(
+    supplement: bilingual-figured.resolve-equation-supplement(ref-supplements),
+  )
   // 公式编号字体：不覆盖（与正文 mainmatter 一致；set text 会破坏数学字形，
   // 见 mainmatter 同名注释）。
   if reset-counter {
     counter(heading).update(0)
   }
-  // 设置 figure 的编号
-  show figure: show-figure
+  // 设置 figure 的编号（ref-supplement 透传全局配置；none 时保留原字段
+  // 为裸编号，与正文 mainmatter 一致，无需按 none/non-none 分支）。
+  show figure: show-figure.with(ref-supplement: ref-supplements)
   // 设置 equation 的编号
   show math.equation.where(block: true): show-equation
   // 顺序编码制参考文献引用：连续序号分隔符修正（与正文 mainmatter 一致）

@@ -40,6 +40,13 @@
   twoside: false, // 双面模式，会加入空白页，便于打印
   anonymous: false, // 盲审模式
   bibliography: none, // 参考文献函数
+  // 交叉引用量词自动补全（图/表/式/定理类）：默认 none（关闭），由作者在正文手写
+  // 量词（如「图 1-1」「式 (1-2)」「定理 2-1」，便于连续引用与自定义措辞）；设为 auto
+  // 开启：图/表随双语题注（图/表/附图/附表），公式为「式」，定理类随种类
+  // （定理/引理/定义/例…，标签前缀见 utils/theorem.typ 的 _thm-refspec）；
+  // 也可传字典按引用前缀自定义，如 (eqt: [公式])，定理类按 thm/def/ex
+  // 三组设键，未提供的类型回落 auto 行为。
+  ref-supplements: none,
   // 字体配置说明:
   // - fontset参数用于选择预定义的字体组（windows、mac、fandol或adobe）
   // - fonts参数用于覆盖或补充fontset中的字体设置，提供更精细的字体控制
@@ -48,7 +55,14 @@
   fonts: (:), // 用于覆盖或补充fontset中的字体，可选择性覆盖
   info: (:),
 ) = {
-  // 默认参数
+  // 早失败：ref-supplements 仅接受 none / auto / 字典，避免布尔、字符串等
+  // 误传在深层 show-figure 的 `.at` 处才崩溃（且公式与图表两处行为不一致）。
+  assert(
+    ref-supplements == none
+      or ref-supplements == auto
+      or type(ref-supplements) == dictionary,
+    message: "ref-supplements 须为 none、auto 或字典（如 (eqt: [公式])）",
+  )
   // 根据 fontset 参数选择对应的字体组
   // 将用户自定义的fonts与预定义字体组合并，用户定义的字体会覆盖预定义字体
   fonts = get-fonts(fontset) + fonts
@@ -120,6 +134,7 @@
           ..args,
           fonts: fonts + args.named().at("fonts", default: (:)),
           info: info + args.named().at("info", default: (:)),
+          ref-supplements: ref-supplements,
         )
       } else {
         mainmatter(
@@ -127,6 +142,7 @@
           ..args,
           fonts: fonts + args.named().at("fonts", default: (:)),
           info: info + args.named().at("info", default: (:)),
+          ref-supplements: ref-supplements,
         )
       }
     },
@@ -137,6 +153,7 @@
         ..args,
         fonts: fonts + args.named().at("fonts", default: (:)),
         info: info + args.named().at("info", default: (:)),
+        ref-supplements: ref-supplements,
       )
     },
     // 字体展示页

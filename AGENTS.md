@@ -55,7 +55,7 @@ See `template/thesis.typ` for usage: destructure the returned dictionary, then f
 
 ### Cross-reference conventions
 
-Body text uniformly uses prefixed references: figures `@fig:label`, tables `@tbl:label`, display equations `@eqt:label` (`aligned-equation` likewise uses `@eqt:label`). Tag a display equation `<->` for no number. Bilingual captions go through `caption-zh`/`caption-en`, or the `caption: metadata((zh, en, none, [表], [Table]))` form (`bitable` accepts the native-`figure` metadata style).
+Body text uniformly uses prefixed references: figures `@fig:label`, tables `@tbl:label`, display equations `@eqt:label` (`aligned-equation` likewise uses `@eqt:label`), theorems `@thm:`/`@axm:`/`@lem:`/`@cor:`/`@ast:`/`@prp:`/`@cnj:`/`@def:`/`@ex:` (one prefix per kind, see `theorem.typ` `_thm-refspec`; `ref-supplements` dict keys are the three groups `thm`/`def`/`ex`). Tag a display equation `<->` for no number. Bilingual captions go through `caption-zh`/`caption-en`, or the `caption: metadata((zh, en, none, [表], [Table]))` form (`bitable` accepts the native-`figure` metadata style).
 
 ### External dependencies
 

@@ -20,6 +20,7 @@
   - [1.4 `fontset` 与 `fonts`（字体配置）](#14-fontset-与-fonts字体配置)
   - [1.5 `bibliography`（参考文献源）](#15-bibliography参考文献源)
   - [1.6 `info`（论文元信息）](#16-info论文元信息)
+  - [1.7 `ref-supplements`（交叉引用量词）](#17-ref-supplements交叉引用量词)
 - [2. 封面（Cover）](#2-封面cover)
   - [2.1 规范要求](#21-规范要求)
   - [2.2 代码实现](#22-代码实现)
@@ -279,6 +280,28 @@ typst watch   template/thesis.typ --root . --font-path fonts   # 实时预览
 > 换行规则：字符串中的 `\n` 会被按行拆成数组（`pages/master-cover.typ:78-80`）。中文各行以 `.sum()` 拼成一行，长标题靠自然换行（`master-cover.typ:275`）；英文各行以 `intersperse("\n")` 渲染，一元素一行（`master-cover.typ:346`）；页眉中英文均以 `join("")` 拼成单行（`utils/page-foreground.typ:111,230`）。
 
 > `utils/datetime-display.typ` 将 `datetime` 渲染为 `[year] 年 [month padding:none] 月`（中文）或 `[month repr:short], [year]`（英文）。
+
+### 1.7 `ref-supplements`（交叉引用量词）
+
+`@fig:` / `@tbl:` / `@eqt:` 引用默认渲染为裸编号（约定见 9.5），量词（图/表/式）由作者在正文中手写——便于按写作习惯调整措辞（如"公式 (1-2)"）或书写连续引用（如"式 (1-1)～(1-3)"）。如需自动补全，设置 `ref-supplements` 参数：
+
+```typst
+#let (..., doc) = documentclass(
+  // 全自动：图/表随双语题注（正文"图/表"，附录"附图/附表"），公式为「式」
+  ref-supplements: auto,
+)
+
+// 或按引用前缀自定义（键 fig / tbl / eqt，未提供的类型回落 auto 行为）：
+#let (..., doc) = documentclass(
+  ref-supplements: (eqt: [公式]),   // 公式引用渲染为"公式 (1-1)"，图/表仍自动带前缀
+)
+```
+
+- `auto`：图/表量词派生自各自双语题注的 `supplement_zh`（正文"图/表"，附录"附图/附表"），公式固定为「式」；
+- 字典：按引用前缀（`fig` / `tbl` / `eqt`）自定义量词，缺省项回落 `auto` 行为；
+- `none`（默认）：全部关闭，引用渲染为裸编号。
+
+该参数对正文与附录同时生效；`bifigure` / `bitable` / `auto-table` 与 `@eqt:` 引用均适用。
 
 ---
 
@@ -894,7 +917,7 @@ Typst 的 `leading` 是行盒之间的**额外间隙**（默认 `0.65em`），�
 
 用户标签缺少前缀时会自动补全（如 `<ucasLogo>` → `fig:ucasLogo`）；已带正确前缀的不会被重复添加。
 
-**引用渲染为裸编号（无"图/表"前缀）**——这是有意约定：`bifigure`/`bitable` 构造 figure 时显式 `supplement: none`，因此 `@fig:ucasLogo` 实际渲染为 `1-1` 而非 `图 1-1`（`@eqt:` 亦渲染为裸 `(1-1)`）。行文中需前缀时请手写补充：
+**引用渲染为裸编号（无"图/表"前缀，默认行为）**——`bifigure`/`bitable` 构造 figure 时显式 `supplement: none`，因此 `@fig:ucasLogo` 实际渲染为 `1-1` 而非 `图 1-1`（`@eqt:` 亦渲染为裸 `(1-1)`）。行文中需前缀时请手写补充：
 
 ```typst
 如 图@fig:ucasLogo 所示。      // 渲染为"如图 1-1 所示"
@@ -902,7 +925,7 @@ Typst 的 `leading` 是行盒之间的**额外间隙**（默认 `0.65em`），�
 由 式@eqt:golden-ratio 可知…   // 渲染为"由 式(1-1) 可知…"
 ```
 
-> 2026-09 审计实测：附录中引用亦为裸编号（`@fig:app-emblem` → `1-1`，无"附图"前缀），如需"附图 1-1"须手写"附图@fig:app-emblem"。
+> 附录中引用同为裸编号（`@fig:app-emblem` → `1-1`，无"附图"前缀）。如需"附图 1-1"，可手写"附图@fig:app-emblem"，或设置 `ref-supplements`（见 1.7）由模板自动补全——附录自动为"附图/附表"。
 
 ### 9.6 双语图表样式定制
 
@@ -1401,7 +1424,8 @@ $ y = integral_1^2 x^2 dif x $ <->
 - A4 纸张：`layouts/doc.typ:40-43` `paper: "a4"`
 - 页边距：`layouts/doc.typ:14` `margin: (top: 2.54cm, bottom: 2.54cm, left: 3.17cm, right: 3.17cm)`
 - 双面印刷：`twoside: true` 时启用（默认 `template/thesis.typ:35` 设为 `true`）
-- 各部分奇数页开始：摘要、目录、图表目录、符号列表、附录、参考文献、致谢、作者简历均通过 `pagebreak(weak: true, to: "odd")` 保证（参考文献见 `utils/bilingual-bibliography.typ:30`、附录见 `layouts/appendix.typ:72`）；正文通过起始换页保证（`mainmatter.typ:74`，内部各章为例外，只另页起不对齐奇数页）
+- 各部分奇数页开始：摘要、目录、图表目录、符号列表、附录、参考文献、致谢、作者简历均通过 `pagebreak(weak: true, to: "odd")` 保证（参考文献见 `utils/bilingual-bibliography.typ:30`、附录见 `layouts/appendix.typ:72`）；正文通过起始换页保证（`layouts/mainmatter.typ`，内部各章为例外，只另页起不对齐奇数页）
+- **编号域切换**：正文前连续罗马数字，正文起阿拉伯数字。域切换的 `pagebreak(to:"odd")` 必须在**旧域样式仍生效时**执行，使填充页仍属旧域；新域 `set page` 与 `counter(page).update(1)` 放在换页之后。`preface` 与 `mainmatter` 均按此顺序。若先 set 正文阿拉伯样式再换页，正文前填充页会显示 10、11… 而非 X、XI。
 - 印刷用纸、装订方式、封面颜色需在打印阶段处理
 
 > 规范依据：《指导意见》三·（八）全文。

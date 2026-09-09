@@ -16,6 +16,11 @@
   info: (:),
   fonts: (:),
   fontset: "mac",
+  // 交叉引用量词：none（默认）关闭，量词由作者手写（便于连续引用与自定义
+  // 措辞）；auto 随题注（图/表/附图/附表），公式为「式」，定理类随种类
+  // （定理/引理/定义/例…）；字典按引用前缀自定义（fig/tbl/eqt，定理类按
+  // thm/def/ex 三组，缺省项回落）。经 lib.typ 传入。
+  ref-supplements: none,
   // 其他参数
   // 正文行距：Typst leading 是行盒之间的额外间隙，
   // 取 行距.正文（1.1em）使基线间距约 21.6pt（对齐 LaTeX 参考实现），勿写 1.25em。
@@ -147,9 +152,12 @@
   show footnote.entry: set text(font: fonts.宋体, size: 字号.五号)
   show footnote.entry: set par(leading: 行距.单倍)
 
-  // 4.3 设置 figure 的编号
+  // 4.3 设置 figure 的编号（ref-supplement 透传全局配置；none 时保留原字段
+  // 为裸编号，auto/字典时自动补量词，见 bilingual-figured）。
   show heading: bilingual-figured.reset-counters
-  show figure: bilingual-figured.show-figure
+  show figure: bilingual-figured.show-figure.with(
+    ref-supplement: ref-supplements,
+  )
 
   let bilingual-caption-style = thesis-bilingual-caption-style(fonts)
   show figure: bilingual-figured.show-bilingual.with(
@@ -160,6 +168,12 @@
   // 4.4 设置 equation 的编号和假段落首行缩进
   // 公式编号对齐到最后一行右侧（UCAS 规范：序号编于最后一行右顶格）
   set math.equation(number-align: bottom + end)
+  // 引用量词（ref-supplements）：默认 none，量词由作者手写；开启时公式引用
+  // 经 supplement 自动带前缀（supplement 仅加在 @eqt: 引用的编号之前，
+  // 不影响公式自身的编号显示）。解析集中在 bilingual-figured，避免与附录重复。
+  set math.equation(
+    supplement: bilingual-figured.resolve-equation-supplement(ref-supplements),
+  )
   // 公式编号字体：不覆盖。勿对 math.equation 做 set text 换字体（如统一编号
   // 字体为宋体）：set 规则作用于整个公式，会迫使公式符号（φ、∫、⌊⌋等）向
   // 非数学字体回退，导致缺字形 tofu；且 Typst 0.15 无独立设置编号字号的 API。

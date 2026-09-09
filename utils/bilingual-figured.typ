@@ -129,6 +129,109 @@ THE SOFTWARE.
   }
 }
 
+// 交叉引用量词集中解析（供 layouts/mainmatter.typ 与 appendix.typ 共用，
+// 避免两处重复的 if/else）：
+// - none → none（关闭，引用为裸编号，量词由作者手写）；
+// - 字典 → 取 eqt 项（缺省回落默认量词）；
+// - 其他（含 auto）→ 默认量词。
+// 非法类型不静默吞掉：交由 documentclass 的 assert 提前报错，此处按 auto 处理。
+#let resolve-equation-supplement(ref-supplements, default: [式]) = {
+  if ref-supplements == none {
+    none
+  } else if type(ref-supplements) == dictionary {
+    ref-supplements.at("eqt", default: default)
+  } else {
+    default
+  }
+}
+
+// 图表引用量词的键解析：bitable / table（含原生 `kind: table` 函数）→ tbl，
+// 其余（含 bifigure / image / raw 等）→ fig。
+#let _figure-ref-key(kind-value) = {
+  if kind-value == table {
+    "tbl"
+  } else if is-kind(kind-value, "bitable") or is-kind(kind-value, "table") {
+    "tbl"
+  } else {
+    "fig"
+  }
+}
+
+// 图表引用量词的元素值解析（返回 auto 表“保留原字段”，由调用方省略 supplement
+// 参数实现；返回 none/content 则显式覆盖）：
+// - none → auto（关闭，保留原 supplement：双语图为裸编号，原生图保留自带前缀）；
+// - auto → 题注派生（derived）为空时同样保留，避免把原生图表的前缀洗成裸编号；
+// - 字典 → 命中该项则用之（含显式 none/auto），缺省回落题注派生（仍为空则保留）。
+#let _resolve-figure-element-supplement(ref-supplement, ref-key, derived) = {
+  if ref-supplement == none {
+    auto
+  } else if ref-supplement == auto {
+    if derived == none {
+      auto
+    } else {
+      derived
+    }
+  } else if type(ref-supplement) == dictionary {
+    if ref-key in ref-supplement {
+      ref-supplement.at(ref-key)
+    } else if derived == none {
+      auto
+    } else {
+      derived
+    }
+  } else {
+    auto
+  }
+}
+
+// 从双语 caption 元数据中提取 supplement_zh，作为引用量词（与题注用词一致）。
+// - 字典/数组双语（见 extract-bilingual-caption 两分支）→ 返回存量词，缺失回落
+//   种类默认（图/表）；附录场景由调用方经 supplement-zh 覆盖，此处不感知附录。
+// - 非双语（原生纯文本题注等）→ 返回 none，调用方按“保留原字段”处理，
+//   避免把原生图表自带前缀（如 Table）洗成裸编号。
+#let _ref-supplement-of-caption(cap, kind-value) = {
+  if cap == none or not cap.has("body") {
+    return none
+  }
+  let body = cap.body
+  if not body.has("value") {
+    return none
+  }
+  let v = body.value
+  if type(v) == dictionary {
+    let zh = v.at("zh", default: v.at("caption_zh", default: none))
+    if zh == none {
+      return none
+    }
+    let s = v.at("supplement_zh", default: v.at(
+      "supplement-zh",
+      default: none,
+    ))
+    if s != none {
+      return s
+    }
+    if _figure-ref-key(kind-value) == "tbl" {
+      return [表]
+    } else {
+      return [图]
+    }
+  } else if type(v) == array {
+    if v.len() == 0 or v.at(0, default: none) == none {
+      return none
+    }
+    if v.len() >= 4 and v.at(3, default: none) != none {
+      return v.at(3)
+    }
+    if _figure-ref-key(kind-value) == "tbl" {
+      return [表]
+    } else {
+      return [图]
+    }
+  } else {
+    return none
+  }
+}
+
 #let show-figure(
   it,
   level: 1,
@@ -141,10 +244,29 @@ THE SOFTWARE.
   // 为 none 时不覆盖，保留调用方（bifigure/bitable）传入的原值。
   supplement-zh: none,
   supplement-en: none,
+  // 引用量词（@fig:/@tbl: 引用自动补的前缀）：none（默认）保留原元素字段，
+  // 引用渲染为裸编号，量词由作者手写；auto 随题注量词（图/表/附图/附表）；
+  // 字典按引用类型自定义，键为 fig/tbl（bitable/table → tbl，其余 → fig），
+  // 缺省项回落 auto 行为。
+  ref-supplement: none,
 ) = {
   if type(it.kind) == str and it.kind.starts-with(_prefix) {
     it
   } else {
+    // 引用量词解析优先级：显式关闭（none，保留原字段）> 字典该项 >
+    // 题注覆盖参数（附录 supplement-zh）> 题注元数据；均未命中时保留原字段
+    //（原生图表不被洗成裸编号，见 _resolve-figure-element-supplement）。
+    let ref-key = _figure-ref-key(it.kind)
+    let derived-supp = if supplement-zh != none {
+      supplement-zh
+    } else {
+      _ref-supplement-of-caption(it.caption, it.kind)
+    }
+    let element-supp = _resolve-figure-element-supplement(
+      ref-supplement,
+      ref-key,
+      derived-supp,
+    )
     let figure = figure(
       it.body,
       .._prepare-dict(it, level, zero-fill, leading-zero, numbering),
@@ -154,6 +276,7 @@ THE SOFTWARE.
         supplement-zh,
         supplement-en,
       ),
+      ..if element-supp != auto { (supplement: element-supp) },
     )
     if it.has("label") {
       let kind-key = if type(it.kind) == str { it.kind } else { repr(it.kind) }
@@ -186,7 +309,9 @@ THE SOFTWARE.
   zero-fill: true,
   leading-zero: true,
   numbering: "(1-1)",
-  supplement: none,
+  // supplement：auto 保留原公式字段（含 set math.equation(supplement:) 的取值），
+  // none 显式去除，其余取值覆盖重建后的公式。
+  supplement: auto,
   prefix: "eqt:",
   only-labeled: false,
   unnumbered-label: "-",
