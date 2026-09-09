@@ -72,9 +72,17 @@
   )
   fonts = get-fonts(fontset) + fonts
 
-  // 1.  起始页面样式：先设置页眉页脚（page.foreground）再换页，使双面模式下
-  // to:"odd" 换页自动插入的填充空白页同样显示页眉页脚——偶数页论文题目、
-  // 奇数页章名，页码按双面左右分置。全静态实现，无运行时判断。
+  // 1.  前言 → 正文 的编号域切换
+  //
+  // 页码域规则：正文前（摘要…）连续罗马数字；正文起阿拉伯数字。
+  // 换页产生的填充页必须仍属于「上一编号域」：若先 set 正文（阿拉伯 +
+  // mainmatter-foreground）再 pagebreak(to:"odd")，填充页会用正文样式把
+  // 前言物理计数渲染成 10、11…，与前言罗马页码断裂。
+  //
+  // 正确顺序（与 preface 同一原则）：
+  //   pagebreak（填充页继承前言罗马页码）→ set 正文样式 → 计数器重置为 1。
+  // 正文章内的填充页（章标题 to 前的另页）发生在 set 之后，仍是阿拉伯，不受影响。
+  pagebreak(weak: true, to: if twoside { "odd" })
   // footer: none 必需：set page(numbering:) 会自动在页脚渲染一个环境样式的
   // 页码（auto footer），与下方 foreground 定制的页码重影，必须显式关闭。
   set page(
@@ -89,7 +97,6 @@
       reset-footnote: reset-footnote,
     ),
   )
-  pagebreak(weak: true, to: if twoside { "odd" })
 
   // 2.  参数处理
   // 2.1 文字参数
@@ -319,7 +326,8 @@
     }
   }
 
-  // 6.  页码计数器：奇偶对齐与页眉页脚已由起始页面样式 + to:"odd" 换页保证。
+  // 6.  正文首页页码重置为 1（前言罗马序号在此截断，正文另起阿拉伯序）。
+  //    填充页样式：正文前的填充页继承前言罗马页码；章内填充页用上面 set 的正文样式。
   counter(page).update(1)
 
   it
