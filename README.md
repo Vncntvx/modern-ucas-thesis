@@ -75,8 +75,8 @@ typst watch template/thesis.typ --root . --font-path fonts
       (name: "王五", title: "研究员", affiliation: "中国科学院××研究所"),
     ),
     supervisors-en: (
-      (name: "Si Li", title: "Professor", affiliation: "×× Institute, CAS"),
-      (name: "Wu Wang", title: "Professor", affiliation: "×× Institute, CAS"),
+      (name: "Si Li", title: "Professor", affiliation: "Institute of XXX, Chinese Academy of Sciences"),
+      (name: "Wu Wang", title: "Professor", affiliation: "Institute of XXX, Chinese Academy of Sciences"),
     ),
     department: "中国科学院××研究所",
     major: "管理科学与工程",

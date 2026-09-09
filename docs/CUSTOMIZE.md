@@ -266,11 +266,11 @@ typst watch   template/thesis.typ --root . --font-path fonts   # 实时预览
 | `author` / `author-en` | string | `"张三"` / `"Zhang San"` | 作者姓名；英文按 GB/T 28039—2011，姓全大写、名首字母大写（一·（一）·3） |
 | `grade` | string | `"20XX"` | 年级；仅本科封面渲染，研究生摘要页未用 |
 | `student-id` | string | `"1234567890"` | 学号；仅本科封面渲染，研究生摘要页未用 |
-| `department` / `department-en` | string | `"某研究所"` / `"XX Institute"` | 培养单位全称（一·（一）·7） |
+| `department` / `department-en` | string | `"某研究所"` / `"Institute of XXX"` | 培养单位全称（一·（一）·7）；英文封面渲染为 `department-en` + `, Chinese Academy of Sciences`，故 `department-en` 只填研究所名，不要写 CAS |
 | `major` / `major-en` | string | `"xx 专业"` / `"xx major"` | 一级/二级学科或专业学位领域全称，须与学籍一致（一·（一）·6） |
 | `category` / `category-en` | string | `"学科门类或专业学位类别"` / `"XX category"` | 学科门类（学术型）或专业学位类别 + 学位级别（一·（一）·5） |
 | `supervisors` | array | `((name: "李四", title: "教授", affiliation: "中国科学院××研究所"),)` | 导师列表，每项为字典 `(name:, title:, affiliation:)`，分别对应姓名、专业技术职务、工作单位，多导师第一导师在前（一·（一）·4）；用于封面。由 `utils/supervisor.typ` 的 `normalize-supervisors` 校验归一化 |
-| `supervisors-en` | array | `((name: "Si Li", title: "Professor", affiliation: "×× Institute, CAS"),)` | 英文导师列表，结构同 `supervisors`；用于英文封面 |
+| `supervisors-en` | array | `((name: "Si Li", title: "Professor", affiliation: "Institute of XXX, Chinese Academy of Sciences"),)` | 英文导师列表，结构同 `supervisors`；用于英文封面 |
 | `submit-date` | datetime | `datetime.today()` | 论文提交年月，夏季填 6 月、冬季填 12 月（一·（一）·8）；用于封面、致谢末尾 |
 | `degree` / `degree-en` | string/auto | `auto` | 学位名称，`auto` 时按 `doctype` 自动生成（"工程博士"/"工程硕士"）；用于封面（专业型） |
 | `secret-level` | string | `"公开"` | 密级（一·（一）·1）；非"公开"时在研究生封面右上角渲染 |

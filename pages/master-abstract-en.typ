@@ -42,7 +42,11 @@
       department-en: "XX Department",
       major-en: "XX Major",
       supervisors-en: (
-        (name: "Si Li", title: "Professor", affiliation: "×× Institute, CAS"),
+        (
+          name: "Si Li",
+          title: "Professor",
+          affiliation: "Institute of XXX, Chinese Academy of Sciences",
+        ),
       ),
     )
       + info

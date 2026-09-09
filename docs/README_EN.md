@@ -71,14 +71,15 @@ Edit `template/thesis.typ`:
     author-en: "Zhang San",
     // Supervisors: list of dicts (name:, title:, affiliation:); first supervisor first
     supervisors: (
-      (name: "Si Li", title: "Professor", affiliation: "XX Institute, CAS"),
-      (name: "Wu Wang", title: "Professor", affiliation: "XX Institute, CAS"),
+      (name: "Si Li", title: "Professor", affiliation: "Institute of XXX, Chinese Academy of Sciences"),
+      (name: "Wu Wang", title: "Professor", affiliation: "Institute of XXX, Chinese Academy of Sciences"),
     ),
     supervisors-en: (
-      (name: "Si Li", title: "Professor", affiliation: "XX Institute, CAS"),
-      (name: "Wu Wang", title: "Professor", affiliation: "XX Institute, CAS"),
+      (name: "Si Li", title: "Professor", affiliation: "Institute of XXX, Chinese Academy of Sciences"),
+      (name: "Wu Wang", title: "Professor", affiliation: "Institute of XXX, Chinese Academy of Sciences"),
     ),
-    department: "XX Institute, CAS",
+    department: "Institute of XXX, Chinese Academy of Sciences",
+    department-en: "Institute of XXX",
     major: "Management Science and Engineering",
     category: "Doctor of Management",
     submit-date: datetime(year: 2024, month: 6, day: 1),

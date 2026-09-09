@@ -60,7 +60,7 @@
       author: "张三",
       author-en: "Zhang San",
       department: "某研究所",
-      department-en: "XX Institute",
+      department-en: "Institute of XXX",
       major: "xx 专业",
       major-en: "xx major",
       category: "学科门类或专业学位类别",
@@ -70,7 +70,11 @@
         (name: "李四", title: "教授", affiliation: "中国科学院××研究所"),
       ),
       supervisors-en: (
-        (name: "Si Li", title: "Professor", affiliation: "×× Institute, CAS"),
+        (
+          name: "Si Li",
+          title: "Professor",
+          affiliation: "Institute of XXX, Chinese Academy of Sciences",
+        ),
       ),
       submit-date: datetime.today(),
       // 密级（规范一·（一）·1）：涉密/延迟公开论文标注，公开论文不标注。
