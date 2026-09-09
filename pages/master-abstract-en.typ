@@ -126,7 +126,7 @@
 
     #[#set text(font: "Times New Roman", size: 字号.小四)
       #show smartquote: set text(font: "Times New Roman")
-      #strong[Key Words]: #(keywords.intersperse(", ")).sum()
+      #strong[Key Words:] #(keywords.intersperse(", ")).sum()
     ]
   ]
 

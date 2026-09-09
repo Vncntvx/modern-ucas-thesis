@@ -101,7 +101,7 @@
 
     #v(1em)
 
-    #strong[Key Words]: #(("",) + keywords.intersperse(", ")).sum()
+    #strong[Key Words:] #(("",) + keywords.intersperse(", ")).sum()
   ]
 
   // 结尾 reset（P30）：覆盖后续自定义组装顺序下可能出现的填充页；
