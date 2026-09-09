@@ -3,6 +3,7 @@
 #import "../utils/style.typ": get-fonts, 字号
 #import "../utils/custom-numbering.typ": custom-numbering
 #import "../utils/citation-range-hyphen.typ": citation-range-hyphen
+#import "../utils/theorem.typ": show-theorem-ref
 
 // 附录图表"参考正文的编号方式，如附图1-1或附表1-1"，
 // 即附录中图/表的前缀须为"附图/附表"（英文 Appendix Figure / Appendix Table），
@@ -111,6 +112,9 @@
   // 设置 figure 的编号（ref-supplement 透传全局配置；none 时保留原字段
   // 为裸编号，与正文 mainmatter 一致，无需按 none/non-none 分支）。
   show figure: show-figure.with(ref-supplement: ref-supplements)
+  // 定理类引用（`thm:` 等九前缀，见 utils/theorem.typ；与正文规则一致，
+  // 附录中定理仍称定理、不改附表前缀）。
+  show ref: show-theorem-ref.with(ref-supplement: ref-supplements)
   // 设置 equation 的编号
   show math.equation.where(block: true): show-equation
   // 顺序编码制参考文献引用：连续序号分隔符修正（与正文 mainmatter 一致）

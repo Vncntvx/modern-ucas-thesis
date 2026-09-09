@@ -25,6 +25,10 @@
 #import "utils/bilingual-figured.typ": show-equation, show-figure
 #import "utils/continued-table.typ": auto-table, continued-table
 #import "utils/aligned-equation.typ": aligned-equation
+#import "utils/theorem.typ": (
+  assertion, axiom, conjecture, corollary, definition, example, lemma, proof,
+  proposition, remark, theorem,
+)
 #import "utils/custom-numbering.typ": custom-numbering
 #import "utils/supervisor.typ": (
   normalize-supervisors, supervisor-en-line, supervisor-line,
@@ -329,5 +333,17 @@
     continued-table: continued-table,
     auto-table: auto-table,
     aligned-equation: aligned-equation,
+    // 定理类数学环境（对齐 amsthm，随章编号）
+    axiom: axiom,
+    theorem: theorem,
+    lemma: lemma,
+    corollary: corollary,
+    assertion: assertion,
+    proposition: proposition,
+    conjecture: conjecture,
+    definition: definition,
+    example: example,
+    remark: remark,
+    proof: proof,
   )
 }

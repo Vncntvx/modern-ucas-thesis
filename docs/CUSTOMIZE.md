@@ -1477,6 +1477,7 @@ $ y = integral_1^2 x^2 dif x $ <->
 | 修改目录深度 | `template/thesis.typ` | `outline-page(depth: 3)` |
 | 修改封面字段 | `pages/master-cover.typ` | `info-key-width`、`info-row-gutter` 等 |
 | 自定义符号列表 | `template/thesis.typ` | `#notation()[ ... ]` 内的 `table` |
+| 修改定理环境用词/编号 | `utils/theorem.typ` | `_thm-env` 的标题字符串、计数器策略 |
 | 添加附录 | `template/thesis.typ` | `#show: appendix` 后写章节 |
 | 附录中续表 | `template/thesis.typ` | `auto-table` / `continued-table` 自动切换"附表"前缀 |
 | 不编号的展示性表格 | 用户代码 | 原生 `table` + `align(center)[#strong[标题]]` |

@@ -5,6 +5,7 @@
 #import "../utils/custom-numbering.typ": custom-numbering
 #import "../utils/citation-range-hyphen.typ": citation-range-hyphen
 #import "../utils/unpairs.typ": unpairs
+#import "../utils/theorem.typ": reset-theorem-counters, show-theorem-ref
 
 // 标题邻接表（文档序预计算）。show 规则内 query(selector.X.after().before())
 // 不可靠（恒为空），故在文档流中一次性算好，经 state 供 show 规则按下标读取。
@@ -164,6 +165,11 @@
     figure_style: bilingual-caption-style,
     table_style: bilingual-caption-style,
   )
+
+  // 定理类引用（`thm:` 等九前缀，见 utils/theorem.typ 的 _thm-refspec）。
+  // show ref 链可叠加：citation-range-hyphen 只认文献引用，本规则只认
+  // 定理前缀，其余都原样返回，故顺序无关。
+  show ref: show-theorem-ref.with(ref-supplement: ref-supplements)
 
   // 4.4 设置 equation 的编号和假段落首行缩进
   // 公式编号对齐到最后一行右侧（UCAS 规范：序号编于最后一行右顶格）
@@ -331,6 +337,8 @@
     // （v 会与块段后相加，破坏折叠）。
     if it.level == 1 {
       v(array-at(heading-above, it.level))
+      // 定理类环境计数器随章清零（定理 1-1、定理 2-1 …）
+      reset-theorem-counters()
     }
     if array-at(heading-align, it.level) != auto {
       set align(array-at(heading-align, it.level))
