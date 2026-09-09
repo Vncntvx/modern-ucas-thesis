@@ -6,6 +6,10 @@
 #import "../utils/citation-range-hyphen.typ": citation-range-hyphen
 #import "../utils/unpairs.typ": unpairs
 
+// 标题邻接表（文档序预计算）。show 规则内 query(selector.X.after().before())
+// 不可靠（恒为空），故在文档流中一次性算好，经 state 供 show 规则按下标读取。
+#let _heading-adj = state("modern-ucas-heading-adj", ())
+
 #let mainmatter(
   // documentclass 传入参数
   twoside: false,
@@ -68,9 +72,9 @@
   )
   fonts = get-fonts(fontset) + fonts
 
-  // 1.  起始三件套（P30 变体）：先挂完整正文域样式（填充空白页同样显示页眉页脚——
-  // 偶数页论文题目、奇数页章名，页码按双面左右分置），再换页。
-  // 全静态，无运行时判断，布局必然收敛。
+  // 1.  起始页面样式：先设置页眉页脚（page.foreground）再换页，使双面模式下
+  // to:"odd" 换页自动插入的填充空白页同样显示页眉页脚——偶数页论文题目、
+  // 奇数页章名，页码按双面左右分置。全静态实现，无运行时判断。
   // footer: none 必需：set page(numbering:) 会自动在页脚渲染一个环境样式的
   // 页码（auto footer），与下方 foreground 定制的页码重影，必须显式关闭。
   set page(
@@ -87,7 +91,8 @@
   )
   pagebreak(weak: true, to: if twoside { "odd" })
 
-  // 2.  基础文字参数
+  // 2.  参数处理
+  // 2.1 文字参数
   // 文字边缘设置，用于控制行高计算基准
   // "cap-height": 大写字母的大致高度
   // "baseline": 字母的基线
@@ -99,18 +104,18 @@
     text-args = base-text-args + text-args
   }
 
-  // 1.1 字体与字号
+  // 2.2 标题字体默认值
   if (heading-font == auto) {
     heading-font = (fonts.黑体,)
   }
-  // 1.2 处理 heading- 开头的其他参数
+  // 2.3 处理 heading- 开头的其他参数
   let heading-text-args-lists = args
     .named()
     .pairs()
     .filter(pair => pair.at(0).starts-with("heading-"))
     .map(pair => (pair.at(0).slice("heading-".len()), pair.at(1)))
 
-  // 2.  辅助函数
+  // 3.  辅助函数
   let array-at(arr, pos) = {
     // 如果值是数组，根据位置获取；如果是标量，直接使用该值
     if type(arr) == array {
@@ -120,8 +125,8 @@
     }
   }
 
-  // 3.  设置基本样式
-  // 3.1 文本和段落样式
+  // 4.  设置基本样式
+  // 4.1 文本和段落样式
   set text(..text-args)
   set par(
     leading: leading,
@@ -131,11 +136,11 @@
   )
   show raw: set text(font: fonts.等宽)
 
-  // 3.2 脚注样式：五号字；脚注用单倍行距（LaTeX 脚注单倍，不随正文行距）。
+  // 4.2 脚注样式：五号字；脚注用单倍行距（LaTeX 脚注单倍，不随正文行距）。
   show footnote.entry: set text(font: fonts.宋体, size: 字号.五号)
   show footnote.entry: set par(leading: 行距.单倍)
 
-  // 3.3 设置 figure 的编号
+  // 4.3 设置 figure 的编号
   show heading: bilingual-figured.reset-counters
   show figure: bilingual-figured.show-figure
 
@@ -145,18 +150,18 @@
     table_style: bilingual-caption-style,
   )
 
-  // 3.4 设置 equation 的编号和假段落首行缩进
+  // 4.4 设置 equation 的编号和假段落首行缩进
   // 公式编号对齐到最后一行右侧（UCAS 规范：序号编于最后一行右顶格）
   set math.equation(number-align: bottom + end)
-  // 公式编号字体：不覆盖。曾用 show math.equation: set text(font: 宋体)
-  // 统一编号字体，但实测该规则会迫使公式符号（φ、∫、⌊⌋等）向非数学字体
-  // 回退，导致缺字形 tofu（P31 高清渲染验证）；且 Typst 0.15 无独立设置
-  // 编号字号的 API。编号内容为纯阿拉伯数字与括号，按规范"英文和阿拉伯
-  // 数字用 Times New Roman 体"，默认数学字体（Times 风格衬线）即合规。
+  // 公式编号字体：不覆盖。勿对 math.equation 做 set text 换字体（如统一编号
+  // 字体为宋体）：set 规则作用于整个公式，会迫使公式符号（φ、∫、⌊⌋等）向
+  // 非数学字体回退，导致缺字形 tofu；且 Typst 0.15 无独立设置编号字号的 API。
+  // 编号内容为纯阿拉伯数字与括号，按规范"英文和阿拉伯数字用 Times New Roman
+  // 体"，默认数学字体（Times 风格衬线）即合规。
   // 字号继承正文小四（规范五号 10.5pt，Typst 固有限制，见 docs/CUSTOMIZE.md）。
   show math.equation.where(block: true): bilingual-figured.show-equation
 
-  // 3.5 表格表头置顶 + 不用冒号用空格分割 + 样式
+  // 4.5 表格表头置顶 + 不用冒号用空格分割 + 样式
   show figure.where(
     kind: table,
   ): set figure.caption(position: top)
@@ -164,37 +169,106 @@
   show figure.caption: caption-style
   show figure.caption: set text(font: fonts.宋体, size: 字号.五号)
 
-  // 3.6 顺序编码制参考文献引用：连续序号分隔符修正
+  // 4.6 顺序编码制参考文献引用：连续序号分隔符修正
   //     gb-7714-2015-numeric CSL 默认用 en dash"–"连接连续序号，UCAS 规范要求用 hyphen"-"。
   //     仅对参考文献引用（it.element == none）生效，图表/公式/标题引用原样返回。
   //     序号上标与多篇合并（[1,2]/[1-4]）由 CSL 默认提供，需用 @a@b 紧邻书写触发合并。
   show ref: citation-range-hyphen
 
-  // 3.7 优化列表显示
+  // 4.7 优化列表显示
   // 术语列表 terms 不应该缩进
   show terms: set par(first-line-indent: (amount: 0pt, all: true))
 
-  // 4.  处理标题
-  // 4.1 设置标题的 Numbering
+  // 5.  处理标题
+  // 5.1 设置标题的 Numbering
   set heading(numbering: numbering)
 
-  // 4.2 设置标题的段前段后间距
-  show heading: it => {
-    // 段前分两种落实（实测见 layouts/mainmatter 探针：block/below 与显式 v 相加，
-    // block/above 与前序 block 间距按 max 折叠——与 TeX \addvspace 语义一致）：
-    // - L1 仍用 4.4 中的显式 v：L1 恒另起一页（4.4 换页符），v 在换页符后保留，
-    //   保证章标题距正文区上边界；L1 前无须折叠（换页已分隔），此处块上间距取 0。
-    // - L2+ 用块上间距：与前序标题的段后（below）按 max 折叠，避免"段后补偿 +
-    //   段前 v"双重全额叠加（如章→节 63.8pt，LaTeX 参考仅 34.8pt）；自然换页被
-    //   带到页顶时块上间距自动裁剪，同 TeX 丢弃 beforeskip。
-    // 段后：规范值 + 13.2pt（一个正文 leading 的绝对值；
-    // 增量相对正文行距而非标题字号，故不用 size-relative 的 leading）。
-    // TeX 的 afterskip 是叠加在整行行距之上的（LaTeX 实测 L2→正文
-    // 27.58pt = 行距 21.6pt + 段后 6pt）；L→标题相邻仍按 max 语义。
-    let actual-above = if it.level == 1 { 0pt } else {
-      array-at(heading-above, it.level)
+  // 5.2 设置标题的段前段后间距
+  //
+  // 语义（Typst 官方 block/par）：`block(above/below)` 与相邻块按 max 折叠，
+  // 且优先于 `par.spacing`；显式 `v()` 与块间距相加。正文 `spacing = 行距.正文`
+  // （≈13.2pt@小四）对应 Word「段前段后 0 磅」。
+  //
+  // - L1：5.4 显式 v(24pt)，换页后保留；块上间距取 0。
+  // - 非连续标题：L2 段前 24pt；L3/L4 段前 12pt + 半个 leading。
+  // - 连续标题（两标题之间无段落/列表/图表等）：上一标题段后 = 规范值 + 6pt，
+  //   下一标题段前 = 6pt，折叠后约 12pt，既紧凑又不粘连。
+  //   邻接关系在下方 context 块按文档序预计算；show 内不用 after/before query
+  //   （实测恒返回空），也不用 position（误判会导致叠字）。
+  context {
+    let heads = query(heading)
+    let flags = ()
+    for i in range(heads.len()) {
+      let h = heads.at(i)
+      let has-mid(a, b) = {
+        (
+          query(
+            selector(par)
+              .or(selector(list))
+              .or(selector(enum))
+              .or(selector(figure))
+              .or(selector(math.equation))
+              .or(selector(raw))
+              .after(a)
+              .before(b),
+          ).len()
+            > 0
+        )
+      }
+      flags.push((
+        // 与上一标题之间是否有正文
+        cluster-prev: if i == 0 {
+          false
+        } else {
+          not has-mid(heads.at(i - 1).location(), h.location())
+        },
+        // 与下一标题之间是否有正文
+        cluster-next: if i + 1 >= heads.len() {
+          false
+        } else {
+          not has-mid(h.location(), heads.at(i + 1).location())
+        },
+      ))
     }
-    let actual-below = array-at(heading-below, it.level) + 13.2pt
+    _heading-adj.update(flags)
+  }
+
+  show heading: it => context {
+    let body-leading-abs = 13.2pt
+    let half-body-leading = 6.6pt
+
+    let heads = query(heading)
+    let idx = heads.position(h => h.location() == it.location())
+    let flags = if idx == none {
+      (cluster-prev: false, cluster-next: false)
+    } else {
+      _heading-adj
+        .get()
+        .at(idx, default: (
+          cluster-prev: false,
+          cluster-next: false,
+        ))
+    }
+
+    let spec-above = array-at(heading-above, it.level)
+    let spec-below = array-at(heading-below, it.level)
+    // 聚簇时保留的最小空气，避免标题粘成一团
+    let cluster-gap = 6pt
+
+    let actual-above = if it.level == 1 {
+      0pt
+    } else if flags.cluster-prev {
+      cluster-gap
+    } else if it.level >= 3 {
+      spec-above + half-body-leading
+    } else {
+      spec-above
+    }
+    let actual-below = if flags.cluster-next {
+      spec-below + cluster-gap
+    } else {
+      spec-below + body-leading-abs
+    }
     set block(
       above: actual-above,
       below: actual-below,
@@ -202,7 +276,7 @@
     it
   }
 
-  // 4.3 设置标题的字体、字号、行距等样式
+  // 5.3 设置标题的字体、字号、行距等样式
   show heading: it => {
     // 标题使用单倍行距：取 行距.单倍（0.5em），勿写 1em
     //（1em 额外间隙远超单倍）。
@@ -223,7 +297,7 @@
     it
   }
 
-  // 4.4 标题居中与自动换页
+  // 5.4 标题居中与自动换页
   show heading: it => {
     if array-at(heading-pagebreak, it.level) {
       // 如果打上了 no-auto-pagebreak 标签，则不自动换页
@@ -231,8 +305,8 @@
         pagebreak(weak: true)
       }
     }
-    // L1 段前用显式 v 落实规范值（换页符后保留，见 4.2 注释）。
-    // L2+ 段前已由 4.2 的块上间距落实（max 折叠 + 页顶裁剪），此处不再发射 v
+    // L1 段前用显式 v 落实规范值（换页符后保留，见 5.2 注释）。
+    // L2+ 段前已由 5.2 的块上间距落实（max 折叠 + 页顶裁剪），此处不再发射 v
     // （v 会与块段后相加，破坏折叠）。
     if it.level == 1 {
       v(array-at(heading-above, it.level))
@@ -245,7 +319,7 @@
     }
   }
 
-  // 5.  页码计数器：奇偶对齐与页眉页脚已由开头挂样式 + to:"odd" 换页保证。
+  // 6.  页码计数器：奇偶对齐与页眉页脚已由起始页面样式 + to:"odd" 换页保证。
   counter(page).update(1)
 
   it

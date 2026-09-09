@@ -669,16 +669,20 @@ student-id, author, author-en, supervisors, supervisors-en, department
 
 ### 8.5 标题段前段后间距计算逻辑
 
-`layouts/mainmatter.typ` 标题规则：段后取规范值 + 13.2pt（一个正文 leading 的绝对值）；段前按级别区分落实（见下表）。改 `heading-above` / `heading-below` 时按此口径：
+`layouts/mainmatter.typ` 标题规则（对照 Typst 官方 `block`/`par` 文档与 Word 语义）：
 
-| 级别 | 字体大小 | 规范段前 | 规范段后 | 实际段前 | 实际段后 |
-|------|---------|---------|---------|---------|---------|
+- Word「段前 X 磅」叠在行距间隙之上；Typst `block(above/below)` 与相邻块按 **max 折叠**，且优先于 `par.spacing`。
+- 本模板正文 `spacing = 行距.正文`（≈13.2pt@小四），对应 Word「段前段后 0 磅」。
+- 若三级/四级标题段前仅取规范 12pt，会被正文 13.2pt 折叠吞掉，视觉上与正文段间无异。故 L3/L4 在规范段前上再补一个正文 leading。
+
+| 级别 | 字体大小 | 规范段前 | 规范段后 | 实际段前（block/v） | 实际段后 |
+|------|---------|---------|---------|-------------------|---------|
 | 一级 | 14pt | 24pt | 18pt | v(24pt)（换页后保留） | 18pt + 13.2pt |
 | 二级 | 12pt | 24pt | 6pt | block(above: 24pt) | 6pt + 13.2pt |
 | 三级 | 12pt | 12pt | 6pt | block(above: 12pt) | 6pt + 13.2pt |
 | 四级 | 12pt | 12pt | 6pt | block(above: 12pt) | 6pt + 13.2pt |
 
-设计要点（2026-09 与 LaTeX 参考并排实测后确定）：一级恒另起一页，用显式 `v` 保证换页后保留 24pt；二级及以下用块上间距，使其与前序块段后按 **max 折叠**（与 TeX `\addvspace` 语义一致），自然换页到页顶时自动裁剪（同 TeX 丢弃 beforeskip）。二级及以下若用显式 `v`，`v` 会与块段后**相加**（探针证实），章→节基线距达 63.8pt，而 LaTeX 参考仅 34.8pt。现模型章→节约 39.8pt（残差约 5pt 来自段后补偿，标题→正文路径所需，不可再压），节→正文约 27.5pt（LaTeX 约 30.0pt），章→正文约 39.5pt（与 LaTeX 基本一致）。
+设计要点：一级恒另起一页，用显式 `v`；二级及以下用块上间距做 max 折叠。L2 段前 24pt 大于正文 spacing，可见；L3/L4 非连续标题时段前取规范 12pt + 半个 leading（≈18.6pt）。连续标题（两标题之间无段落/列表/图表/公式）在 `mainmatter` 起始处用文档序 `query` **预计算**邻接表并写入 `state`，show 规则按 `location ==` 下标读取：上一标题段后只留规范值、下一标题段前清零。**不可**在 show 规则内直接 `query(...after().before())`（实测恒返回空），也不可用 `location.position()`（误判会导致标题叠字）。
 
 ### 8.6 章节编号格式
 
