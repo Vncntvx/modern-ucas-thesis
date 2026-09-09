@@ -169,7 +169,7 @@ modern-ucas-thesis/
 | Automatic continued tables (long tables) | ✅ | `auto-table` breaks pages actively, repeats header, labels "续表"/"(continued)" |
 | Manual continued tables | ✅ | `continued-table` requires the source table label |
 | Appendix figure/table numbering | ✅ | Same form as main text (`1-1`), matching the guideline |
-| Three-line tables | ✅ | Built with `table.hline()`; sample in the template |
+| Three-line tables | ✅ | `auto-table` defaults to three-line; `table`/`bitable` may use `table.hline()` |
 | Landscape tables | ✅ | `bitable`/`bifigure`/`auto-table` support `landscape: true`; rotated 90° counterclockwise, "top-left, bottom-right" |
 | Map approval-number note helper | 🟡 | Border maps need "审图号 GS(2021)××××号"; user adds it manually |
 

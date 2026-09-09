@@ -838,7 +838,7 @@ Typst 的 `leading` 是行盒之间的**额外间隙**（默认 `0.65em`），�
 
 #### 自动续表 `auto-table`
 
-主动采用可分页渲染，**不受** `bitable` 默认 `keep_together: true` 的防跨页约束，适合长表。每页自动重复表头并标注"续表"/"(continued)"：
+主动采用可分页渲染，**不受** `bitable` 默认 `keep_together: true` 的防跨页约束，适合长表。每页自动重复表头并标注"续表"/"(continued)"。**默认三线表**（`stroke: none` + 顶线/栏目线/底线）；若传入自定义 `stroke` 则恢复普通网格，横线由调用方自行插入。
 
 ```typst
 #auto-table(
@@ -934,7 +934,7 @@ Typst 的 `leading` 是行盒之间的**额外间隙**（默认 `0.65em`），�
 
 ### 9.7 三线表与卧排表
 
-**三线表**：通过 `table.hline()` 组合实现，模板内置示例：
+**三线表**：`auto-table` **默认即为三线表**（顶线、栏目线 0.5pt、底线，无竖线）。原生 `table`/`bitable` 仍可用 `table.hline()` 手写：
 
 ```typst
 #bitable(

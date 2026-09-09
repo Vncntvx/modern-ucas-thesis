@@ -168,7 +168,7 @@ modern-ucas-thesis/
 | 自动续表（长表跨页） | ✅ | `auto-table` 主动分页，自动重复表头并标注"续表"/"(continued)" |
 | 手动续表 | ✅ | `continued-table` 需配合源表 label 使用 |
 | 附录图表编号 | ✅ | 沿用正文编号形式（`1-1`），与规范"附录图表参考正文编号方式"一致 |
-| 三线表 | ✅ | 通过 `table.hline()` 组合实现，模板内置示例 |
+| 三线表 | ✅ | `auto-table` 默认三线表；`table`/`bitable` 可用 `table.hline()` 手写 |
 | 卧排表（横向表格） | ✅ | `bitable`/`bifigure`/`auto-table` 内置 `landscape: true`，逆时针旋转 90°，方位"顶左底右" |
 | 地图审图号注释辅助 | 🟡 | 规范要求涉国界图件注明"审图号 GS(2021)××××号"，需用户手动添加 |
 

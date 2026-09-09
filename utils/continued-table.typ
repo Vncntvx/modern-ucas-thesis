@@ -6,7 +6,7 @@
 #let continuation-style(
   separator: h(1em),
   caption_align: center,
-  // 1.25 倍行距：Typst leading 是额外间隙，取 行距.正文，勿写 1.25em。
+  // 1.25 倍行距：Typst leading 是行盒之间的额外间隙，取 行距.正文，勿写 1.25em。
   caption_par: (leading: 行距.正文),
   note_par: auto,
   zh_text: (size: 字号.五号, weight: "bold"),
@@ -31,6 +31,9 @@
   auto_header_gap: 8pt,
   table_align: center,
   cell_align: center,
+  // 单元格内边距：对齐常见 LaTeX 三线表观感（上下约 4pt、左右 6pt），
+  // 过紧会贴线，过松会把多列表挤出折行。
+  cell_inset: (x: 6pt, y: 4pt),
   continued_block: (above: 1.25em, below: 1em),
 ) = (
   separator: separator,
@@ -52,6 +55,7 @@
   auto_header_gap: auto_header_gap,
   table_align: table_align,
   cell_align: cell_align,
+  cell_inset: cell_inset,
   continued_block: continued_block,
 )
 
@@ -113,6 +117,36 @@
   #if caption_en != none {
     set text(..style.en_text)
     block(..style.en_block)[
+      #supplement_en #number #style.separator #caption_en
+      #if continued { [#h(0.4em) #style.continued_mark_en] }
+    ]
+  }
+]
+
+// 表外题注（auto-table）：规范中文段前 6、段后 0；英文段前 0、段后 12；
+// 中英题之间用显式 v(行距.正文) 保证视觉间距（勿依赖 block above/below 折叠）。
+#let _render-caption-outside(
+  number,
+  caption_zh,
+  caption_en,
+  supplement_zh,
+  supplement_en,
+  style,
+  continued: false,
+) = [
+  #set align(style.caption_align)
+  #if style.caption_par != none and style.caption_par != (:) {
+    set par(..style.caption_par)
+  }
+  #set text(..style.zh_text)
+  #block(above: 6pt, below: 0pt)[
+    #supplement_zh #number #style.separator #caption_zh
+    #if continued { [#style.continued_mark_zh] }
+  ]
+  #if caption_en != none {
+    v(style.caption_gap)
+    set text(..style.en_text)
+    block(above: 0pt, below: 12pt)[
       #supplement_en #number #style.separator #caption_en
       #if continued { [#h(0.4em) #style.continued_mark_en] }
     ]
@@ -265,7 +299,20 @@
 
   let merged-style = _default-continuation-style + style
   let resolved-columns = _resolve-columns(columns)
+  // 用户未显式 inset 时用收紧后的默认内边距，便于 auto 列按内容收缩
   let table-named = args.named()
+  if "inset" not in table-named {
+    table-named.insert("inset", merged-style.cell_inset)
+  }
+  // 默认三线表（规范二·（六）·6：尽量三线表、避免竖线）。
+  // 用户传入 stroke 时尊重其选择；否则顶线/底线默认，栏目线 0.5pt。
+  let three-line = "stroke" not in table-named
+  if three-line {
+    table-named.insert("stroke", none)
+  }
+  let rule-top = table.hline()
+  let rule-mid = table.hline(stroke: 0.5pt)
+  let rule-bot = table.hline()
 
   context {
     // 解析 supplement：附录中自动用"附表/Appendix Table"，正文用"表/Table"，
@@ -304,59 +351,69 @@
       anchor-figure
     }
 
-    // 表块（含续表表头 caption 与 note）。卧排时强制不分页——旋转内容不跨页，
-    // breakable:false 保证整体在一页内；非卧排保持 breakable:true 支持长表跨页。
+    // 表块（含题注与 note）。题注放在表外：若用 table.cell(colspan:) 做表头，
+    // 长中英题注会把整表撑到与题注同宽，auto 列被均分、内容被迫折行。
+    // 卧排时强制不分页；非卧排保持 breakable:true 支持长表跨页。
+    // 外层 block 占满正文宽度，保证题注在页面水平居中，而不是在收缩后的
+    // 小块内居中。
     let table-block = block(
       breakable: not landscape,
       width: 100%,
       above: 0pt,
       below: 0.9em,
       {
+        context {
+          let number = _display-table-number(
+            here(),
+            numbering: numbering,
+            level: level,
+            zero-fill: zero-fill,
+            leading-zero: leading-zero,
+          )
+          let current-page = here().position().page
+          let anchors = query(
+            selector(
+              figure.where(kind: bilingual-figured.prefixed-kind("bitable")),
+            ).before(here()),
+          )
+          let anchor-page = if anchors.len() > 0 {
+            anchors.last().location().page()
+          } else {
+            current-page
+          }
+          // 题注在表外：中英题之间用显式 v，避免 block above/below max 折叠后贴在一起
+          _render-caption-outside(
+            number,
+            caption-zh,
+            caption-en,
+            supp-zh,
+            supp-en,
+            merged-style,
+            continued: current-page > anchor-page,
+          )
+        }
+        // 表格单元格：关闭两端对齐（窄列会把汉字拉开）；折行用单倍行距。
+        // 规范未对表体行距定量，题注/表注仍为 1.25 倍（见 continuation-style）。
+        set par(justify: false, leading: 行距.单倍, spacing: 行距.单倍)
         set align(merged-style.table_align)
-        table(
-          columns: resolved-columns,
-          ..table-named,
-          table.header(
-            table.cell(
-              colspan: col-count,
-              ..merged-style.header_cell,
-              context {
-                let number = _display-table-number(
-                  here(),
-                  numbering: numbering,
-                  level: level,
-                  zero-fill: zero-fill,
-                  leading-zero: leading-zero,
-                )
-                let current-page = here().position().page
-                let anchors = query(
-                  selector(
-                    figure.where(
-                      kind: bilingual-figured.prefixed-kind("bitable"),
-                    ),
-                  ).before(here()),
-                )
-                let anchor-page = if anchors.len() > 0 {
-                  anchors.last().location().page()
-                } else {
-                  current-page
-                }
-                let auto-style = _auto-caption-style(merged-style)
-                _render-auto-header-caption(
-                  number,
-                  caption-zh,
-                  caption-en,
-                  supp-zh,
-                  supp-en,
-                  auto-style,
-                  continued: current-page > anchor-page,
-                )
-              },
-            ),
-            ..header,
-          ),
-          ..args.pos(),
-        )
+        if three-line {
+          table(
+            columns: resolved-columns,
+            ..table-named,
+            rule-top,
+            table.header(..header),
+            rule-mid,
+            ..args.pos(),
+            rule-bot,
+          )
+        } else {
+          table(
+            columns: resolved-columns,
+            ..table-named,
+            table.header(..header),
+            ..args.pos(),
+          )
+        }
         _render-note(note, merged-style)
       },
     )
