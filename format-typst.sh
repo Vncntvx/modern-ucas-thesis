@@ -47,22 +47,31 @@ check_typstyle() {
 }
 
 # 格式化单个文件
+# 注意：typstyle 在源文件解析失败时仍以 exit 0 退出（仅向 stderr 输出
+# "warn: Failed to parse ..."），故不能只看退出码，必须同时检查 stderr，
+# 否则语法破损的文件会被误报为成功（format-check 出现假绿）。
 format_file() {
     local file="$1"
     local check_only="$2"
     local verbose="$3"
-    
+    local output=""
+
     if [ ! -f "$file" ]; then
         echo -e "${RED}文件不存在: $file${NC}"
         return 1
     fi
-    
+
     if [ "$verbose" = "true" ]; then
         echo -e "${BLUE}处理: $file${NC}"
     fi
-    
+
     if [ "$check_only" = "true" ]; then
-        if typstyle --check "$file" >/dev/null 2>&1; then
+        if output=$(typstyle --check "$file" 2>&1 >/dev/null); then
+            if [[ "$output" == *"Failed to parse"* ]]; then
+                echo -e "${RED}❌ $file 解析失败，无法检查格式：${NC}"
+                echo "$output"
+                return 1
+            fi
             [ "$verbose" = "true" ] && echo -e "${GREEN}✅ $file 格式正确${NC}"
             return 0
         else
@@ -70,11 +79,17 @@ format_file() {
             return 1
         fi
     else
-        if typstyle --inplace "$file" 2>/dev/null; then
+        if output=$(typstyle --inplace "$file" 2>&1); then
+            if [[ "$output" == *"Failed to parse"* ]]; then
+                echo -e "${RED}❌ $file 解析失败，未做任何修改：${NC}"
+                echo "$output"
+                return 1
+            fi
             [ "$verbose" = "true" ] && echo -e "${GREEN}✅ $file 格式化完成${NC}"
             return 0
         else
             echo -e "${RED}❌ $file 格式化失败${NC}"
+            [ -n "$output" ] && echo "$output"
             return 1
         fi
     fi
@@ -177,7 +192,9 @@ main() {
     
     for file in "${target_files[@]}"; do
         if format_file "$file" "$check_only" "$verbose"; then
-            ((success_count++))
+            # 不用 ((success_count++))：计数值 0 时表达式值为 0，
+            # 在 set -e 下新版 bash 会直接退出脚本。
+            success_count=$((success_count + 1))
         else
             failed_files+=("$file")
         fi
@@ -191,7 +208,9 @@ main() {
         else
             echo -e "${YELLOW}❌ $((total_count - success_count)) 个文件需要格式化${NC}"
             echo -e "${BLUE}运行以下命令进行格式化:${NC}"
-            echo "  $0 ${failed_files[*]}"
+            printf '  %s' "$0"
+            printf ' %q' "${failed_files[@]}"
+            printf '\n'
             exit 1
         fi
     else

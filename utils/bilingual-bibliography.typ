@@ -138,11 +138,10 @@
         // 故保持现状。
         let comma-in-itt = itt.text.replace(regex(",?\s?译"), "").matches(",")
         if (
-          type(comma-in-itt) == array
-            and comma-in-itt.len()
-              >= (
-                if allow-comma-in-name { 2 } else { 1 }
-              )
+          comma-in-itt.len()
+            >= (
+              if allow-comma-in-name { 2 } else { 1 }
+            )
         ) {
           if extra-comma-before-et-al-trans {
             itt.text.replace(regex(",?\s?译"), ", tran")

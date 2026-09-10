@@ -9,30 +9,31 @@
   format,
   ..args,
 ) = {
-  if args.pos().len() > depth {
+  let pos = args.pos()
+  if pos.len() > depth {
     return
   }
-  if first-level != auto and args.pos().len() == 1 {
+  if first-level != auto and pos.len() == 1 {
     if first-level != "" {
       numbering(first-level, ..args)
     }
     return
   }
-  if second-level != auto and args.pos().len() == 2 {
+  if second-level != auto and pos.len() == 2 {
     if second-level != "" {
       numbering(second-level, ..args)
     }
     return
   }
-  if third-level != auto and args.pos().len() == 3 {
+  if third-level != auto and pos.len() == 3 {
     if third-level != "" {
       numbering(third-level, ..args)
     }
     return
   }
   // default
-  if args.pos().len() >= base {
-    numbering(format, ..(args.pos().slice(base - 1)))
+  if pos.len() >= base {
+    numbering(format, ..(pos.slice(base - 1)))
     return
   }
 }

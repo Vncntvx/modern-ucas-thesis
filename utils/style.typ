@@ -86,13 +86,5 @@
 )
 
 #let get-fonts(fontset) = {
-  if fontset == "windows" {
-    字体组.windows
-  } else if fontset == "mac" {
-    字体组.mac
-  } else if fontset == "adobe" {
-    字体组.adobe
-  } else {
-    字体组.fandol
-  }
+  字体组.at(fontset, default: 字体组.fandol)
 }

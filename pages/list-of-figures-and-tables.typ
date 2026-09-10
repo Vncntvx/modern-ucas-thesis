@@ -62,9 +62,6 @@
 
   // 段前段后取规范值：相邻 block 间距取 max 不叠加，
   // 行距由 leading 提供，勿再叠加字号。
-  let actual-above = above
-  let actual-below = below
-
   // 自定义 outline entry：双语图表目录仅显示中文标题
   show outline.entry: it => {
     // 条目单倍行距（规范值；多行条目才显现差异）
@@ -85,8 +82,8 @@
         .show-bilingual-outline-entry
         .with(
           lang: "zh",
-          above: actual-above,
-          below: actual-below,
+          above: above,
+          below: below,
         )(it)
     } else {
       it

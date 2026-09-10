@@ -132,6 +132,11 @@
   if it.has("form") and it.form != "normal" {
     return it
   }
+  // 缺失标签时 element 为 none（官方 ref 文档要求处理此情形）：
+  // 交回原生渲染（"?" + 警告），避免 none.location() 硬报错。
+  if it.element == none {
+    return it
+  }
   let spec = _thm-refspec.at(parts.first())
   let loc = it.element.location()
   let chapter = counter(heading).at(loc).at(0, default: 0)

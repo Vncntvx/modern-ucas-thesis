@@ -119,8 +119,9 @@
 
     #v(title-below)
 
-    #[#set text(font: "Times New Roman", size: 字号.小四)
-      #show smartquote: set text(font: "Times New Roman")
+    // 正文字体/行距继承自页面作用域（font: "Times New Roman" + 小四），
+    // 此处仅追加首行缩进；smartquote 亦随页面字体渲染，无需重复 set/show。
+    #[
       #set par(first-line-indent: (amount: 2em, all: true))
 
       #body
@@ -129,10 +130,8 @@
     // 关键词与摘要间空一行：一行高度 = 正文基线距 21.6pt
     #v(21.6pt)
 
-    #[#set text(font: "Times New Roman", size: 字号.小四)
-      #show smartquote: set text(font: "Times New Roman")
-      #strong[Key Words:] #(keywords.intersperse(", ")).sum()
-    ]
+    // 字体继承自页面作用域，无需重复 set text。
+    #[#strong[Key Words:] #(keywords.intersperse(", ")).sum()]
   ]
 
   // 结尾重置页面样式：function 体内的 set page 会泄漏到后续文档流，此处显式

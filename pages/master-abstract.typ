@@ -118,7 +118,8 @@
 
     #v(title-below)
 
-    #[#set text(font: fonts.宋体, size: 字号.小四)
+    // 正文字体/行距继承自页面作用域（宋体小四），此处仅追加首行缩进。
+    #[
       #set par(first-line-indent: (amount: 2em, all: true))
 
       #body
@@ -127,10 +128,8 @@
     // 关键词与摘要间空一行：一行高度 = 正文基线距 21.6pt
     #v(21.6pt)
 
-    #[
-      #set text(font: fonts.宋体, size: 字号.小四)
-      #fakebold[关键词：]#(keywords.intersperse("，")).sum()
-    ]
+    // 字体继承自页面作用域，无需重复 set text。
+    #[#fakebold[关键词：]#(keywords.intersperse("，")).sum()]
 
   ]
 

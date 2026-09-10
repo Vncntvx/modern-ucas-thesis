@@ -77,11 +77,9 @@
     let current-below = below.at(entry.level - 1, default: below.last())
     // 段前段后间距取规范值。block.above/below 与 par.spacing 取 max 不叠加，
     // 无需为行距额外补偿（与 mainmatter 标题间距同源修正）。
-    let actual-above = current-above
-    let actual-below = current-below
     block(
-      above: actual-above,
-      below: actual-below,
+      above: current-above,
+      below: current-below,
       link(entry.element.location(), entry.indented(
         none,
         {

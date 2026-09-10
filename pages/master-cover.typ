@@ -117,6 +117,14 @@
     )
   }
 
+  let anonymous-text(key, body) = {
+    if (anonymous and (key in anonymous-info-keys)) {
+      "██████████"
+    } else {
+      body
+    }
+  }
+
   let info-value(key, body, info-inset: info-inset) = {
     set align(center)
     rect(
@@ -128,21 +136,9 @@
         weight: "bold",
         size: 字号.四号,
         bottom-edge: "descender",
-        if (anonymous and (key in anonymous-info-keys)) {
-          "██████████"
-        } else {
-          body
-        },
+        anonymous-text(key, body),
       ),
     )
-  }
-
-  let anonymous-text(key, body) = {
-    if (anonymous and (key in anonymous-info-keys)) {
-      "██████████"
-    } else {
-      body
-    }
   }
 
   // 4.  正式渲染

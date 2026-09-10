@@ -8,6 +8,76 @@
 
 #import "style.typ": 字号
 
+// —— 共用 helper（preface / mainmatter 两个 foreground 工厂重复逻辑的单点实现）——
+
+// 论文题目 content 渲染：数组题目直接拼接，其余转 str。
+#let _title-content(thesis-title) = if type(thesis-title) == array {
+  thesis-title.join("")
+} else {
+  str(thesis-title)
+}
+
+// 奇数页页眉内容：当前页的一级标题，当前页没有则取之前最近的一级标题。
+#let _odd-page-header-content() = context {
+  let current-page = here().page()
+  let current-headings = query(heading.where(level: 1)).filter(
+    h => h.location().page() == current-page,
+  )
+  let filtered-headings = if current-headings.len() > 0 {
+    current-headings
+  } else {
+    query(selector(heading.where(level: 1)).before(here()))
+  }
+  let current-heading = if filtered-headings.len() > 0 {
+    filtered-headings.last()
+  } else { none }
+
+  let header-content = ""
+  if current-heading != none {
+    if (
+      current-heading.has("numbering") and current-heading.numbering != none
+    ) {
+      let counter-values = counter(heading).at(current-heading.location())
+      // 直接调用 heading 自身的 numbering 渲染章序号，
+      // 而非硬编码"第1章"——这样附录（first-level 为空）的页眉
+      // 不会错误显示"第1章"，而显示纯标题（如"附录"）。
+      // 序号与章名间的"一个汉字符"由 numbering 模板内的全角空格
+      // U+3000 提供，与正文标题保持一致。
+      header-content = (current-heading.numbering)(..counter-values)
+    }
+    header-content += current-heading.body
+  } else {
+    header-content = "没有找到章标题"
+  }
+  header-content
+}
+
+// 页眉渲染：距页面顶边 1.5cm，宋体小五号，居中，下方 0.5em 处加正文区宽度的分隔线。
+// display-header 为 false 时省略页眉（仅保留 footnote 重置与页脚页码）。
+#let _place-header(header-content, fonts, stroke-width) = place(
+  top + center,
+  dy: 1.5cm,
+  {
+    set text(
+      font: fonts.宋体,
+      size: 字号.小五,
+      top-edge: "bounds",
+      bottom-edge: "bounds",
+    )
+    // 行距段距清零：默认 par spacing（1.2em）会把分隔线顶到 16pt 开外
+    //（LaTeX 参考仅约 4pt）；清零后由下方显式 v(2pt) 精确定位。
+    set par(leading: 0pt, spacing: 0pt)
+    // 页眉盒顶定位于距页边界 1.5cm（与 LaTeX headheight 盒模型一致，
+    // 盒高 12pt，文字底对齐，基线约 1.5cm+12pt；分隔线在盒下 0.5em）。
+    block(width: 100% - 3.17cm - 3.17cm, height: 12pt)[
+      #align(center + bottom, header-content)
+    ]
+    v(2pt)
+    line(length: 100%, stroke: stroke-width + black)
+  },
+)
+}
+
 // 前言 foreground：页码大写罗马数字居中；奇数页章名、偶数页题目
 //（英文摘要偶数页用英文题目）。
 #let preface-foreground(
@@ -33,35 +103,7 @@
 
   if is-odd-page {
     // 奇数页：显示当前页的一级标题
-    let current-page = here().page()
-    let current-headings = query(heading.where(level: 1)).filter(
-      h => h.location().page() == current-page,
-    )
-    let filtered-headings = if current-headings.len() > 0 {
-      current-headings
-    } else {
-      query(selector(heading.where(level: 1)).before(here()))
-    }
-    let current-heading = if filtered-headings.len() > 0 {
-      filtered-headings.last()
-    } else { none }
-    if current-heading != none {
-      if (
-        current-heading.has("numbering") and current-heading.numbering != none
-      ) {
-        let counter-values = counter(heading).at(
-          current-heading.location(),
-        )
-        // 直接调用 heading 自身的 numbering 渲染章序号，
-        // 而非硬编码"第1章"——附录等 first-level 为空的场景下
-        // 页眉不会错误显示"第1章"。序号与章名间的"一个汉字符"
-        // 由 numbering 模板内的全角空格 U+3000 提供。
-        header-content = (current-heading.numbering)(..counter-values)
-      }
-      header-content += current-heading.body
-    } else {
-      header-content = "没有找到章标题"
-    }
+    header-content = _odd-page-header-content()
   } else {
     // 偶数页：显示论文标题
     // 规范：英文摘要偶数页标明英文题目，其余前置部分标明中文题目。
@@ -105,42 +147,16 @@
     }
 
     if thesis-title != none {
-      header-content = if type(thesis-title) == array {
-        thesis-title.join("")
-      } else {
-        str(thesis-title)
-      }
+      header-content = _title-content(thesis-title)
     }
     if header-content == "" {
       header-content = "没有找到标题"
     }
   }
 
-  // 渲染页眉：距页面顶边 1.5cm，宋体小五号，居中，下方 0.5em 处加正文区宽度的分隔线。
-  // display-header 为 false 时省略页眉（仅保留 footnote 重置与页脚页码）。
+  // 渲染页眉（共用 helper，见 _place-header）
   if display-header {
-    place(
-      top + center,
-      dy: 1.5cm,
-      {
-        set text(
-          font: fonts.宋体,
-          size: 字号.小五,
-          top-edge: "bounds",
-          bottom-edge: "bounds",
-        )
-        // 行距段距清零：默认 par spacing（1.2em）会把分隔线顶到 16pt 开外
-        //（LaTeX 参考仅约 4pt）；清零后由下方显式 v(2pt) 精确定位。
-        set par(leading: 0pt, spacing: 0pt)
-        // 页眉盒顶定位于距页边界 1.5cm（与 LaTeX headheight 盒模型一致，
-        // 盒高 12pt，文字底对齐，基线约 1.5cm+12pt；分隔线在盒下 0.5em）。
-        block(width: 100% - 3.17cm - 3.17cm, height: 12pt)[
-          #align(center + bottom, header-content)
-        ]
-        v(2pt)
-        line(length: 100%, stroke: stroke-width + black)
-      },
-    )
+    _place-header(header-content, fonts, stroke-width)
   }
 
   // 渲染页脚（页码）：距页面底边 1.5cm，宋体小五号居中，大写罗马数字
@@ -184,82 +200,22 @@
   let header-content = ""
 
   if is-odd-page {
-    // 奇数页：显示当前页的一级标题
-
-    // 查询当前页的一级标题；当前页没有则取当前位置之前最近的一级标题
-    let current-page = here().page()
-    let current-headings = query(heading.where(level: 1)).filter(
-      h => h.location().page() == current-page,
-    )
-    let filtered-headings = if current-headings.len() > 0 {
-      current-headings
-    } else {
-      query(selector(heading.where(level: 1)).before(here()))
-    }
-    let current-heading = if filtered-headings.len() > 0 {
-      filtered-headings.last()
-    } else { none }
-
-    // 页眉渲染
-    if current-heading != none {
-      // 构造章节标题显示内容
-      if (
-        current-heading.has("numbering") and current-heading.numbering != none
-      ) {
-        let counter-values = counter(heading).at(
-          current-heading.location(),
-        )
-        // 直接调用 heading 自身的 numbering 渲染章序号，
-        // 而非硬编码"第1章"——这样附录（first-level 为空）的页眉
-        // 不会错误显示"第1章"，而显示纯标题（如"附录"）。
-        // 序号与章名间的"一个汉字符"由 numbering 模板内的全角空格
-        // U+3000 提供，与正文标题保持一致。
-        header-content = (current-heading.numbering)(..counter-values)
-      }
-      header-content += current-heading.body
-    } else {
-      header-content = "没有找到章标题"
-    }
+    // 奇数页：显示当前页的一级标题（共用 helper，见 _odd-page-header-content）
+    header-content = _odd-page-header-content()
   } else {
     // 偶数页：显示论文标题
     let thesis-title = info.title
     if thesis-title != none {
-      header-content = if type(thesis-title) == array {
-        thesis-title.join("")
-      } else {
-        str(thesis-title)
-      }
+      header-content = _title-content(thesis-title)
     }
     if header-content == "" {
       header-content = "没有找到标题"
     }
   }
 
-  // 渲染页眉：距页面顶边 1.5cm，宋体小五号，居中，下方 0.5em 处加正文区宽度的分隔线。
-  // display-header 为 false 时省略页眉（仅保留 footnote 重置与页脚页码）。
+  // 渲染页眉（共用 helper，见 _place-header）
   if display-header {
-    place(
-      top + center,
-      dy: 1.5cm,
-      {
-        set text(
-          font: fonts.宋体,
-          size: 字号.小五,
-          top-edge: "bounds",
-          bottom-edge: "bounds",
-        )
-        // 行距段距清零：默认 par spacing（1.2em）会把分隔线顶到 16pt 开外
-        //（LaTeX 参考仅约 4pt）；清零后由下方显式 v(2pt) 精确定位。
-        set par(leading: 0pt, spacing: 0pt)
-        // 页眉盒顶定位于距页边界 1.5cm（与 LaTeX headheight 盒模型一致，
-        // 盒高 12pt，文字底对齐，基线约 1.5cm+12pt；分隔线在盒下 0.5em）。
-        block(width: 100% - 3.17cm - 3.17cm, height: 12pt)[
-          #align(center + bottom, header-content)
-        ]
-        v(2pt)
-        line(length: 100%, stroke: stroke-width + black)
-      },
-    )
+    _place-header(header-content, fonts, stroke-width)
   }
 
   // 渲染页脚（页码）：距页面底边 1.5cm，宋体小五号。

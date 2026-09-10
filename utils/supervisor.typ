@@ -61,11 +61,11 @@
 // 将一位导师渲染为英文单行字符串："title name affiliation"（职称在前，符合英文习惯）
 // 用于研究生英文封面 "Supervisor(s):" 行（英文习惯 "Professor Si Li" 而非 "Si Li Professor"）。
 #let supervisor-en-line(sup) = {
-  let parts = ()
-  if sup.at("title", default: "") != "" { parts.push(sup.at("title")) }
-  if sup.at("name", default: "") != "" { parts.push(sup.at("name")) }
-  if sup.at("affiliation", default: "") != "" {
-    parts.push(sup.at("affiliation"))
-  }
-  parts.join(" ")
+  (
+    sup.at("title", default: ""),
+    sup.at("name", default: ""),
+    sup.at("affiliation", default: ""),
+  )
+    .filter(s => s != "")
+    .join(" ")
 }

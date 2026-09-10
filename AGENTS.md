@@ -4,7 +4,7 @@ This file provides guidance to Code Agent when working with code in this reposit
 
 ## Project overview
 
-A Typst-based thesis template for the University of Chinese Academy of Sciences (UCAS), package `modern-ucas-thesis` (v0.3.0, entry point `lib.typ`, `typst.toml` declares `compiler = "0.15.0"`). It follows the *UCAS Guidelines on Writing Graduate Degree Theses (2022)* (`docs/RULES-GRAD.md`) and the *UCAS Guidelines on Writing Undergraduate Theses/Designs (2023-10)* (`docs/RULES-BACHELOR.md`). A newer local Typst CLI (e.g. 0.15.x) normally still compiles.
+A Typst-based thesis template for the University of Chinese Academy of Sciences (UCAS), package `modern-ucas-thesis` (v0.3.0, entry point `lib.typ`, `typst.toml` declares `compiler = "0.15.1"`). It follows the *UCAS Guidelines on Writing Graduate Degree Theses (2022)* (`docs/RULES-GRAD.md`) and the *UCAS Guidelines on Writing Undergraduate Theses/Designs (2023-10)* (`docs/RULES-BACHELOR.md`). A newer local Typst CLI (e.g. 0.15.x) normally still compiles.
 
 ## Common commands
 
@@ -97,7 +97,7 @@ Typst is a young language with fast-moving syntax and APIs. **Never write Typst 
 
 - Main branch `main`, plus a long-lived `style` branch. Commit messages follow the existing gitmoji style (`feat(utils): ✨ ...`, `fix(layouts): 🐛 ...`, `docs(docs): 📝 ...`).
 - `.editorconfig`: 2-space indent for `.typ`, tabs for `Makefile`, 4 spaces for `.sh`, no trailing-whitespace trimming for `.md`.
-- `template/thesis.pdf` is gitignored; other `*.pdf` files are cleaned by `make clean`.
+- `template/thesis.pdf` is gitignored and regenerable; it is deleted by `make clean` too, because a leftover copy makes `make lint` (typst-package-check) fail with `files/compilation-artifact`. Run lint on a freshly cleaned tree.
 
 ## Mode switches
 

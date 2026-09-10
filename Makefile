@@ -5,7 +5,7 @@
 TYPSTYLE = typstyle
 TYPST_FILES = $(shell find . -name "*.typ" -not -path "./node_modules/*" -not -path "./.git/*")
 MAIN_FILES = lib.typ template/thesis.typ
-PACKAGE_CHECK = package-check
+PACKAGE_CHECK = typst-package-check
 
 # 默认目标
 .PHONY: help
@@ -20,29 +20,54 @@ help:
 	@echo ""
 	@echo "详细使用说明请参考: docs/FORMAT.md"
 
+# 注意：typstyle 在源文件解析失败时仍以 exit 0 退出（仅向 stderr 输出
+# "warn: Failed to parse ..."），故以下目标除退出码外同时检查 stderr，
+# 否则语法破损的文件会被误报为成功。
+
 # 格式化所有 .typ 文件
 .PHONY: format
 format:
 	@echo "正在格式化所有 Typst 文件..."
-	@for file in $(TYPST_FILES); do \
+	@failed=0; \
+	for file in $(TYPST_FILES); do \
 		echo "格式化: $$file"; \
-		$(TYPSTYLE) --inplace "$$file" || echo "警告: 格式化 $$file 失败"; \
-	done
-	@echo "格式化完成！"
+		output=$$($(TYPSTYLE) --inplace "$$file" 2>&1); \
+		if [ $$? -ne 0 ] || echo "$$output" | grep -q "Failed to parse"; then \
+			echo "❌ 格式化 $$file 失败"; \
+			[ -n "$$output" ] && echo "$$output"; \
+			failed=1; \
+		fi; \
+	done; \
+	if [ $$failed -ne 0 ]; then \
+		echo "❌ 有文件格式化失败"; \
+		exit 1; \
+	fi; \
+	echo "格式化完成！"
 
 # 仅格式化主要文件
 .PHONY: format-main
 format-main:
 	@echo "正在格式化主要文件..."
-	@for file in $(MAIN_FILES); do \
+	@failed=0; \
+	for file in $(MAIN_FILES); do \
 		if [ -f "$$file" ]; then \
 			echo "格式化: $$file"; \
-			$(TYPSTYLE) --inplace "$$file" || echo "警告: 格式化 $$file 失败"; \
+			output=$$($(TYPSTYLE) --inplace "$$file" 2>&1); \
+			if [ $$? -ne 0 ] || echo "$$output" | grep -q "Failed to parse"; then \
+				echo "❌ 格式化 $$file 失败"; \
+				[ -n "$$output" ] && echo "$$output"; \
+				failed=1; \
+			fi; \
 		else \
 			echo "文件不存在: $$file"; \
+			failed=1; \
 		fi; \
-	done
-	@echo "主要文件格式化完成！"
+	done; \
+	if [ $$failed -ne 0 ]; then \
+		echo "❌ 有文件格式化失败"; \
+		exit 1; \
+	fi; \
+	echo "主要文件格式化完成！"
 
 # 检查代码格式（不修改文件）
 .PHONY: format-check
@@ -51,8 +76,13 @@ format-check:
 	@failed=0; \
 	for file in $(TYPST_FILES); do \
 		echo "检查: $$file"; \
-		if ! $(TYPSTYLE) --check "$$file" >/dev/null 2>&1; then \
+		output=$$($(TYPSTYLE) --check "$$file" 2>&1 >/dev/null); \
+		if [ $$? -ne 0 ]; then \
 			echo "❌ $$file 需要格式化"; \
+			failed=1; \
+		elif echo "$$output" | grep -q "Failed to parse"; then \
+			echo "❌ $$file 解析失败，无法检查格式"; \
+			echo "$$output"; \
 			failed=1; \
 		else \
 			echo "✅ $$file 格式正确"; \
@@ -76,10 +106,12 @@ list-files:
 	done
 
 # 清理生成的文件
+# template/thesis.pdf 一并删除：它是编译产物（gitignored），残留会触发
+# typst-package-check 的 files/compilation-artifact 错误，使 make lint 失败。
 .PHONY: clean
 clean:
 	@echo "清理生成的文件..."
-	@find . -name "*.pdf" -not -path "./template/thesis.pdf" -delete
+	@find . -name "*.pdf" -delete
 	@echo "清理完成！"
 
 # 格式化指定文件（使用方法: make format-file FILE=path/to/file.typ）
@@ -94,7 +126,12 @@ format-file:
 		exit 1; \
 	fi
 	@echo "格式化文件: $(FILE)"
-	@$(TYPSTYLE) --inplace "$(FILE)"
+	@output=$$($(TYPSTYLE) --inplace "$(FILE)" 2>&1); \
+	if [ $$? -ne 0 ] || echo "$$output" | grep -q "Failed to parse"; then \
+		echo "❌ 格式化 $(FILE) 失败"; \
+		[ -n "$$output" ] && echo "$$output"; \
+		exit 1; \
+	fi
 	@echo "格式化完成！"
 
 # 显示项目统计信息
@@ -130,7 +167,7 @@ lint:
 		exit 1; \
 	fi
 	@echo "检查包结构和元数据..."
-	@$(PACKAGE_CHECK) . || (echo "❌ 包检查失败"; exit 1)
+	@$(PACKAGE_CHECK) check --offline . || (echo "❌ 包检查失败"; exit 1)
 	@echo "✅ 包检查通过！"
 
 # 快速检查（不依赖外部 index，仅检查基本结构）

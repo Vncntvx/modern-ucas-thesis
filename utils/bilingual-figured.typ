@@ -86,18 +86,36 @@ THE SOFTWARE.
 }
 
 #let _typst-numbering = numbering
-#let _prepare-dict(it, level, zero-fill, leading-zero, numbering) = {
-  let numbers = counter(heading).at(it.location())
+
+// 依据标题计数与填充参数解析编号数字序列（如 [1, 2]）。
+// bilingual-figured 与 continued-table 等多个模块共用的单点实现。
+#let _prepare-heading-numbers(
+  loc,
+  level: 1,
+  zero-fill: true,
+  leading-zero: true,
+) = {
+  let numbers = counter(heading).at(loc)
   while zero-fill and numbers.len() < level { numbers.push(0) }
   if numbers.len() > level { numbers = numbers.slice(0, level) }
   if not leading-zero and numbers.at(0, default: none) == 0 {
     numbers = numbers.slice(1)
   }
+  numbers
+}
+
+#let _prepare-dict(it, level, zero-fill, leading-zero, numbering) = {
+  let numbers = _prepare-heading-numbers(
+    it.location(),
+    level: level,
+    zero-fill: zero-fill,
+    leading-zero: leading-zero,
+  )
 
   let dic = it.fields()
-  let _ = if "body" in dic { dic.remove("body") }
-  let _ = if "label" in dic { dic.remove("label") }
-  let _ = if "counter" in dic { dic.remove("counter") }
+  let _ = dic.remove("body", default: none)
+  let _ = dic.remove("label", default: none)
+  let _ = dic.remove("counter", default: none)
   dic + (numbering: n => _typst-numbering(numbering, ..numbers, n))
 }
 

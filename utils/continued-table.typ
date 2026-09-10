@@ -141,24 +141,8 @@
   ]
 }
 
-#let _prepare-heading-prefix(
-  loc,
-  level: 1,
-  zero-fill: true,
-  leading-zero: true,
-) = {
-  let numbers = counter(heading).at(loc)
-  while zero-fill and numbers.len() < level {
-    numbers.push(0)
-  }
-  if numbers.len() > level {
-    numbers = numbers.slice(0, level)
-  }
-  if not leading-zero and numbers.at(0, default: none) == 0 {
-    numbers = numbers.slice(1)
-  }
-  numbers
-}
+// 编号数字序列解析沿用 bilingual-figured._prepare-heading-numbers 单点实现。
+#let _prepare-heading-prefix = bilingual-figured._prepare-heading-numbers
 
 #let _table-index-at(loc, kind: "bitable") = {
   let prefixed-index = counter(
@@ -229,11 +213,7 @@
 
 #let _resolve-columns(columns) = {
   if type(columns) == int {
-    let resolved = ()
-    for _i in range(0, columns) {
-      resolved.push(auto)
-    }
-    resolved
+    (auto,) * columns
   } else {
     columns
   }
