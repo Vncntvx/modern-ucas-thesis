@@ -180,11 +180,12 @@
   set math.equation(
     supplement: bilingual-figured.resolve-equation-supplement(ref-supplements),
   )
-  // 公式编号字体：不覆盖。勿对 math.equation 做 set text 换字体（如统一编号
-  // 字体为宋体）：set 规则作用于整个公式，会迫使公式符号（φ、∫、⌊⌋等）向
-  // 非数学字体回退，导致缺字形 tofu；且 Typst 0.15 无独立设置编号字号的 API。
-  // 编号内容为纯阿拉伯数字与括号，按规范"英文和阿拉伯数字用 Times New Roman
-  // 体"，默认数学字体（Times 风格衬线）即合规。
+  // 公式编号字体：不覆盖。勿在此对 math.equation 做 set text 换字体（如统一编号
+  // 字体为宋体）：set 规则作用于整个公式，会迫使公式符号（∫、⌊⌋等）向非数学
+  // 字体回退导致缺字形 tofu；且 Typst 0.15 无独立设置编号字号的 API。
+  // 公式整体字体（含中文与中西共用标点）由 doc.typ 的
+  // show math.equation: set text(font: ...) 统一配置（NCM Math + 中文字体 +
+  // 数学基准字体），编号数字随官方机制走数学字体，非本层职责。
   // 字号继承正文小四（规范五号 10.5pt，Typst 固有限制，见 docs/CUSTOMIZE.md）。
   show math.equation.where(block: true): bilingual-figured.show-equation
 

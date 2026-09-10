@@ -187,9 +187,9 @@
   let anchor-page = if anchors.len() > 0 {
     anchors.last().location().page()
   } else {
-    loc.position().page
+    loc.page()
   }
-  loc.position().page > anchor-page
+  loc.page() > anchor-page
 }
 
 #let _source-caption-data(source) = {

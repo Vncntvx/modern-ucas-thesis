@@ -35,12 +35,31 @@
     info.title = info.title.split("\n")
   }
 
-  // 3.  基本的样式设置
+  // 3. 基本的样式设置
   set text(fallback: fallback, lang: lang)
   set page(
     paper: "a4",
     margin: margin,
   )
+
+  // 3.1 数学公式内的中文字体（Typst 0.14+ 官方 show-set 机制，见 math > Math fonts
+  // 与 text.font 的 covers 说明）：
+  // 1. New Computer Modern Math（covers: "latin-in-cjk"）优先负责数学符号、拉丁
+  //    字母与数字；中西共用标点（全角（）等）不在该覆盖集内，交给下一项中文字体；
+  // 2. 中文字体（covers: regex(".")）负责公式内中文及中西共用标点。取 fonts.宋体
+  //    去掉首位的 Times Latin 字体（字体组约定首位为 Latin 字体，见 style.typ）；
+  //    用户 fonts 覆盖只给单一字体时视为中文字体、整表保留；
+  // 3. 末位裸字体 "New Computer Modern Math"：Typst 取首个无 covers 字体作为数学
+  //    基准字体（提供 OpenType MATH 排版数据），保证 cases 的 { 等可正确拉伸。
+  //    不可省略：否则公式内中文标点回落字体链中缺数学基准字体。
+  show math.equation: set text(font: (
+    (name: "New Computer Modern Math", covers: "latin-in-cjk"),
+    ..fonts
+      .宋体
+      .slice(calc.min(1, fonts.宋体.len() - 1))
+      .map(font => (name: font, covers: regex("."))),
+    "New Computer Modern Math",
+  ))
 
   // 4.  PDF 元信息
   set document(

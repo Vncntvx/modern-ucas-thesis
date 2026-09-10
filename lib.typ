@@ -131,24 +131,15 @@
       )
     },
     mainmatter: (..args) => {
-      if doctype == "master" or doctype == "doctor" {
-        mainmatter(
-          twoside: twoside,
-          display-header: true,
-          ..args,
-          fonts: fonts + args.named().at("fonts", default: (:)),
-          info: info + args.named().at("info", default: (:)),
-          ref-supplements: ref-supplements,
-        )
-      } else {
-        mainmatter(
-          twoside: twoside,
-          ..args,
-          fonts: fonts + args.named().at("fonts", default: (:)),
-          info: info + args.named().at("info", default: (:)),
-          ref-supplements: ref-supplements,
-        )
-      }
+      // master/doctor 与 bachelor 走同一分支：mainmatter 的 display-header 默认即 true，
+      // 且 ..args 晚于显式命名参数生效，显式传 display-header: true 不产生任何差异。
+      mainmatter(
+        twoside: twoside,
+        ..args,
+        fonts: fonts + args.named().at("fonts", default: (:)),
+        info: info + args.named().at("info", default: (:)),
+        ref-supplements: ref-supplements,
+      )
     },
     appendix: (..args) => {
       appendix(
