@@ -41,6 +41,9 @@ cd modern-ucas-thesis
 # 编译论文
 typst compile template/thesis.typ --root . --font-path fonts
 
+# 编译开题报告（本科/研究生共用入口，见 template/proposal.typ）
+typst compile template/proposal.typ --root . --font-path fonts
+
 # 或开启实时预览
 typst watch template/thesis.typ --root . --font-path fonts
 ```
@@ -95,24 +98,65 @@ typst watch template/thesis.typ --root . --font-path fonts
 // 正文...
 ```
 
+### 4. 配置开题报告
+
+编辑 `template/proposal.typ`（结构与论文同构，经 `proposalclass` 组装）：
+
+```typst
+#import "../lib.typ": proposalclass
+
+#let (
+  doc, cover, notice, outline-page, mainmatter, bilingual-bibliography,
+  bifigure, bitable, continued-table, auto-table, aligned-equation,
+) = proposalclass(
+  doctype: "master",       // "bachelor" | "master"（当前版式一致）
+  fontset: "mac",
+  info: (
+    title: "论文开题题目",
+    author: "张三",
+    student-id: "1234567890",
+    // 指导教师必须填写：整行 / 分栏 至少一种
+    supervisors-full: "李四教授",
+    supervisors-split: none,
+    // auto 按已填形式识别；"full"/"split" 锁定形式，填错会报错
+    supervisor-form: auto,
+    degree-category: "工学硕士",
+    major: "计算机科学与技术",
+    research-direction: "智能信息处理",
+    department: "中国科学院××研究所",
+    submit-date: datetime.today(),
+  ),
+  bibliography: bibliography.with("ref.bib"),
+  // cfg: (outline-depth: 2),
+)
+
+#show: doc
+#cover()
+#notice()
+#show: mainmatter
+#outline-page()
+// 正文用 = / == / ===，编号 1. / 1.1. / 1.1.2，段落自动首行缩进
+#bilingual-bibliography(full: true)
+```
+
 ---
 
 ## 项目结构
 
 ```text
 modern-ucas-thesis/
-├── template/              # 论文源文件（模板入口）
-│   ├── thesis.typ        # 主文件
-│   ├── ref.bib           # 参考文献
+├── template/              # 论文与开题报告源文件（模板入口）
+│   ├── thesis.typ        # 学位论文主文件
+│   ├── proposal.typ      # 开题报告主文件
+│   ├── ref.bib           # 参考文献（论文与开题共用）
 │   └── images/           # 图片目录
-├── pages/                # 具体页面实现（封面、声明、摘要、目录、致谢等）
+├── pages/                # 具体页面实现（封面、声明、摘要、目录、开题报告等）
 ├── layouts/              # 页面级布局（doc / preface / mainmatter / appendix）
 ├── utils/                # 可复用工具（双语图表、续表、对齐公式、字体、编号等）
 ├── assets/               # 静态资源（校徽等 UCAS 视觉标识）
 ├── fonts/                # 字体目录（用户自行放入字体文件，见 fonts/README.md）
-├── others/               # 独立文档（本科/研究生开题报告，不走 documentclass）
 ├── docs/                 # 文档（规范原文、定制指南、FAQ 等）
-├── lib.typ               # 主库入口（documentclass 闭包工厂）
+├── lib.typ               # 主库入口（documentclass / proposalclass 闭包工厂）
 ├── typst.toml            # Typst 包配置
 └── Makefile              # 格式化与检查脚本
 ```
@@ -216,8 +260,10 @@ modern-ucas-thesis/
 
 | 功能项 | 状态 | 规范依据 / 说明 |
 |--------|------|----------------|
-| 本科生开题报告 | ✅ | `others/bachelor-proposal.typ`（独立，不走 `documentclass`） |
-| 研究生开题报告 | ✅ | `others/master-proposal.typ`（独立，不走 `documentclass`） |
+| 本科生开题报告 | ✅ | `template/proposal.typ`，`proposalclass(doctype: "bachelor")`；版式暂与研究生一致 |
+| 研究生开题报告 | ✅ | `template/proposal.typ`，`proposalclass(doctype: "master")`；样式在 `pages/proposal.typ` |
+| 开题报告正文编号与缩进 | ✅ | 标题 `1.` / `1.1.` / `1.1.2`，正文首行缩进 2em |
+| 开题报告参考文献 | ✅ | 与学位论文共用 `bilingual-bibliography` 与 `template/ref.bib` |
 
 ---
 

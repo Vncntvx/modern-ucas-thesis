@@ -34,6 +34,12 @@
   normalize-supervisors, supervisor-en-line, supervisor-line,
 )
 #import "utils/style.typ": get-fonts, 字体组, 字号
+#import "pages/proposal.typ": (
+  default-proposal-cfg, proposal-cover, proposal-doc, proposal-mainmatter,
+  proposal-notice, proposal-numbering, proposal-outline-page,
+  proposal-page-footer,
+)
+
 
 // 借助函数闭包特性：`documentclass` 集中进行全局信息配置，返回携带该配置的
 // 布局（layouts）与页面（pages）函数字典。
@@ -336,5 +342,113 @@
     example: example,
     remark: remark,
     proof: proof,
+  )
+}
+
+#let proposalclass(
+  doctype: "master", // "bachelor" | "master"，开题类型；本科生版式暂与研究生一致
+  fontset: "mac", // "windows" | "mac" | "fandol" | "adobe"
+  fonts: (:),
+  info: (:),
+  bibliography: none, // 参考文献函数，如 bibliography.with("ref.bib")
+  // 版面微调（覆盖 default-proposal-cfg 中的同名项）
+  cfg: (:),
+) = {
+  fonts = get-fonts(fontset) + fonts
+  cfg = default-proposal-cfg + cfg
+  info = (
+    (
+      // 题目：字符串可用 \n 手动分行，例如 "上半段\\n下半段"
+      title: "在此填写开题报告题目",
+      author: "张三",
+      student-id: "1234567890",
+      // 指导教师（必须填写，不可为空；两种数据至少填一种）
+      //   supervisors-full : 整行，如 "李四教授" / "李四教授 王五研究员"
+      //   supervisors-split: 分栏，(name: "李四", title: "教授")
+      // 形式控制 supervisor-form：
+      //   auto    — 按已填形式自动识别；两种都填 → 展示整行并预警（不报错）
+      //   "full"  — 只允许填整行，否则报错
+      //   "split" — 只允许填分栏，否则报错
+      supervisors-full: "李四教授",
+      supervisors-split: none,
+      supervisor-form: auto,
+      // 学术型：哲学硕士 / 理学硕士 / 工学硕士 …；专业型：工程硕士 / MBA …
+      degree-category: "工学硕士",
+      major: "计算机科学与技术",
+      research-direction: "智能信息处理",
+      department: "中国科学院××研究所",
+      // 可写 datetime 或字符串；字符串原样输出
+      submit-date: datetime.today(),
+    )
+      + info
+  )
+
+  return (
+    doctype: doctype,
+    fonts: fonts,
+    info: info,
+    cfg: cfg,
+    // 基础页面设置（A4、页边距、默认字体）
+    doc: (..args) => {
+      proposal-doc(
+        fonts: fonts,
+        cfg: cfg,
+        ..args,
+      )
+    },
+    // 封面
+    cover: (..args) => {
+      proposal-cover(
+        doctype: doctype,
+        fonts: fonts,
+        info: info + args.named().at("info", default: (:)),
+        cfg: cfg,
+      )
+    },
+    // 填表说明
+    notice: (..args) => {
+      proposal-notice(
+        fonts: fonts,
+        cfg: cfg,
+        ..args,
+      )
+    },
+    // 报告提纲（自正文标题自动收集）
+    outline-page: (..args) => {
+      proposal-outline-page(
+        fonts: fonts,
+        cfg: cfg,
+        ..args,
+      )
+    },
+    // 正文布局：标题 1. / 1.1. / 1.1.2，正文首行缩进
+    mainmatter: (..args) => {
+      proposal-mainmatter(
+        fonts: fonts,
+        info: info + args.named().at("info", default: (:)),
+        cfg: cfg,
+        ..args,
+      )
+    },
+    // 参考文献（复用学位论文双语引擎；page-decoration: none 由开题自管页脚）
+    bilingual-bibliography: (..args) => {
+      bilingual-bibliography(
+        bibliography: bibliography,
+        fontset: fontset,
+        fonts: fonts,
+        info: info + args.named().at("info", default: (:)),
+        page-decoration: none,
+        ..args,
+      )
+    },
+    // 页脚与标题编号（便于自定义页面复用）
+    page-footer: () => proposal-page-footer(fonts: fonts),
+    numbering: proposal-numbering,
+    // 正文常用工具
+    bifigure: bifigure,
+    bitable: bitable,
+    continued-table: continued-table,
+    auto-table: auto-table,
+    aligned-equation: aligned-equation,
   )
 }

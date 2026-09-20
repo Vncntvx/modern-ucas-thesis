@@ -41,6 +41,9 @@ cd modern-ucas-thesis
 # Compile the thesis
 typst compile template/thesis.typ --root . --font-path fonts
 
+# Compile the research proposal (shared entry for bachelor/master; see template/proposal.typ)
+typst compile template/proposal.typ --root . --font-path fonts
+
 # Or enable live preview
 typst watch template/thesis.typ --root . --font-path fonts
 ```
@@ -102,18 +105,18 @@ Edit `template/thesis.typ`:
 
 ```text
 modern-ucas-thesis/
-├── template/              # Thesis sources (template entry)
-│   ├── thesis.typ        # Main file
-│   ├── ref.bib           # Bibliography
+├── template/              # Thesis and proposal sources (template entry)
+│   ├── thesis.typ        # Thesis main file
+│   ├── proposal.typ      # Research-proposal main file
+│   ├── ref.bib           # Bibliography (shared by thesis and proposal)
 │   └── images/           # Images
-├── pages/                # Page implementations (cover, declaration, abstract, outline, acknowledgement, etc.)
+├── pages/                # Page implementations (cover, declaration, abstract, outline, proposal, etc.)
 ├── layouts/              # Page-level layouts (doc / preface / mainmatter / appendix)
 ├── utils/                # Reusable tools (bilingual figures/tables, continued tables, aligned equations, fonts, numbering, etc.)
 ├── assets/               # Static assets (UCAS visual identity, etc.)
 ├── fonts/                # Fonts directory (place font files yourself; see fonts/README.md)
-├── others/               # Standalone documents (undergraduate/graduate proposals; not via documentclass)
 ├── docs/                 # Documentation (guidelines, customization guide, FAQ, etc.)
-├── lib.typ               # Main library entry (documentclass closure factory)
+├── lib.typ               # Main library entry (documentclass / proposalclass closure factories)
 ├── typst.toml            # Typst package manifest
 └── Makefile              # Format and check scripts
 ```
@@ -217,8 +220,11 @@ modern-ucas-thesis/
 
 | Feature | Status | Guideline basis / notes |
 |---------|--------|-------------------------|
-| Undergraduate thesis proposal | ✅ | `others/bachelor-proposal.typ` (standalone; not via `documentclass`) |
-| Graduate thesis proposal | ✅ | `others/master-proposal.typ` (standalone; not via `documentclass`) |
+| Undergraduate thesis proposal | ✅ | `template/proposal.typ`, `proposalclass(doctype: "bachelor")`; layout currently matches graduate |
+| Graduate thesis proposal | ✅ | `template/proposal.typ`, `proposalclass(doctype: "master")`; styles in `pages/proposal.typ` |
+| Proposal heading numbering & indent | ✅ | Headings `1.` / `1.1.` / `1.1.2`; body first-line indent 2em |
+| Proposal bibliography | ✅ | Reuses `bilingual-bibliography` and `template/ref.bib` |
+| Proposal supervisor field | ✅ | Required: `supervisors-full` and/or `supervisors-split` + `supervisor-form: auto` (detect) \| `"full"` \| `"split"` (locked; wrong combo panics) |
 
 ---
 

@@ -286,9 +286,11 @@ Typst CLI 提供两种编译方式：
 
 (a) `thesis.typ`：论文主文件，包含文档配置、页面生成及章节引用。
 
-(b) `ref.bib`：参考文献数据库文件
+(b) `proposal.typ`：开题报告主文件（与学位论文共用 `ref.bib`）。
 
-(c) `images/`：图片资源目录
+(c) `ref.bib`：参考文献数据库文件
+
+(d) `images/`：图片资源目录
 
 
 === layouts 文件夹
@@ -328,6 +330,8 @@ Typst CLI 提供两种编译方式：
 (j) `fonts-display-page.typ`：字体展示测试页。
 
 (k) `degree-table.typ`：学位类别中英文对照表（规范附件 2，无编号展示性表格，置于附录等处）。
+
+(l) `proposal.typ`：开题报告版式实现（封面、填表说明、报告提纲、正文布局）；`bachelor-proposal.typ` / `master-proposal.typ` 为本科/研究生入口别名，当前共用同一实现。
 
 === utils 文件夹
 
@@ -371,7 +375,7 @@ Typst CLI 提供两种编译方式：
 
 `tests` 文件夹存放回归测试，如双语参考文献转换测试（`bilingual-transform.typ`）。
 
-`others` 文件夹存放独立的开题报告模板（本科/硕士），不经 `documentclass` 组装，与主模板相互独立。
+开题报告入口为 `template/proposal.typ`，经 `lib.typ` 的 `proposalclass` 组装（与学位论文的 `documentclass` 同构），版式实现在 `pages/proposal.typ`。
 
 == 数学公式
 

@@ -107,6 +107,11 @@
 - [19. 已知偏差与待办](#19-已知偏差与待办)
   - [19.1 行为偏差](#191-行为偏差)
   - [19.2 未实现功能](#192-未实现功能)
+- [20. 开题报告（Proposal）](#20-开题报告proposal)
+  - [20.1 结构与调用顺序](#201-结构与调用顺序)
+  - [20.2 配置项](#202-配置项)
+  - [20.3 编号与缩进](#203-编号与缩进)
+  - [20.4 本/研切换](#204-本研切换)
 - [附录 A：规范条文与代码位置对照表](#附录-a规范条文与代码位置对照表)
 
 ---
@@ -1341,7 +1346,7 @@ $ y = integral_1^2 x^2 dif x $ <->
 | `小一` | 24pt | 本科声明页标题 |
 | `二号` | 22pt | - |
 | `小二` | 18pt | 本科封面摘要标题 |
-| `三号` | 16pt | 本科封面信息字段 |
+| `三号` | 16pt | 开题报告等（`pages/proposal.typ` 可用；当前默认未用） |
 | `小三` | 15pt | 封面论文题目 |
 | `四号` | 14pt | 一级标题、摘要标题、封面信息字段 |
 | `中四` | 13pt | - |
@@ -1481,6 +1486,9 @@ $ y = integral_1^2 x^2 dif x $ <->
 | 添加附录 | `template/thesis.typ` | `#show: appendix` 后写章节 |
 | 附录中续表 | `template/thesis.typ` | `auto-table` / `continued-table` 自动切换"附表"前缀 |
 | 不编号的展示性表格 | 用户代码 | 原生 `table` + `align(center)[#strong[标题]]` |
+| 切换开题报告本/研 | `template/proposal.typ` | `proposalclass(doctype: "bachelor" \| "master")` |
+| 开题报告指导教师 | `template/proposal.typ` | `supervisors-full` / `supervisors-split` + `supervisor-form: auto \| "full" \| "split"`（必须至少填一种） |
+| 修改开题报告版面 | `template/proposal.typ` | `cfg: (outline-depth: 2, ...)`；键名见 `pages/proposal.typ` |
 
 ---
 
@@ -1504,6 +1512,76 @@ $ y = integral_1^2 x^2 dif x $ <->
 - **书脊**：未实现。书脊宽度随论文厚度而定，请交文印部门按实际厚度排版。
 
   > 规范依据：《指导意见》三·（三）。
+
+---
+
+## 20. 开题报告（Proposal）
+
+开题报告与学位论文共用工具层（`utils/style.typ`、`utils/bilingual-bibliography.typ`、双语图表等），但走独立的闭包工厂 `proposalclass`（`lib.typ`）。**样式与内容分离**：版式在 `pages/proposal.typ`，用户只改 `template/proposal.typ`。
+
+### 20.1 结构与调用顺序
+
+`template/proposal.typ` 与 `template/thesis.typ` 同构。报告提纲为**目录形态**：序号 + 题名 + 点线 + 页码，与正文标题链接对应，页码从提纲起编。
+
+```typst
+#let (doc, cover, notice, outline-page, mainmatter, bilingual-bibliography, ...) = proposalclass(
+  doctype: "master",
+  fontset: "mac",
+  info: (...),
+  bibliography: bibliography.with("ref.bib"),
+  // cfg: (...),
+)
+
+#show: doc
+#cover()
+#notice()
+#show: mainmatter          // 页码从提纲起编；正文 2em 首行缩进
+#outline-page()            // 目录形态提纲，收集下列标题
+= 选题的背景及意义
+// ...
+#bilingual-bibliography(full: true)
+```
+
+物理顺序：封面 → 填表说明 →（报告提纲 + 连续正文）→ 参考文献。
+
+### 20.2 配置项
+
+| 参数 | 位置 | 说明 |
+|------|------|------|
+| `doctype` | `proposalclass` | `"bachelor"` \| `"master"`；当前版式完全一致，仅预留分叉点 |
+| `fontset` / `fonts` | 同上 | 与学位论文相同的四套字体组与覆盖合并 |
+| `info` | 同上 | 封面字段：`title`（可用 `
+` 分行）、`author`、`student-id`、`supervisors-full` / `supervisors-split` / `supervisor-form`、`degree-category`、`major`、`research-direction`、`department`、`submit-date` |
+| `bibliography` | 同上 | 如 `bibliography.with("ref.bib")`，与论文共用 `template/ref.bib` |
+| `cfg` | 同上 | 覆盖 `default-proposal-cfg`：`margin`、`logo-width`、提纲 `outline-*`、`body-leading`/`body-spacing`（`行距.正文`）、`heading-size`/`heading-weight`/`heading-above`/`heading-below`（对齐 `layouts/mainmatter.typ`）、`first-line-indent` 等 |
+
+**指导教师**在 `proposalclass` / `info` 中**必须填写，不可为空**。两种数据至少填一种；形式由 `supervisor-form` 控制（解析见 `pages/proposal.typ` 的 `resolve-supervisor-display`）：
+
+| 数据字段 | 填法 |
+|----------|------|
+| `supervisors-full` | 整行字符串，如 `"李四教授"` / `"李四教授 王五研究员"` |
+| `supervisors-split` | 分栏字典 `(name: "李四", title: "教授")` |
+
+| `supervisor-form` | 行为 |
+|-------------------|------|
+| `auto` | 按已填形式自动识别：只填整行→整行；只填分栏→分栏；**两种都填→展示整行 + 预警（不报错）**；两种都空→报错 |
+| `"full"` | 只允许填整行；填了分栏或未填整行→**报错** |
+| `"split"` | 只允许填分栏；填了整行或未填分栏→**报错** |
+
+> 预警：Typst 暂无官方 `warn()`，`auto` 下两者皆填时不中断编译，预警写入 `state("proposal-supervisor-warnings")`，展示优先整行。
+
+### 20.3 编号与缩进
+
+- 标题编号：一级 `1.`、二级 `1.1.`、三级及更深 `1.1.2`（末级不加尾点）。
+- 正文 `first-line-indent: (amount: 2em, all: true)`；行距/段前段后对齐学位论文 `mainmatter`。
+- 页脚自提纲起「第X页，共Y页」；`bilingual-bibliography` 以 `page-decoration: none` 调用。
+
+### 20.4 本/研切换
+
+`pages/bachelor-proposal.typ` 与 `pages/master-proposal.typ` 当前均为 `#import "proposal.typ": *` 薄别名。后续若本科生表单需改封面标题、字段或版面，在对应别名文件中覆盖，或拆出独立实现；在此之前两者输出应保持一致。
+
+指导教师规则见 [§20.2](#202-配置项)。
+
 
 ---
 

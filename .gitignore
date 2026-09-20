@@ -16,8 +16,9 @@
 **/.DS_Store
 **/.AppleDouble
 
-# Ignore thesis.pdf in template folder
+# Ignore generated PDFs in template folder
 template/thesis.pdf
+template/proposal.pdf
 
 # env
 .env

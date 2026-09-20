@@ -10,8 +10,9 @@ A Typst-based thesis template for the University of Chinese Academy of Sciences 
 
 ```bash
 # Compile (`--root` is required, otherwise `../lib.typ` triggers a sandbox escape; `--font-path fonts` is required on machines without system CJK fonts, otherwise Chinese renders as tofu; omittable on this macOS machine, which has system Songti/Heiti)
-typst compile template/thesis.typ --root . --font-path fonts
-typst watch   template/thesis.typ --root . --font-path fonts   # live preview
+typst compile template/thesis.typ   --root . --font-path fonts
+typst compile template/proposal.typ --root . --font-path fonts
+typst watch   template/thesis.typ   --root . --font-path fonts   # live preview
 
 # Format (tool is typstyle, install via brew install typstyle or cargo install typstyle first); always run before committing
 make format                 # format all .typ files
@@ -36,6 +37,12 @@ Returned functions fall into three groups: **layouts** (`doc`/`preface`/`mainmat
 
 See `template/thesis.typ` for usage: destructure the returned dictionary, then follow the fixed order `#show: doc` → `#cover()` → `#decl-page()` → `#show: preface` → abstract / outline / list of figures and tables / notation → `#show: mainmatter` → body → `#bilingual-bibliography(full: true)` → `#show: appendix` → `#acknowledgement()` → `#backmatter()`. Preface/mainmatter/appendix switch layouts via `#show:` (page numbering, headers/footers, numbering change accordingly). Do not turn them into plain function calls; the call order mirrors the thesis's physical structure and must not be rearranged.
 
+### Core pattern: the `proposalclass` closure factory (`lib.typ`)
+
+`proposalclass(...)` is the entry point for research proposals (开题报告), structured like `documentclass`: important knobs first (`doctype`/`fontset`/`fonts`/`info`/`bibliography`/`cfg`), page/layout functions returned as a closed-over dictionary. User content lives only in `template/proposal.typ`; layout lives in `pages/proposal.typ`. `pages/bachelor-proposal.typ` and `pages/master-proposal.typ` are thin aliases of the shared implementation (bachelor layout currently identical to graduate; fork there later if needed).
+
+Returned functions: `doc` (A4, Word margins), `cover`, `notice` (填表说明), `outline-page` (outline-form TOC linked to body headings), `mainmatter` (heading numbering `1.` / `1.1.` / `1.1.2`, 2em first-line indent, footer `第X页，共Y页`), `bilingual-bibliography` (`page-decoration: none`), plus figure/table helpers. `info` must fill supervisors via `supervisors-full` and/or `supervisors-split` + `supervisor-form`. Compile with `typst compile template/proposal.typ --root . --font-path fonts`. Sample bibliography is `template/ref.bib` (shared with the thesis).
+
 ### Layer responsibilities
 
 - `layouts/`: page-level layouts; control page numbering, headers/footers, heading numbering.
@@ -43,7 +50,7 @@ See `template/thesis.typ` for usage: destructure the returned dictionary, then f
   - `preface.typ`: front matter, roman page numbers.
   - `mainmatter.typ`: body, arabic page numbers, chapter numbering (`custom-numbering`, defaults `第1章` / `1.1`), 1.25× line spacing, 2em first-line indent, header shows current chapter name. Level-1 headings get `pagebreak(weak: true)` by default; to suppress it (e.g. for "致谢" continuing previous content), tag the heading `<no-auto-pagebreak>`, which `mainmatter.typ` recognizes. Heading above-spacing differs by level: L1 uses explicit `v()` (preserved after page breaks), while L2+ uses `block(above:)` (max-folds with preceding spacing, clipped at page top). See "Verified conclusions".
   - `appendix.typ`: appendix. It declares only the deltas vs. the body (unnumbered level-1 headings via `first-level: ""`, 附图/附表 prefixes, L2+ excluded from the outline, counter resets, page + header/footer). Base styling (fonts/leading/heading glyphs/figure captions/footnotes) is deliberately not repeated: in the standard order the appendix region sits inside the `#show: mainmatter` scope (nested show rules) and inherits everything automatically. Subsections `1.1`, figures/tables `1-1`, equations `(1-1)`.
-- `pages/`: concrete page implementations, with `bachelor-*` / `master-*` pairs.
+- `pages/`: concrete page implementations, with `bachelor-*` / `master-*` pairs. Proposal layout is `pages/proposal.typ` (shared); `bachelor-proposal.typ` / `master-proposal.typ` re-export it.
 
 ### Key utils
 
@@ -88,7 +95,8 @@ Typst is a young language with fast-moving syntax and APIs. **Never write Typst 
 
 ## Boundaries & red lines
 
-- `others/`: undergrad/grad research proposals (`bachelor-proposal.typ`, `master-proposal.typ`) that stand alone. They only `#import "style.typ"` (their own copy) and bypass `documentclass`. Don't touch these when editing the main template.
+- Proposals (`template/proposal.typ` + `pages/proposal.typ` + `proposalclass`): independent of the thesis `documentclass` body layouts, but **reuse** `utils/style.typ`, `utils/bilingual-bibliography.typ` (`page-decoration: none`), and the figure/table helpers. Bachelor proposal layout is intentionally identical to graduate for now — do not fork styles unless asked. Heading numbering for proposals is `1.` / `1.1.` / `1.1.2` (not `第1章`); body paragraphs always get 2em first-line indent. Supervisors are **required** in `info`: fill `supervisors-full` and/or `supervisors-split`; `supervisor-form` is `auto` (detect from what was filled; both filled → prefer full row + non-fatal warning state) | `"full"` | `"split"` (locked form; wrong combination panics).
+
 - `fonts/`: only README and subdirectory placeholders. **Never commit font files** (licensing; see `fonts/README.md` and `docs/LOGO_COPYRIGHT.md`). Local builds must use `--font-path fonts` pointing at user-supplied fonts.
 - `assets/vi/`: UCAS visual-identity assets belong to the university; personal-thesis fair use only, no commercial use.
 - `.env`: gitignored and contains secrets. Never commit it, never write it into docs.
@@ -97,7 +105,7 @@ Typst is a young language with fast-moving syntax and APIs. **Never write Typst 
 
 - Main branch `main`, plus a long-lived `style` branch. Commit messages follow the existing gitmoji style (`feat(utils): ✨ ...`, `fix(layouts): 🐛 ...`, `docs(docs): 📝 ...`).
 - `.editorconfig`: 2-space indent for `.typ`, tabs for `Makefile`, 4 spaces for `.sh`, no trailing-whitespace trimming for `.md`.
-- `template/thesis.pdf` is gitignored and regenerable; it is deleted by `make clean` too, because a leftover copy makes `make lint` (typst-package-check) fail with `files/compilation-artifact`. Run lint on a freshly cleaned tree.
+- `template/thesis.pdf` / `template/proposal.pdf` are gitignored and regenerable; they are deleted by `make clean` too, because a leftover copy makes `make lint` (typst-package-check) fail with `files/compilation-artifact`. Run lint on a freshly cleaned tree.
 
 ## Mode switches
 

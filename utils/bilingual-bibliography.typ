@@ -25,26 +25,17 @@
   fontset: "mac",
   fonts: (:),
   info: (:),
+  // 页面装饰：auto（默认）= 学位论文 mainmatter 页眉页脚；
+  // none = 不改 page（开题报告等由调用方自管页脚）；
+  // 其他值 = 直接作为 page.foreground。
+  page-decoration: auto,
 ) = {
   assert(
     bibliography != none,
     message: "请传入带有 source 的 bibliography 函数。",
   )
 
-  // 另页右页（奇数页）开始（双面印刷时）：先设置页眉页脚（page.foreground）
-  // 再换页，使 to:"odd" 换页自动插入的填充空白页同样显示页眉页脚。
-  // 页码计数器延续，不重置；全静态实现，无运行时判断。
   fonts = get-fonts(fontset) + fonts
-  set page(
-    numbering: "1",
-    footer: none,
-    foreground: mainmatter-foreground(
-      twoside: twoside,
-      info: info,
-      fonts: fonts,
-    ),
-  )
-  pagebreak(weak: true, to: if twoside { "odd" })
 
   // 内置映射表；用户传入的 mapping 同名条目会覆盖内置项：
   mapping = (
@@ -73,144 +64,172 @@
     }
   }
 
-  show grid.cell.where(x: 1): it => {
-    // 后续的操作是对 string 进行的。
-    let ittext = to-string(it)
-    // 判断是否为中文文献：去除特定词组后，仍有至少两个连续汉字。
-    let pureittext = ittext.replace(
-      regex("[等卷册和版本章期页篇译间者(不详)]"),
-      "",
-    )
-    if pureittext.find(regex("\p{sc=Hani}{2,}")) != none {
-      // 将带有"标准"两个字的一行中的 [Z] 替换为 [S]
-      ittext = ittext.replace(
-        regex("标准.*\[Z\]"),
-        itt => {
-          itt.text.replace(regex("\[Z\]"), "[S]")
-        },
+  // 文献表主体：show/set 规则在此块内生效，再按 page-decoration 包页。
+  //（Typst 的 set 写在 if 里只影响同块内容，故主体必须先成块再分支包装。）
+  let bib-body = {
+    show grid.cell.where(x: 1): it => {
+      // 后续的操作是对 string 进行的。
+      let ittext = to-string(it)
+      // 判断是否为中文文献：去除特定词组后，仍有至少两个连续汉字。
+      let pureittext = ittext.replace(
+        regex("[等卷册和版本章期页篇译间者(不详)]"),
+        "",
       )
-      ittext
-    } else {
-      // 若不是中文文献，进行替换
-      // 第xxx卷、第xxx册的情况：变为 Vol. XXX 或 Bk. XXX。
-      let reptext = ittext
-      reptext = reptext.replace(
-        regex("(第\s?)?\d+\s?[卷册]"),
-        itt => {
-          if itt.text.contains("卷") {
-            "Vol. "
-          } else {
-            "Bk. "
-          }
-          itt.text.find(regex("\d+"))
-        },
-      )
+      if pureittext.find(regex("\p{sc=Hani}{2,}")) != none {
+        // 将带有"标准"两个字的一行中的 [Z] 替换为 [S]
+        ittext = ittext.replace(
+          regex("标准.*\[Z\]"),
+          itt => {
+            itt.text.replace(regex("\[Z\]"), "[S]")
+          },
+        )
+        ittext
+      } else {
+        // 若不是中文文献，进行替换
+        // 第xxx卷、第xxx册的情况：变为 Vol. XXX 或 Bk. XXX。
+        let reptext = ittext
+        reptext = reptext.replace(
+          regex("(第\s?)?\d+\s?[卷册]"),
+          itt => {
+            if itt.text.contains("卷") {
+              "Vol. "
+            } else {
+              "Bk. "
+            }
+            itt.text.find(regex("\d+"))
+          },
+        )
 
-      // 第xxx版/第xxx本的情况：变为 1st ed 格式。
-      reptext = reptext.replace(
-        regex("(第\s?)?\d+\s?[版本]"),
-        itt => {
-          let num = itt.text.find(regex("\d+"))
-          num
-          if num.clusters().len() == 2 and num.clusters().first() == "1" {
-            "th"
-          } else {
-            (
-              "1": "st",
-              "2": "nd",
-              "3": "rd",
-            ).at(num.clusters().last(), default: "th")
-          }
-          " ed"
-        },
-      )
+        // 第xxx版/第xxx本的情况：变为 1st ed 格式。
+        reptext = reptext.replace(
+          regex("(第\s?)?\d+\s?[版本]"),
+          itt => {
+            let num = itt.text.find(regex("\d+"))
+            num
+            if num.clusters().len() == 2 and num.clusters().first() == "1" {
+              "th"
+            } else {
+              (
+                "1": "st",
+                "2": "nd",
+                "3": "rd",
+              ).at(num.clusters().last(), default: "th")
+            }
+            " ed"
+          },
+        )
 
-      // 译者数量判断：单数时需要用 trans，复数时需要用 tran 。
-      /*
-      注:
-          1. 目前判断译者数量的方法非常草率：有逗号就是多个作者。但是在部分 GB/T 7714-2015 方言中，姓名中可以含有逗号。如果使用的 CSL 是姓名中含有逗号的版本，请将 bilingual-bibliography 的 allow-comma-in-name 参数设为 true。
-          2. 在 GB/T 7714-2015 原文中有 `等译`（P15 10.1.3 小节 示例 1-[1] 等），但未给出相应的英文缩写翻译。CSL 社区库内的 GB/T 7714-2015 会使用 `等, 译` 和 `et al., tran` 的写法。为使中英文与标准原文写法一致，本小工具会译作 `et al. tran`。若需要添加逗号，请将 bilingual-bibliography 的 extra-comma-before-et-al-trans 参数设为 true。
-          3. GB/T 7714-2015 P8 7.2 小节规定："译"前需加逗号。因此单个作者的情形，"译" 会被替换为 ", trans"。与"等"并用时的情况请见上一条注。
-          如果工作不正常，可以考虑换为简单关键词替换，即注释这段情况，取消 13 行 mapping 内 `译` 条目的注释。
-      */
-      reptext = reptext.replace(regex("\].+?译"), itt => {
-        // 注：曾尝试将上一行正则改为非贪婪匹配（`.+?`），实测与贪婪行为无差异，
-        // 故保持现状。
-        let comma-in-itt = itt.text.replace(regex(",?\s?译"), "").matches(",")
-        if (
-          comma-in-itt.len()
-            >= (
-              if allow-comma-in-name { 2 } else { 1 }
-            )
-        ) {
-          if extra-comma-before-et-al-trans {
-            itt.text.replace(regex(",?\s?译"), ", tran")
-          } else {
-            itt.text.replace(regex(",?\s?译"), " tran")
-          }
-        } else {
-          itt.text.replace(regex(",?\s?译"), ", trans")
-        }
-      })
-
-      // `等` 特殊处理：`等`后方接内容也需要译作 `et al.`，如 `等译` 需要翻译为 `et al. trans`
-      reptext = reptext.replace(
-        regex("等."),
-        itt => {
-          "et al."
-          // 如果原文就是 `等.`，则仅需简单替换，不需要额外处理
-          // 如果原文 `等` 后没有跟随英文标点，则需要补充一个空格
-          if not (
-            itt.text.last()
-              in (
-                ".",
-                ",",
-                ";",
-                ":",
-                "[",
-                "]",
-                "/",
-                "\\",
-                "<",
-                ">",
-                "?",
-                "(",
-                ")",
-                " ",
-                "\"",
-                "'",
+        // 译者数量判断：单数时需要用 trans，复数时需要用 tran 。
+        /*
+        注:
+            1. 目前判断译者数量的方法非常草率：有逗号就是多个作者。但是在部分 GB/T 7714-2015 方言中，姓名中可以含有逗号。如果使用的 CSL 是姓名中含有逗号的版本，请将 bilingual-bibliography 的 allow-comma-in-name 参数设为 true。
+            2. 在 GB/T 7714-2015 原文中有 `等译`（P15 10.1.3 小节 示例 1-[1] 等），但未给出相应的英文缩写翻译。CSL 社区库内的 GB/T 7714-2015 会使用 `等, 译` 和 `et al., tran` 的写法。为使中英文与标准原文写法一致，本小工具会译作 `et al. tran`。若需要添加逗号，请将 bilingual-bibliography 的 extra-comma-before-et-al-trans 参数设为 true。
+            3. GB/T 7714-2015 P8 7.2 小节规定："译"前需加逗号。因此单个作者的情形，"译" 会被替换为 ", trans"。与"等"并用时的情况请见上一条注。
+            如果工作不正常，可以考虑换为简单关键词替换，即注释这段情况，取消 13 行 mapping 内 `译` 条目的注释。
+        */
+        reptext = reptext.replace(regex("\].+?译"), itt => {
+          // 注：曾尝试将上一行正则改为非贪婪匹配（`.+?`），实测与贪婪行为无差异，
+          // 故保持现状。
+          let comma-in-itt = itt.text.replace(regex(",?\s?译"), "").matches(",")
+          if (
+            comma-in-itt.len()
+              >= (
+                if allow-comma-in-name { 2 } else { 1 }
               )
           ) {
-            " "
+            if extra-comma-before-et-al-trans {
+              itt.text.replace(regex(",?\s?译"), ", tran")
+            } else {
+              itt.text.replace(regex(",?\s?译"), " tran")
+            }
+          } else {
+            itt.text.replace(regex(",?\s?译"), ", trans")
           }
-          // 原文有英文句号时不需要重复句号，否则需要将匹配到的最后一个字符吐回来
-          if not itt.text.last() == "." {
-            itt.text.last()
-          }
-        },
-      )
+        })
 
-      // 其他情况：直接替换
-      reptext = reptext.replace(
-        regex("\p{sc=Hani}+"),
-        itt => {
-          mapping.at(itt.text, default: itt.text)
-          // 注意：若替换功能工作良好，应该不会出现 `default` 情形
-        },
-      )
-      reptext
+        // `等` 特殊处理：`等`后方接内容也需要译作 `et al.`，如 `等译` 需要翻译为 `et al. trans`
+        reptext = reptext.replace(
+          regex("等."),
+          itt => {
+            "et al."
+            // 如果原文就是 `等.`，则仅需简单替换，不需要额外处理
+            // 如果原文 `等` 后没有跟随英文标点，则需要补充一个空格
+            if not (
+              itt.text.last()
+                in (
+                  ".",
+                  ",",
+                  ";",
+                  ":",
+                  "[",
+                  "]",
+                  "/",
+                  "\\",
+                  "<",
+                  ">",
+                  "?",
+                  "(",
+                  ")",
+                  " ",
+                  "\"",
+                  "'",
+                )
+            ) {
+              " "
+            }
+            // 原文有英文句号时不需要重复句号，否则需要将匹配到的最后一个字符吐回来
+            if not itt.text.last() == "." {
+              itt.text.last()
+            }
+          },
+        )
+
+        // 其他情况：直接替换
+        reptext = reptext.replace(
+          regex("\p{sc=Hani}+"),
+          itt => {
+            mapping.at(itt.text, default: itt.text)
+            // 注意：若替换功能工作良好，应该不会出现 `default` 情形
+          },
+        )
+        reptext
+      }
     }
+
+    set text(lang: "zh")
+    bibliography(
+      title: title,
+      full: full,
+      style: style,
+    )
   }
 
-  set text(lang: "zh")
-  bibliography(
-    title: title,
-    full: full,
-    style: style,
-  )
+  // 另页右页（奇数页）开始（双面印刷时）：先设置页眉页脚（page.foreground）
+  // 再换页，使 to:"odd" 换页自动插入的填充空白页同样显示页眉页脚。
+  // 页码计数器延续，不重置。
+  if page-decoration == none {
+    // 开题报告等场景：调用方已设好页脚，此处不碰 page。
+    bib-body
+  } else {
+    set page(
+      numbering: "1",
+      footer: none,
+      foreground: if page-decoration == auto {
+        mainmatter-foreground(
+          twoside: twoside,
+          info: info,
+          fonts: fonts,
+        )
+      } else {
+        page-decoration
+      },
+    )
+    pagebreak(weak: true, to: if twoside { "odd" })
+    bib-body
 
-  // 结尾重置页面样式：function 体内的 set page 会泄漏到后续文档流，此处显式
-  // 清除，使后续换页产生的填充页不残留本部分样式（本页已有样式不受影响）；
-  // 标准组装顺序下由下一部分起始的页面样式覆盖，此处幂等、无副作用。
-  set page(numbering: none, foreground: none)
+    // 结尾重置页面样式：function 体内的 set page 会泄漏到后续文档流，此处显式
+    // 清除，使后续换页产生的填充页不残留本部分样式（本页已有样式不受影响）；
+    // 标准组装顺序下由下一部分起始的页面样式覆盖，此处幂等、无副作用。
+    set page(numbering: none, foreground: none)
+  }
 }
