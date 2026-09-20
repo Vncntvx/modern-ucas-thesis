@@ -1,12 +1,15 @@
 #import "../utils/style.typ": get-fonts, 字号, 行距
 
 // 本科生声明页
+//
+// 依据《本科生撰写规范》一·（二）及样张3："学位论文原创性声明" +
+// "学位论文使用授权声明"。两份声明的正文与研究生声明页完全一致（同一模板），
+// 仅标题不含"研究生"字样。
 #let bachelor-decl-page(
   anonymous: false,
   twoside: false,
   fontset: "mac",
   fonts: (:),
-  info: (:),
 ) = {
   // 0. 如果需要匿名则短路返回
   if anonymous {
@@ -15,62 +18,73 @@
 
   // 1.  默认参数
   fonts = get-fonts(fontset) + fonts
-  info = (
-    (
-      title: ("基于 Typst 的", "中国科学院大学学位论文"),
-    )
-      + info
-  )
 
-  // 2.  对参数进行处理
-  // 2.1 如果是字符串，则使用换行符将标题分隔为列表
-  if type(info.title) == str {
-    info.title = info.title.split("\n")
-  }
-
-  // 3.  正式渲染（封面段单面：不强制奇偶页，连续分页）
+  // 2.  正式渲染（封面段单面：不强制奇偶页，连续分页）
   pagebreak(weak: true)
-
-  v(6pt)
-
-  align(center, image("../assets/vi/ucas-emblem.svg", width: 1.95cm))
-
-  v(-12pt)
-
-  align(center, text(
-    font: fonts.黑体,
-    size: 字号.小一,
-    weight: "bold",
-    "中国科学院大学本科毕业论文（设计）\n诚信承诺书",
-  ))
 
   v(48pt)
 
+  align(center, text(
+    font: fonts.黑体,
+    size: 字号.四号,
+    weight: "bold",
+    "中国科学院大学 \n 学位论文原创性声明",
+  ))
+
+  v(15pt)
+
   block[
-    #set text(font: fonts.宋体, size: 字号.小三)
+    #set text(font: fonts.宋体, size: 字号.小四)
     #set par(
       justify: true,
       first-line-indent: (amount: 2em, all: true),
-      // 声明正文取正文行距。
+      // 声明正文取正文行距（规范无定量）。
       leading: 行距.正文,
     )
 
-    本人郑重承诺：所呈交的毕业论文（设计）（题目：#info.title.sum()）是在指导教师的指导下严格按照学校和院系有关规定由本人独立完成的。本毕业论文（设计）中引用他人观点及参考资源的内容均已标注引用，如出现侵犯他人知识产权的行为，由本人承担相应法律责任。本人承诺不存在抄袭、伪造、篡改、代写、买卖毕业论文（设计）等违纪行为。
+    本人郑重声明：所呈交的学位论文是本人在导师的指导下独立进行研究工作所取得的成果。承诺除文中已经注明引用的内容外，本论文不包含任何其他个人或集体享有著作权的研究成果，未在以往任何学位申请中全部或部分提交。对本论文所涉及的研究工作做出贡献的其他个人或集体，均已在文中以明确方式标明或致谢。本人完全意识到本声明的法律结果由本人承担。
   ]
 
-  v(76pt)
+  v(12pt)
 
-  grid(
-    columns: (1fr, 150pt),
-    [],
-    align(left)[
-      #set text(font: fonts.黑体, size: 字号.小三)
+  align(center)[
+    #set text(font: fonts.宋体, size: 字号.小四)
 
-      作者签名：
+    #h(8em)作者签名：#h(5.8em)
 
-      学号：
+    #h(8em)日#h(2em)期：#h(5.8em)
+  ]
 
-      日期：
-    ],
-  )
+  v(48pt)
+
+  align(center, text(
+    font: fonts.黑体,
+    size: 字号.四号,
+    weight: "bold",
+    "中国科学院大学 \n 学位论文使用授权声明",
+  ))
+
+  v(15pt)
+
+  block[
+    #set text(font: fonts.宋体, size: 字号.小四)
+    #set par(
+      justify: true,
+      first-line-indent: (amount: 2em, all: true),
+      leading: 行距.正文,
+    )
+
+    本人完全了解并同意遵守中国科学院大学有关收集、保存和使用学位论文的规定，即中国科学院大学有权按照学术研究公开原则和保护知识产权的原则，保留并向国家指定或中国科学院指定机构送交学位论文的电子版和印刷版文件，且电子版与印刷版内容应完全相同，允许该论文被检索、查阅和借阅，公布本学位论文的全部或部分内容，可以采用扫描、影印、缩印等复制手段以及其他法律许可的方式保存、汇编本学位论文。
+
+    涉密及延迟公开的学位论文在解密或延迟期后适用本声明。
+  ]
+  v(18pt)
+
+  align(center)[
+    #set text(font: fonts.宋体, size: 字号.小四)
+
+    #h(2.5em)作者签名：#h(10em) 导师签名：#h(6em)
+
+    #h(2.5em)日#h(2em)期：#h(10em) 日#h(2em)期：#h(6em)
+  ]
 }

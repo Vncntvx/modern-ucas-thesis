@@ -2,7 +2,7 @@
 #import "../utils/custom-figure.typ": thesis-bilingual-caption-style
 #import "../utils/style.typ": get-fonts, 字号, 行距
 #import "../utils/page-foreground.typ": mainmatter-foreground
-#import "../utils/custom-numbering.typ": custom-numbering
+#import "../utils/custom-numbering.typ": custom-numbering, 编号自动间隙
 #import "../utils/citation-range-hyphen.typ": citation-range-hyphen
 #import "../utils/unpairs.typ": unpairs
 #import "../utils/theorem.typ": reset-theorem-counters, show-theorem-ref
@@ -32,15 +32,17 @@
   spacing: 行距.正文,
   justify: true,
   first-line-indent: (amount: 2em, all: true),
-  // 章节编号格式
-  // 序号与题名间"空一个汉字符"（=1em=1 全角汉字宽）。
-  // 用全角空格 U+3000（IDEOGRAPHIC SPACE）实现，其在 CJK 字体下宽度恒为 1em，
-  // 均精确等于 1em。半角空格 U+0020 仅约 0.25em，不满足规范。
-  numbering: custom-numbering.with(
-    first-level: "第1章\u{3000}",
-    depth: 4,
-    "1.1\u{3000}",
-  ),
+  // 文档类型："bachelor" 启用本科规范差异（当前为编号净距补偿），
+  // 默认 "doctor" 保持研究生既有输出不变（见 AGENTS.md 边界条款）。
+  doctype: "doctor",
+  // 章节编号格式：auto 时按 doctype 在下文生成（见 §2.2），也可直接传自定义 numbering。
+  // 生成的默认格式：序号与题名间"空一个汉字符"（=1em=1 全角汉字宽），用全角空格
+  // U+3000（IDEOGRAPHIC SPACE）实现，其在 CJK 字体下宽度恒为 1em，精确等于 1em
+  //（半角空格 U+0020 仅约 0.25em，不满足规范）。本科另带 suffix: h(-编号自动间隙)
+  // 抵消 Typst 在标题编号后自动追加的间隙（官方未记载，实测 0.3em），使标题净距恰为
+  // 1em；目录条目与页眉两处消费点分别由 outline-page 的 h(gap) 与 page-foreground
+  // 补回（见 custom-numbering）。研究生不加该 suffix，输出与既有版本一致。
+  numbering: auto,
   // 正文字体与字号参数
   text-args: auto,
   // 标题字体与字号
@@ -101,6 +103,7 @@
       display-header: display-header,
       stroke-width: stroke-width,
       reset-footnote: reset-footnote,
+      doctype: doctype,
     ),
   )
 
@@ -117,7 +120,17 @@
     text-args = base-text-args + text-args
   }
 
-  // 2.2 标题字体默认值
+  // 2.2 章节编号默认值（auto 时按 doctype 生成）
+  if numbering == auto {
+    numbering = custom-numbering.with(
+      first-level: "第1章\u{3000}",
+      depth: 4,
+      suffix: if doctype == "bachelor" { h(-编号自动间隙) } else { none },
+      "1.1\u{3000}",
+    )
+  }
+
+  // 2.3 标题字体默认值
   if (heading-font == auto) {
     heading-font = (fonts.黑体,)
   }

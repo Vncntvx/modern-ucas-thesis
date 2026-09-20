@@ -1,12 +1,21 @@
 #import "@preview/cuti:0.4.0": show-cn-fakebold
 #import "../utils/style.typ": get-fonts, 字号
+#import "../utils/custom-numbering.typ": circled-footnote-numbering
 
 // 文稿设置，可以进行一些像页面边距这类的全局设置
+//
+// doctype 用于区分本科（bachelor）与研究生（master/doctor）的样式差异；
+// 默认 "doctor" 保持研究生既有输出不变——研究生样式已定稿，**不得**因本科
+// 规范适配而改变（详见 AGENTS.md 边界条款）。当前按 doctype 分流的项：
+// - 脚注编号：本科按规范二·（七）·2·（1）每页单独用圈码 ①②③；
+// - 上标尺寸：本科显式 0.7em（宋体族 sups 自带上标把圈码压成约 0.1em 微字形，
+//   见 utils/custom-numbering.typ 与 docs/CUSTOMIZE.md）。
 #let doc(
   // documentclass 传入参数
   info: (:),
   fontset: "mac",
   fonts: (:),
+  doctype: "doctor", // "bachelor" | "master" | "doctor"
   // 其他参数
   fallback: false, // 字体缺失时使用 fallback，不显示豆腐块
   lang: "zh",
@@ -67,11 +76,31 @@
     author: info.author,
   )
 
-  // 5.  中文伪加粗（针对没有粗体的字体）
+  // 5.  本科专属样式与中文伪加粗（针对没有粗体的字体）
   // 根据fontset参数判断是否需要启用中文伪加粗
   // - Fandol系字体自带粗体，因此不需要伪加粗
   // - Windows、Mac和Adobe等字体组通常需要伪加粗以获得更好的显示效果
-  if fontset != "fandol" {
+  // 注意：Typst 的 set 规则只作用于同一块内的后续内容（实测），故本科的 set
+  // 必须与本函数返回的 it 同块书写，不能单独放在 if 分支里（那样不生效）。
+  if doctype == "bachelor" {
+    // 脚注编号：规范二·（七）·2·（1）"每页单独用①②③等编码"。
+    // 圈码 ①–⑩ 为各字体族共有字形，第 11 条起回落阿拉伯数字（见 custom-numbering）；
+    // 每页重置计数由 preface/mainmatter 的 foreground 负责（reset-footnote）。
+    set footnote(numbering: circled-footnote-numbering)
+    // 上标尺寸显式取 0.7em，强制走 Typst 合成上标：macOS 宋体/楷体/仿宋的
+    // sups（字体自带上标）字形表中圈码仅约 0.1em，用字体自带上标时脚注标记
+    // 会缩成不可见的点（实测 12pt 正文下标记墨迹高约 1pt）；显式给定尺寸后
+    // 圈码与阿拉伯数字、各字体族下的上标尺寸一致（实测标记墨迹高 7.8pt）。
+    set super(size: 0.7em)
+    if fontset != "fandol" {
+      {
+        show: show-cn-fakebold
+        it
+      }
+    } else {
+      it
+    }
+  } else if fontset != "fandol" {
     {
       show: show-cn-fakebold
       it

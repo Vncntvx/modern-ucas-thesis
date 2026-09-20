@@ -9,6 +9,9 @@
   info: (:),
   fonts: (:),
   fontset: "mac",
+  // 文档类型："bachelor" 启用本科规范差异（页眉分隔线约束到版心宽），
+  // 默认 "doctor" 保持研究生既有输出不变（见 AGENTS.md 边界条款）。
+  doctype: "doctor",
   // 其他参数（保留的行距默认值占位；preface 本体只负责页眉页脚与页码，
   // 不直接 set par，各前言页面的行距以各自函数的 set par 为准）
   // 1.25 倍行距：Typst leading 是行盒之间的额外间隙，取 行距.正文，勿写 1.25em。
@@ -83,6 +86,7 @@
     display-header: display-header,
     stroke-width: stroke-width,
     reset-footnote: reset-footnote,
+    doctype: doctype,
   ))
 
   it

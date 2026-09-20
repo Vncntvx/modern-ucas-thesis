@@ -9,6 +9,8 @@
   fontset: "mac",
   fonts: (:),
   info: (:),
+  // 文档类型：本科页脚不继承正文首行缩进；研究生保持既有输出（见 AGENTS.md 边界条款）。
+  doctype: "doctor",
   // 其他参数
   title: [作者简历及攻读学位期间发表的学术论文与其他相关学术成果],
   outlined: true,
@@ -28,6 +30,7 @@
         twoside: twoside,
         info: info,
         fonts: fonts,
+        doctype: doctype,
       ),
     )
     pagebreak(weak: true, to: if twoside { "odd" })

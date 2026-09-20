@@ -33,13 +33,13 @@
 #import "utils/supervisor.typ": (
   normalize-supervisors, supervisor-en-line, supervisor-line,
 )
+#import "utils/datetime-display.typ": datetime-display, datetime-display-compact
 #import "utils/style.typ": get-fonts, 字体组, 字号
 #import "pages/proposal.typ": (
   default-proposal-cfg, proposal-cover, proposal-doc, proposal-mainmatter,
   proposal-notice, proposal-numbering, proposal-outline-page,
   proposal-page-footer,
 )
-
 
 // 借助函数闭包特性：`documentclass` 集中进行全局信息配置，返回携带该配置的
 // 布局（layouts）与页面（pages）函数字典。
@@ -125,6 +125,8 @@
       doc(
         ..args,
         fontset: fontset,
+        // doctype 决定本科专属样式（圈码脚注、合成上标）；研究生保持既有输出。
+        doctype: doctype,
         info: info + args.named().at("info", default: (:)),
       )
     },
@@ -134,6 +136,7 @@
         ..args,
         fonts: fonts + args.named().at("fonts", default: (:)),
         info: info + args.named().at("info", default: (:)),
+        doctype: doctype,
       )
     },
     mainmatter: (..args) => {
@@ -145,6 +148,7 @@
         fonts: fonts + args.named().at("fonts", default: (:)),
         info: info + args.named().at("info", default: (:)),
         ref-supplements: ref-supplements,
+        doctype: doctype,
       )
     },
     appendix: (..args) => {
@@ -155,6 +159,7 @@
         fonts: fonts + args.named().at("fonts", default: (:)),
         info: info + args.named().at("info", default: (:)),
         ref-supplements: ref-supplements,
+        doctype: doctype,
       )
     },
     // 字体展示页
@@ -207,7 +212,6 @@
           fontset: fontset,
           ..args,
           fonts: fonts + args.named().at("fonts", default: (:)),
-          info: info + args.named().at("info", default: (:)),
         )
       }
     },
@@ -267,6 +271,7 @@
         ..args,
         fonts: fonts + args.named().at("fonts", default: (:)),
         info: info + args.named().at("info", default: (:)),
+        doctype: doctype,
       )
     },
     // 图表目录页
@@ -277,6 +282,7 @@
         ..args,
         fonts: fonts + args.named().at("fonts", default: (:)),
         info: info + args.named().at("info", default: (:)),
+        doctype: doctype,
       )
     },
     // 符号表页
@@ -285,8 +291,11 @@
         twoside: twoside,
         fontset: fontset,
         ..args,
+        // 本科按规范一·（五）用词"符号说明"；研究生保持既有标题"符号列表"。
+        title: if doctype == "bachelor" { "符号说明" } else { "符号列表" },
         fonts: fonts + args.named().at("fonts", default: (:)),
         info: info + args.named().at("info", default: (:)),
+        doctype: doctype,
       )
     },
     // 参考文献页
@@ -298,6 +307,7 @@
         ..args,
         fonts: fonts + args.named().at("fonts", default: (:)),
         info: info + args.named().at("info", default: (:)),
+        doctype: doctype,
       )
     },
     // 致谢页
@@ -307,9 +317,16 @@
         twoside: twoside,
         fontset: fontset,
         date: info.at("submit-date", default: none),
+        // 日期写法与对应封面一致：本科用紧凑式"20XX年X月"，研究生用"20XX 年 X 月"。
+        date-display: if doctype == "bachelor" {
+          datetime-display-compact
+        } else {
+          datetime-display
+        },
         ..args,
         fonts: fonts + args.named().at("fonts", default: (:)),
         info: info + args.named().at("info", default: (:)),
+        doctype: doctype,
       )
     },
     // 个人信息页
@@ -321,6 +338,7 @@
         ..args,
         fonts: fonts + args.named().at("fonts", default: (:)),
         info: info + args.named().at("info", default: (:)),
+        doctype: doctype,
       )
     },
     // 双语图表函数
@@ -344,6 +362,8 @@
     proof: proof,
   )
 }
+
+// 开题报告
 
 #let proposalclass(
   doctype: "master", // "bachelor" | "master"，开题类型；本科生版式暂与研究生一致
@@ -452,3 +472,4 @@
     aligned-equation: aligned-equation,
   )
 }
+

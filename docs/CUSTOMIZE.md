@@ -202,6 +202,20 @@ typst watch   template/thesis.typ --root . --font-path fonts   # 实时预览
 | `doctype` | string | `"doctor"` | 文档类型：`"bachelor"` \| `"master"` \| `"doctor"` |
 | `degree` | string | `"academic"` | 学位类型：`"academic"`（学术型） \| `"professional"`（专业型）。影响封面"学位类别"字段显示与封面分类逻辑 |
 
+本科（`doctype: "bachelor"`）的差异项集中在下列位置，**研究生（master/doctor）输出保持既有版本不变**——改动后须用"改动前构建 vs 当前构建"逐页比对文本与矢量图元确认零差异：
+
+| 项目 | 本科 | 研究生（既有） | 实现位置 |
+|---|---|---|---|
+| 封面/声明/摘要页 | `bachelor-cover` / `bachelor-decl-page` / `bachelor-abstract(-en)` | `master-*` 对应页 | `lib.typ` 按 doctype 分发 |
+| 封面信息行行距 | 中文 2.5em（34.3–35.4pt）、英文 2.3em（32.17pt） | 中文 1em gutter（沿用）、英文 `行距.正文`（27.69pt） | `pages/*-cover.typ` 各自的 `info-row-gutter` / `leading` |
+| 序号与题名净距 | 1em（编号带 `suffix: h(-编号自动间隙)`，目录/页眉两处补回） | 1.3em（编号无 suffix，既有行为） | `layouts/mainmatter.typ`、`appendix.typ` 按 doctype 生成 `numbering` |
+| 页脚段落样式 | 显式清零（偶数页页码与版心左缘齐平，实测 x0=89.86） | 继承正文首行缩进（偶数页页码内缩 2em=18pt，**既有行为保留**） | `utils/page-foreground.typ` 按 doctype 分支 |
+| 页眉分隔线 | 约束到版心宽（415.56pt，实测 89.86–505.42） | 横贯整页（595.28pt，**既有行为保留**） | 同上 |
+| 脚注编号 | 圈码 ①–⑩（第 11 条起阿拉伯数字），合成上标 0.7em | 阿拉伯数字 1,2,3…（字体自带上标，既有行为） | `layouts/doc.typ` 按 doctype 分支 |
+| 符号说明页标题 | "符号说明"（规范一·（五）用词） | "符号列表"（既有权衡，与官方 LaTeX 样稿一致） | `lib.typ` 按 doctype 传 `title` |
+| 致谢末尾日期 | 紧凑式"20XX年X月"（与本科封面一致） | "20XX 年 X 月"（与研究生封面一致） | `lib.typ` 传 `date-display` |
+| 摘要标题字重 | `abstract-title-weight` 默认 `"bold"` 且真正生效 | 保持原实现（`strong` 包裹，参数不生效） | `pages/bachelor-abstract*.typ` |
+
 > 规范依据：《指导意见》一·（一）·5「学位类别包括学科门类（学术型）或专业学位类别以及学位级别」。
 
 ### 1.2 `twoside`（双面打印）
@@ -267,14 +281,14 @@ typst watch   template/thesis.typ --root . --font-path fonts   # 实时预览
 
 | 字段 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `title` | array/string | `("基于 Typst 的", "中国科学院大学学位论文")` | 中文题目，不超 25 汉字（一·（一）·2）；用于中文封面、页眉偶数页、PDF 元信息、本科声明页（硕士声明页不取 `info`，不用此字段）。数组元素直接拼接成一行，逗号不换行 |
+| `title` | array/string | `("基于 Typst 的", "中国科学院大学学位论文")` | 中文题目，不超 25 汉字（一·（一）·2）；用于中文封面、页眉偶数页、PDF 元信息。数组元素直接拼接成一行，逗号不换行 |
 | `title-en` | array/string | `"UCAS Thesis Template for Typst"` | 英文题目，不超 150 字母；用于英文封面、前言偶数页眉（Abstract 部分）。数组一元素一行 |
 | `author` / `author-en` | string | `"张三"` / `"Zhang San"` | 作者姓名；英文按 GB/T 28039—2011，姓全大写、名首字母大写（一·（一）·3） |
-| `grade` | string | `"20XX"` | 年级；仅本科封面渲染，研究生摘要页未用 |
-| `student-id` | string | `"1234567890"` | 学号；仅本科封面渲染，研究生摘要页未用 |
-| `department` / `department-en` | string | `"某研究所"` / `"Institute of XXX"` | 培养单位全称（一·（一）·7）；英文封面渲染为 `department-en` + `, Chinese Academy of Sciences`，故 `department-en` 只填研究所名，不要写 CAS |
+| `grade` | string | `"20XX"` | 年级；2023-10 版本科封面样张不含此栏，模板不再渲染，字段保留仅为兼容 |
+| `student-id` | string | `"1234567890"` | 学号；同上，2023-10 版本科封面样张不含此栏 |
+| `department` / `department-en` | string | `"某研究所"` / `"Institute of XXX"` | 培养单位全称（一·（一）·7）；研究生英文封面渲染为 `department-en` + `, Chinese Academy of Sciences`，故 `department-en` 只填研究所名，不要写 CAS；本科中文封面作"学院（系）"栏、英文封面单列 `department-en`（学院/系全称） |
 | `major` / `major-en` | string | `"xx 专业"` / `"xx major"` | 一级/二级学科或专业学位领域全称，须与学籍一致（一·（一）·6） |
-| `category` / `category-en` | string | `"学科门类或专业学位类别"` / `"XX category"` | 学科门类（学术型）或专业学位类别 + 学位级别（一·（一）·5） |
+| `category` / `category-en` | string | `"学科门类或专业学位类别"` / `"XX category"` | 学科门类（学术型）或专业学位类别 + 学位级别（一·（一）·5）；本科为"学位类别"（如"理学学士"），英文封面渲染为 `Bachelor of <category-en>`（如 Bachelor of Science） |
 | `supervisors` | array | `((name: "李四", title: "教授", affiliation: "中国科学院××研究所"),)` | 导师列表，每项为字典 `(name:, title:, affiliation:)`，分别对应姓名、专业技术职务、工作单位，多导师第一导师在前（一·（一）·4）；用于封面。由 `utils/supervisor.typ` 的 `normalize-supervisors` 校验归一化 |
 | `supervisors-en` | array | `((name: "Si Li", title: "Professor", affiliation: "Institute of XXX, Chinese Academy of Sciences"),)` | 英文导师列表，结构同 `supervisors`；用于英文封面 |
 | `submit-date` | datetime | `datetime.today()` | 论文提交年月，夏季填 6 月、冬季填 12 月（一·（一）·8）；用于封面、致谢末尾 |
@@ -284,7 +298,7 @@ typst watch   template/thesis.typ --root . --font-path fonts   # 实时预览
 
 > 换行规则：字符串中的 `\n` 会被按行拆成数组（`pages/master-cover.typ:78-80`）。中文各行以 `.sum()` 拼成一行，长标题靠自然换行（`master-cover.typ:275`）；英文各行以 `intersperse("\n")` 渲染，一元素一行（`master-cover.typ:346`）；页眉中英文均以 `join("")` 拼成单行（`utils/page-foreground.typ:111,230`）。
 
-> `utils/datetime-display.typ` 将 `datetime` 渲染为 `[year] 年 [month padding:none] 月`（中文）或 `[month repr:short], [year]`（英文）。
+> `utils/datetime-display.typ` 将 `datetime` 渲染为 `[year] 年 [month padding:none] 月`（中文）或 `[month repr:short], [year]`（英文）。本科封面按样张另用 `[year]年[month padding:none]月`（中文，"20XX年6月"）与 `[month repr:long] [year]`（英文，"June 20XX"），见 `pages/bachelor-cover.typ`。
 
 ### 1.7 `ref-supplements`（交叉引用量词）
 
@@ -358,7 +372,9 @@ typst watch   template/thesis.typ --root . --font-path fonts   # 实时预览
 | `info-row-gutter` | length | `1em` | 信息行间距（2 倍行距） |
 | `anonymous-info-keys` | array | 见代码 | 盲审时需隐藏的字段名列表 |
 
-### 2.4 专业型学位封面差异
+本科封面（`pages/bachelor-cover.typ`）参数面与研究生封面基本一致（`stroke-width`/`min-title-lines`/`min-supervisor-lines`/`info-inset`/`info-key-width`/`info-column-gutter`/`info-row-gutter`/`anonymous-info-keys`/`datetime-display`/`datetime-en-display`），版式沿用研究生封面（两栏下划线信息表 + 英文封面页），差异仅在标题文字、字段标签与英文学位表述：标题"学士学位论文"，字段为作者姓名/指导教师（姓名、职务、单位）/学位类别/专业/学院（系）/时间，英文封面为 `Bachelor of <category-en>`。
+
+### 2.4 专业型学位封面差异（仅研究生）
 
 `degree: "professional"` 时（`pages/master-cover.typ:299-318`）：
 
@@ -401,7 +417,7 @@ student-id, author, author-en, supervisors, supervisors-en, department
 #decl-page()
 ```
 
-声明正文使用与样张 3 一致的固定模板；`anonymous: true` 时整页跳过。
+声明正文使用与样张 3 一致的固定模板（本科标题为"学位论文原创性声明"，不含"研究生"字样，正文与研究生完全相同）；`anonymous: true` 时整页跳过。
 
 ### 3.3 签名处理
 
@@ -429,7 +445,7 @@ student-id, author, author-en, supervisors, supervisors-en, department
 
 - 研究生中文摘要：`pages/master-abstract.typ`（`master-abstract` 函数）
 - 研究生英文摘要：`pages/master-abstract-en.typ`（`master-abstract-en` 函数）
-- 本科对应：`pages/bachelor-abstract.typ` / `pages/bachelor-abstract-en.typ`
+- 本科对应：`pages/bachelor-abstract.typ` / `pages/bachelor-abstract-en.typ`（与研究生同版式：仅"摘　要"/"Abstract"标题 + 正文 + 关键词，本科样张不含题目/院系等信息栏）。两页的 `abstract-title-weight` 默认 `"bold"` 且真正控制标题字重（研究生页保留 `strong` 包裹的既有实现，参数不生效）
 
 调用方式：
 
@@ -533,7 +549,7 @@ student-id, author, author-en, supervisors, supervisors-en, department
 | `below` | array | `(0pt, 0pt)` | 各级条目下方间距（规范 0pt） |
 | `indent` | array | `(0pt, 12pt, 12pt)` | 各级条目缩进增量（0 顶格、12pt = 1 汉字符、12pt = 1 汉字符，累加得二级 12pt、三级 24pt） |
 | `fill` | content | `(repeat([.], gap: 0.15em),)` | 引导符样式 |
-| `gap` | length | `.3em` | 条目与页码间距 |
+| `gap` | length | `.3em` | 序号与题名间距。本科同时兼作净距补偿（编号含 -编号自动间隙，此处补回使净距为 1em，见 [§8.6](#86-章节编号格式)）；研究生即条目间距 |
 
 ---
 
@@ -617,7 +633,7 @@ student-id, author, author-en, supervisors, supervisors-en, department
 
 | 参数名 | 类型 | 默认值 | 说明 |
 |-------|------|--------|------|
-| `title` | string | `"符号列表"` | 页面标题 |
+| `title` | string | `"符号列表"` | 页面标题；本科由 `lib.typ` 传"符号说明"（规范一·（五）用词），研究生保持"符号列表"（与官方 LaTeX 样稿一致） |
 | `outlined` | boolean | `false` | 是否加入目录 |
 | `title-above` | length | `24pt` | 标题上方间距 |
 | `title-below` | length | `18pt` | 标题下方间距 |
@@ -725,6 +741,8 @@ student-id, author, author-en, supervisors, supervisors-en, department
 
 > 规范依据：《指导意见》二·（六）·2·（1）「序号与题名间空一个汉字符」。注意半角空格 U+0020 在 CJK 字体下仅约 0.25em，**不满足规范**；模板统一使用 U+3000 全角空格。
 
+**本科净距补偿（依赖编译器未文档化行为，升级 Typst 后须复核）**：Typst 会在标题编号内容之后自动追加一段间隙（官方文档未记载；实测 Typst 0.15.1 为 `0.3em`，四号 4.2pt、小四 3.6pt，随字号等比），使实际净距变成 1.3em。本科（`doctype: "bachelor"`）在编号模板上追加 `suffix: h(-编号自动间隙)`（`编号自动间隙 = 0.3em`）抵消该间隙，并由三个消费点分别补回，使净距处处为 1em：标题（Typst 的自动间隙补回，实测四号 14.0pt、小四 12.0pt）、目录条目（`outline-page` 的 `h(gap)` 补回，实测同上）、页眉（`page-foreground` 显式 `+ h(编号自动间隙)` 补回，实测小五 9.0pt）；附录一级标题无编号，不追加。研究生不加 `suffix`，保持 1.3em 的既有输出。改动任一消费点都要同步其余两处。
+
 ### 8.7 页眉与页脚
 
 **页眉与页脚的定位**：页眉、页脚距页边界 1.5cm 由 `foreground` + `place` 绝对定位（详见 [§15.1](#151-页面尺寸与页边距)）。
@@ -741,6 +759,13 @@ student-id, author, author-en, supervisors, supervisors-en, department
 - `twoside: true`（双面）：奇数页右对齐、偶数页左对齐
 
 > 规范依据：《指导意见》二·（六）·2·（3）「页码应位居左页左下角、右页右下角」。
+
+**本科的两处页面附属元素修正（研究生保持既有输出）**：
+
+1. **页脚段落样式**：`page.foreground` 会继承正文作用域内的 `par` 规则，`mainmatter` 的 `first-line-indent: 2em` 会使左对齐的偶数页页码相对左边距内缩 2em（实测 x0 = 107.86 ≠ 左边距 89.86）。本科在页脚显式清零 `leading`/`spacing`/`first-line-indent`（修复后实测偶数页 x0 = 89.86、奇数页 x1 = 505.42）；研究生保持继承行为。
+2. **页眉分隔线**：`line(length: 100%)` 在 `place` 容器（整页）内解析为整页宽，故本科把文字盒与分隔线同放进宽度受约束的 `block` 内，分隔线为版心宽（实测 415.56pt = 89.86–505.42，与官方样稿一致）；研究生仍为整页宽。
+
+> 注：`set` 规则只作用于同一块内的后续内容（实测），故上述分支必须与内容同块书写，不能写成"先 `if` 里 `set`、再在外面放内容"。
 
 **前言页码**：双面从奇数页起，单面从新页起；大写罗马数字，居中显示。
 
@@ -772,6 +797,9 @@ Typst 的 `leading` 是行盒之间的**额外间隙**（默认 `0.65em`），�
   | 节→正文 | 27.5 | 30.0 | 接近 |
   | 正文→节 | 32.6 | 40.7 | Typst 修剪行盒后顶部较窄；规范字面未定义叠加语义，可接受 |
   | 中→英文题注 | 18.5 | 21.6 | 双语为建议项，视觉均合理，不统一 |
+  | 本科封面中文信息行 | 34.3–35.4 | 34.95（官方样稿 p1） | 一致；"2 倍行距"= 2 × 宋体单倍行高 1.25em ≈ 35pt |
+  | 本科封面英文信息行 | 32.17 | ≈32.8（本科样张 2） | 一致；"2 倍行距"= 2 × Times 单倍行高 1.15em ≈ 32.2pt |
+  | 研究生封面英文信息行 | 27.69 | 26.88（官方样稿 p3） | 一致；研究生封面含导师工作单位、行数更多，取官方样稿口径（研究生保持既有输出） |
 
 ---
 
@@ -1251,7 +1279,7 @@ $ y = integral_1^2 x^2 dif x $ <->
 ]
 ```
 
-末尾日期默认取 `info.submit-date` 自动渲染（`datetime` 格式化为"YYYY 年 M 月"，`none` 不显示），无需手写；标题自带 `<no-auto-pagebreak>`，不触发一级标题自动换页；`anonymous: true` 时整页跳过；`twoside: true` 时从奇数页起。
+末尾日期默认取 `info.submit-date` 自动渲染（`datetime` 按 `date-display` 格式化：本科"20XX年X月"（紧凑式，与本科封面一致）、研究生"20XX 年 X 月"；`none` 不显示），无需手写；标题自带 `<no-auto-pagebreak>`，不触发一级标题自动换页；`anonymous: true` 时整页跳过；`twoside: true` 时从奇数页起。
 
 定制参数：`anonymous`、`twoside`、`date`、`title`、`outlined`、`body`。
 
@@ -1342,10 +1370,10 @@ $ y = integral_1^2 x^2 dif x $ <->
 |------|-----|------|
 | `初号` | 42pt | 特大标题 |
 | `小初` | 36pt | 大标题 |
-| `一号` | 26pt | 封面"博士/硕士学位论文" |
-| `小一` | 24pt | 本科声明页标题 |
+| `一号` | 26pt | 封面"博士/硕士/学士学位论文" |
+| `小一` | 24pt | -（保留） |
 | `二号` | 22pt | - |
-| `小二` | 18pt | 本科封面摘要标题 |
+| `小二` | 18pt | -（保留） |
 | `三号` | 16pt | 开题报告等（`pages/proposal.typ` 可用；当前默认未用） |
 | `小三` | 15pt | 封面论文题目 |
 | `四号` | 14pt | 一级标题、摘要标题、封面信息字段 |
@@ -1486,9 +1514,10 @@ $ y = integral_1^2 x^2 dif x $ <->
 | 添加附录 | `template/thesis.typ` | `#show: appendix` 后写章节 |
 | 附录中续表 | `template/thesis.typ` | `auto-table` / `continued-table` 自动切换"附表"前缀 |
 | 不编号的展示性表格 | 用户代码 | 原生 `table` + `align(center)[#strong[标题]]` |
+
 | 切换开题报告本/研 | `template/proposal.typ` | `proposalclass(doctype: "bachelor" \| "master")` |
+| 修改开题报告版面 | `template/proposal.typ` | `cfg: (outline-depth: 2, ...)` |
 | 开题报告指导教师 | `template/proposal.typ` | `supervisors-full` / `supervisors-split` + `supervisor-form: auto \| "full" \| "split"`（必须至少填一种） |
-| 修改开题报告版面 | `template/proposal.typ` | `cfg: (outline-depth: 2, ...)`；键名见 `pages/proposal.typ` |
 
 ---
 
@@ -1500,6 +1529,16 @@ $ y = integral_1^2 x^2 dif x $ <->
 - [19.2 未实现功能](#192-未实现功能)
 
 ### 19.1 行为偏差
+
+- **研究生侧保留的既有偏差（本科已修正，研究生按"不改研究生样式"冻结）**：
+  - 偶数页页码相对左边距内缩 2em（实测 x0 = 107.86，版心左缘 89.86）：`mainmatter` 的首行缩进渗入 `page.foreground`；本科已在页脚清零，研究生保留。
+  - 页眉分隔线横贯整页（595.28pt）：`line(length: 100%)` 在 `place` 容器内按整页解析；本科已约束到版心（415.56pt），研究生保留。
+  - 标题/目录中序号与题名净距 1.3em（U+3000 的 1em + Typst 自动追加的 0.3em）：本科已补偿到 1em，研究生保留。
+  - 封面信息行距取 1em gutter（≈27.7pt）而非 Word 的 2 × 单倍行高（中文 35pt / 英文 32.2pt）：本科已按 Word 口径调整，研究生保留既有视觉（其英文封面含导师工作单位，改到 32.2pt 会把末尾日期挤出正文区）。
+
+  > 说明：以上四项均为"研究生样式已定稿、不得改动"的既定选择；若后续放开，可由 `doctype` 分支统一启用（本科实现已就位，去掉分支即可）。
+
+- **封面"2 倍行距"的两份官方实现互相不一致**：中文封面两份官方样张一致（官方 LaTeX 样稿实测 34.95pt = Word 对宋体四号的 2 × 单倍行高 1.25em）；英文封面本科 Word 样张 ≈32.8pt（Word 对 Times 的 2 × 1.15em），而研究生 LaTeX 样稿 26.88pt。模板按 doctype 各随其样张：本科 32.17pt、研究生 27.69pt（见 §8.9）。
 
 - **公式编号字号**：公式编号字号继承正文小四 12pt。编号字体保持默认数学字体（数字与括号为 Times 风格）。代码：`layouts/mainmatter.typ`、`layouts/appendix.typ`。
 
@@ -1536,13 +1575,13 @@ $ y = integral_1^2 x^2 dif x $ <->
 #cover()
 #notice()
 #show: mainmatter          // 页码从提纲起编；正文 2em 首行缩进
-#outline-page()            // 目录形态提纲，收集下列标题
+#outline-page()            // 自动收集下列一/二级标题
 = 选题的背景及意义
 // ...
 #bilingual-bibliography(full: true)
 ```
 
-物理顺序：封面 → 填表说明 →（报告提纲 + 连续正文）→ 参考文献。
+物理顺序：封面 → 填表说明 →（报告提纲 + 连续正文）→ 参考文献。提纲与正文共处 `mainmatter` 布局，不再按分节另起页码。
 
 ### 20.2 配置项
 
@@ -1550,10 +1589,9 @@ $ y = integral_1^2 x^2 dif x $ <->
 |------|------|------|
 | `doctype` | `proposalclass` | `"bachelor"` \| `"master"`；当前版式完全一致，仅预留分叉点 |
 | `fontset` / `fonts` | 同上 | 与学位论文相同的四套字体组与覆盖合并 |
-| `info` | 同上 | 封面字段：`title`（可用 `
-` 分行）、`author`、`student-id`、`supervisors-full` / `supervisors-split` / `supervisor-form`、`degree-category`、`major`、`research-direction`、`department`、`submit-date` |
-| `bibliography` | 同上 | 如 `bibliography.with("ref.bib")`，与论文共用 `template/ref.bib` |
-| `cfg` | 同上 | 覆盖 `default-proposal-cfg`：`margin`、`logo-width`、提纲 `outline-*`、`body-leading`/`body-spacing`（`行距.正文`）、`heading-size`/`heading-weight`/`heading-above`/`heading-below`（对齐 `layouts/mainmatter.typ`）、`first-line-indent` 等 |
+| `info` | 同上 | 封面字段：`title`（可用 `\n` 分行）、`author`、`student-id`、`supervisors-full` / `supervisors-split` / `supervisor-form`、`degree-category`、`major`、`research-direction`、`department`、`submit-date` |
+| `bibliography` | 同上 | 如 `bibliography.with("ref.bib")`，默认与论文共用 `template/ref.bib` |
+| `cfg` | 同上 | 覆盖 `pages/proposal.typ` 的 `default-proposal-cfg`：`margin`、`logo-width`、封面/说明/提纲字号与 leading、`outline-depth`、`outline-entry-*`、`body-leading`/`body-spacing`（对齐学位论文 `行距.正文`）、`heading-size`/`heading-weight`/`heading-above`/`heading-below`（对齐 `layouts/mainmatter.typ`）、`first-line-indent` 等 |
 
 **指导教师**在 `proposalclass` / `info` 中**必须填写，不可为空**。两种数据至少填一种；形式由 `supervisor-form` 控制（解析见 `pages/proposal.typ` 的 `resolve-supervisor-display`）：
 
@@ -1572,16 +1610,16 @@ $ y = integral_1^2 x^2 dif x $ <->
 
 ### 20.3 编号与缩进
 
-- 标题编号：一级 `1.`、二级 `1.1.`、三级及更深 `1.1.2`（末级不加尾点）。
-- 正文 `first-line-indent: (amount: 2em, all: true)`；行距/段前段后对齐学位论文 `mainmatter`。
-- 页脚自提纲起「第X页，共Y页」；`bilingual-bibliography` 以 `page-decoration: none` 调用。
+- 标题编号 `proposal-numbering`：一级 `1.`、二级 `1.1.`、三级及更深 `1.1.2`（末级不加尾点）。
+- 正文 `set par(first-line-indent: (amount: 2em, all: true))`，标题块内缩进清零。
+- 提纲深度默认 `cfg.outline-depth = 2`；无编号标题（如参考文献）只列题名。
+- 页脚自提纲起「第X页，共Y页」；`bilingual-bibliography` 以 `page-decoration: none` 调用，不覆盖开题页脚。
 
 ### 20.4 本/研切换
 
-`pages/bachelor-proposal.typ` 与 `pages/master-proposal.typ` 当前均为 `#import "proposal.typ": *` 薄别名。后续若本科生表单需改封面标题、字段或版面，在对应别名文件中覆盖，或拆出独立实现；在此之前两者输出应保持一致。
+`pages/bachelor-proposal.typ` 与 `pages/master-proposal.typ` 当前均为 `#import "proposal.typ": *` 的薄别名。后续若本科生表单需改封面标题、字段或版面，在对应别名文件中覆盖，或拆出独立实现；在此之前两者输出应保持一致。
 
-指导教师规则见 [§20.2](#202-配置项)。
-
+版式对照 Word 官方空表的实测基准见仓库历史与 `pages/proposal.typ` 注释（封面信息栏、填表说明固定值 23 磅、正文固定值 20 磅等）。
 
 ---
 

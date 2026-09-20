@@ -1,7 +1,7 @@
 #import "../utils/bilingual-figured.typ"
 #import "../utils/page-foreground.typ": mainmatter-foreground
 #import "../utils/style.typ": get-fonts, 字号
-#import "../utils/custom-numbering.typ": custom-numbering
+#import "../utils/custom-numbering.typ": custom-numbering, 编号自动间隙
 #import "../utils/citation-range-hyphen.typ": citation-range-hyphen
 #import "../utils/theorem.typ": show-theorem-ref
 
@@ -61,7 +61,14 @@
   // 公式为「式」，定理类随种类（定理/引理/定义/例…）；字典按引用前缀自定义
   // （fig/tbl/eqt，定理类按 thm/def/ex 三组，缺省项回落）。经 lib.typ 传入。
   ref-supplements: none,
-  numbering: custom-numbering.with(first-level: "", depth: 4, "1.1\u{3000}"),
+  // 文档类型："bachelor" 启用本科规范差异（编号净距补偿、页脚不继承首行缩进），
+  // 默认 "doctor" 保持研究生既有输出不变（见 AGENTS.md 边界条款）。
+  doctype: "doctor",
+  // 章节编号格式：auto 时按 doctype 在下文生成，也可直接传自定义 numbering。
+  // 默认：附录一级标题不编号（first-level 为空）；二级起编号格式同正文。
+  // 本科另带 suffix 抵消 Typst 标题编号后的自动间隙，使净距为 1em；
+  // 一级标题无编号，不追加 suffix（见 utils/custom-numbering.typ）。
+  numbering: auto,
   // figure 编号（附录图表前缀为"附图/附表"，编号 1-1）
   show-figure: _appendix-show-figure.with(numbering: "1-1"),
   // equation 编号（(1-1)）
@@ -78,6 +85,14 @@
   // 奇数页章名，页码按双面左右分置）。全静态实现，无运行时判断；info 由
   // documentclass 传入，供偶数页显示论文题目。
   fonts = get-fonts(fontset) + fonts
+  if numbering == auto {
+    numbering = custom-numbering.with(
+      first-level: "",
+      depth: 4,
+      suffix: if doctype == "bachelor" { h(-编号自动间隙) } else { none },
+      "1.1\u{3000}",
+    )
+  }
   set page(
     numbering: "1",
     footer: none,
@@ -85,6 +100,7 @@
       twoside: twoside,
       info: info,
       fonts: fonts,
+      doctype: doctype,
     ),
   )
   pagebreak(weak: true, to: if twoside { "odd" })

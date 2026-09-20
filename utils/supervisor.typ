@@ -59,12 +59,25 @@
 }
 
 // 将一位导师渲染为英文单行字符串："title name affiliation"（职称在前，符合英文习惯）
-// 用于研究生英文封面 "Supervisor(s):" 行（英文习惯 "Professor Si Li" 而非 "Si Li Professor"）。
+// 用于研究生英文封面 "Supervisor(s):" 行（英文习惯 "Professor LI Si" 而非 "LI Si Professor"）。
 #let supervisor-en-line(sup) = {
   (
     sup.at("title", default: ""),
     sup.at("name", default: ""),
     sup.at("affiliation", default: ""),
+  )
+    .filter(s => s != "")
+    .join(" ")
+}
+
+// 将一位导师渲染为英文姓名："title name"（不含工作单位）。
+// 用于本科英文封面：本科样张 2 与 LaTeX 参考（\ADVISOR{Supervisor: Professor LI Si}）
+// 均只列职称与姓名；工作单位已在中文封面"指导教师"栏完整给出，英文封面重复列出
+// 会使该行超宽折行。
+#let supervisor-en-name(sup) = {
+  (
+    sup.at("title", default: ""),
+    sup.at("name", default: ""),
   )
     .filter(s => s != "")
     .join(" ")

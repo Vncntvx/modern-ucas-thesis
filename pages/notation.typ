@@ -9,6 +9,9 @@
   fontset: "mac",
   fonts: (:),
   info: (:),
+  // 文档类型："bachelor" 启用本科规范差异（页眉分隔线约束到版心宽）；
+  // 默认 "doctor" 保持研究生既有输出不变（见 AGENTS.md 边界条款）。
+  doctype: "doctor",
   // 其他参数
   title: "符号列表",
   outlined: false,
@@ -37,7 +40,11 @@
   set page(
     numbering: "I",
     footer: none,
-    foreground: preface-foreground(info: info, fonts: fonts),
+    foreground: preface-foreground(
+      info: info,
+      fonts: fonts,
+      doctype: doctype,
+    ),
   )
   pagebreak(weak: true, to: if twoside { "odd" })
 

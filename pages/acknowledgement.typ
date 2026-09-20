@@ -10,9 +10,14 @@
   fontset: "mac",
   fonts: (:),
   info: (:),
+  // 文档类型：本科页脚不继承正文首行缩进；研究生保持既有输出（见 AGENTS.md 边界条款）。
+  doctype: "doctor",
   // 致谢末尾日期，与论文封面 submit-date 一致
-  // 传 datetime 自动格式化为"YYYY 年 M 月"；传字符串/内容则原样使用；传 none 不显示
+  // 传 datetime 自动格式化；传字符串/内容则原样使用；传 none 不显示
   date: none,
+  // 日期格式化函数：documentclass 按 doctype 传入（研究生"20XX 年 X 月"、
+  // 本科紧凑式"20XX年X月"），使末尾日期与对应封面写法完全一致（规范一·（九））。
+  date-display: datetime-display,
   // 其他参数
   title: [致#h(1em)谢],
   outlined: true,
@@ -32,6 +37,7 @@
         twoside: twoside,
         info: info,
         fonts: fonts,
+        doctype: doctype,
       ),
     )
     pagebreak(weak: true, to: if twoside { "odd" })
@@ -47,7 +53,7 @@
 
       #if date != none {
         let date-content = if type(date) == datetime {
-          datetime-display(date)
+          date-display(date)
         } else {
           date
         }

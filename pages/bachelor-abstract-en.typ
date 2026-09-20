@@ -1,10 +1,14 @@
 #import "../utils/style.typ": get-fonts, 字号, 行距
 #import "../utils/page-foreground.typ": preface-foreground
-#import "../utils/double-underline.typ": double-underline
 #import "../utils/invisible-heading.typ": invisible-heading
-#import "../utils/supervisor.typ": normalize-supervisors
 
 // 本科生英文摘要页
+//
+// 依据《本科生撰写规范》三·（三）摘要和关键词（与研究生要求一致）：
+// - 标题"Abstract"Times New Roman 四号加粗居中，单倍行距，段前 24 磅、段后 18 磅；
+// - 正文 Times New Roman 小四号，1.25 倍行距，段前段后 0 磅；
+// - 关键词与摘要间空一行，"Key Words"两词加粗，英文逗号分隔；
+// - 摘要另起一页，与正文前内容连续编页（罗马数字）。
 #let bachelor-abstract-en(
   // documentclass 传入参数
   anonymous: false,
@@ -16,10 +20,13 @@
   keywords: (),
   outline-title: "Abstract",
   outlined: false,
-  anonymous-info-keys: ("author-en", "supervisors-en"),
+  title-above: 24pt,
+  title-below: 18pt,
+  // 标题字重：规范要求加粗。
+  abstract-title-weight: "bold",
   // 1.25 倍行距：Typst leading 是行盒之间的额外间隙，取 行距.正文，勿写 1.25em。
-  // 段前段后 0 磅：段间距不含行距，取与 leading 等值，使段间基线距与行内一致。
   leading: 行距.正文,
+  // 段前段后 0 磅：段间距不含行距，取与 leading 等值，使段间基线距与行内一致。
   spacing: 行距.正文,
   body,
 ) = {
@@ -28,81 +35,68 @@
   info = (
     (
       title-en: "UCAS Thesis Template for Typst",
-      author-en: "Zhang San",
+      author-en: "ZHANG San",
       department-en: "XX Department",
       major-en: "XX Major",
       supervisors-en: (
-        (name: "Si Li", title: "Professor", affiliation: ""),
+        (
+          name: "LI Si",
+          title: "Professor",
+          affiliation: "Institute of XXX, Chinese Academy of Sciences",
+        ),
       ),
     )
       + info
   )
 
-  // 2.  对参数进行处理
-  // 2.1 如果是字符串，则使用换行符将标题分隔为列表
-  if type(info.title-en) == str {
-    info.title-en = info.title-en.split("\n")
-  }
-  // 2.2 导师信息归一化为字典列表
-  info.supervisors-en = normalize-supervisors(info.supervisors-en)
+  // 2.  正式渲染：先设置页眉页脚（page.foreground）再换页，使双面模式下
+  // to:"odd" 换页自动插入的填充空白页同样显示页眉页脚（偶数页英文题目、
+  // 奇数页 Abstract，页码罗马数字居中）。全静态实现，无运行时判断。
+  set page(
+    numbering: "I",
+    footer: none,
+    foreground: preface-foreground(
+      info: info,
+      fonts: fonts,
+      doctype: "bachelor",
+    ),
+  )
+  pagebreak(weak: true, to: if twoside { "odd" })
 
-  // 3.  内置辅助函数
-  let info-value(key, body) = {
-    if (not anonymous or (key not in anonymous-info-keys)) {
-      body
-    }
-  }
-
-  // 4.  正式渲染
   [
-    // 起始页面样式：先设置页眉页脚（page.foreground）再换页，使双面模式下
-    // to:"odd" 换页自动插入的填充空白页同样显示页眉页脚（偶数页论文题目、
-    // 奇数页章名/部分名，页码罗马数字居中）。全静态实现，无运行时判断。
-    #set page(
-      numbering: "I",
-      footer: none,
-      foreground: preface-foreground(info: info, fonts: fonts),
-    )
-    #pagebreak(weak: true, to: if twoside { "odd" })
-
-    #set text(font: fonts.楷体, size: 字号.小四)
+    #set text(font: "Times New Roman", size: 字号.小四)
     #set par(leading: leading, justify: true, spacing: spacing)
 
     // 标记一个不可见的标题用于目录生成
     #invisible-heading(level: 1, outlined: outlined, outline-title)
 
-    #align(center)[
-      #set text(size: 字号.小二, weight: "bold")
+    #v(title-above)
 
-      // 页首空一行：一行高度 = 正文基线距 21.6pt
-      #v(21.6pt)
-
-      #double-underline[*中国科学院大学本科生毕业论文（设计、作品）英文摘要*]
+    // 标题单倍行距：作用域内覆盖页面级的 1.25 倍行距
+    #[
+      #set par(leading: 行距.单倍, spacing: 0pt)
+      #align(center, text(
+        size: 字号.四号,
+        weight: abstract-title-weight,
+        [Abstract],
+      ))
     ]
 
-    #v(2pt)
+    #v(title-below)
 
-    THESIS: #info-value("title-en", (("",) + info.title-en).sum())
+    // 正文字体/行距继承自页面作用域（font: "Times New Roman" + 小四），
+    // 此处仅追加首行缩进；smartquote 亦随页面字体渲染，无需重复 set/show。
+    #[
+      #set par(first-line-indent: (amount: 2em, all: true))
 
-    DEPARTMENT: #info-value("department-en", info.department-en)
+      #body
+    ]
 
-    SPECIALIZATION: #info-value("major-en", info.major-en)
+    // 关键词与摘要间空一行：一行高度 = 正文基线距 21.6pt
+    #v(21.6pt)
 
-    UNDERGRADUATE: #info-value("author-en", info.author-en)
-
-    MENTOR: #info-value(
-      "supervisors-en",
-      info.supervisors-en.map(s => {
-        // 英文习惯职称在前（如 "Professor Si Li"），与英文封面一致
-        (s.at("title", default: ""), s.at("name", default: "")).filter(x => x != "").join(" ")
-      }).filter(s => s != "").join(", "),
-    )
-
-    ABSTRACT: #body
-
-    #v(1em)
-
-    #strong[Key Words:] #(("",) + keywords.intersperse(", ")).sum()
+    // 字体继承自页面作用域，无需重复 set text。
+    #[#strong[Key Words:] #(keywords.intersperse(", ")).sum()]
   ]
 
   // 结尾重置页面样式：function 体内的 set page 会泄漏到后续文档流，此处显式

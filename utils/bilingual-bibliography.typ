@@ -25,6 +25,8 @@
   fontset: "mac",
   fonts: (:),
   info: (:),
+  // 文档类型：本科页脚不继承正文首行缩进；研究生保持既有输出（见 AGENTS.md 边界条款）。
+  doctype: "doctor",
   // 页面装饰：auto（默认）= 学位论文 mainmatter 页眉页脚；
   // none = 不改 page（开题报告等由调用方自管页脚）；
   // 其他值 = 直接作为 page.foreground。
@@ -219,6 +221,7 @@
           twoside: twoside,
           info: info,
           fonts: fonts,
+          doctype: doctype,
         )
       } else {
         page-decoration
