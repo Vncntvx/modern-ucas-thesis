@@ -531,6 +531,8 @@ student-id, author, author-en, supervisors, supervisors-en, department
 
 各级缩进由 `indent` 控制——注意 Typst `outline.indent` 回调为 0-indexed（level1→0、level2→1、level3→2），默认 `(0pt, 12pt, 12pt)` 累加得一级 0pt、二级 12pt、三级 24pt。
 
+点线与页码的视觉策略（thesis 与 proposal 一致）：题名按条目 `size`（一级四号、二/三级小四）；点线 + 页码为紧随题名 `text` 的**兄弟** `text(font: ("Times New Roman",), size: 字号.小四)`（固定小四 Times，不随一级四号变化），引导符为半角句点密排（`repeat([.], gap: 0.12em)`），外盒 `box(width: 1fr, inset: (x: .25em), fill)`。相对 Typst 官方 `outline.entry` 默认 leader（`gap: 0.15em`）有意加密。勿将 aux 嵌进题名 `text`（多行一级条目基线会偏约 1.5pt）。
+
 ### 5.3 目录定制参数
 
 `pages/outline-page.typ:6-34`：
@@ -548,7 +550,7 @@ student-id, author, author-en, supervisors, supervisors-en, department
 | `above` | array | `(6pt, 6pt)` | 各级条目上方间距（规范 6pt） |
 | `below` | array | `(0pt, 0pt)` | 各级条目下方间距（规范 0pt） |
 | `indent` | array | `(0pt, 12pt, 12pt)` | 各级条目缩进增量（0 顶格、12pt = 1 汉字符、12pt = 1 汉字符，累加得二级 12pt、三级 24pt） |
-| `fill` | content | `(repeat([.], gap: 0.15em),)` | 引导符样式 |
+| `fill` | content \| array | `(repeat([.], gap: 0.12em),)` | 点线样式；也接受 per-level 数组。点线与页码为题名 `text` 的兄弟节点 `text(font: ("Times New Roman",), size: 字号.小四)`，**固定小四 Times，不随一级条目四号变化** |
 | `gap` | length | `.3em` | 序号与题名间距。本科同时兼作净距补偿（编号含 -编号自动间隙，此处补回使净距为 1em，见 [§8.6](#86-章节编号格式)）；研究生即条目间距 |
 
 ---
@@ -1560,7 +1562,7 @@ $ y = integral_1^2 x^2 dif x $ <->
 
 ### 20.1 结构与调用顺序
 
-`template/proposal.typ` 与 `template/thesis.typ` 同构。报告提纲为**目录形态**：序号 + 题名 + 点线 + 页码，与正文标题链接对应，页码从提纲起编。
+`template/proposal.typ` 与 `template/thesis.typ` 同构。开题「目录」样式对齐学位论文 `pages/outline-page.typ`：标题为 `目#h(1em)录`（黑体四号加粗），条目一级四号、二级小四（黑体），段前 6pt / 段后 0pt，缩进 0/12pt；点线与页码与论文目录同一策略（Times New Roman 小四固定字号，半角句点密排点线），在各自 show 规则内以兄弟 `text` 实现，不依赖共享 util。开题与论文目录的**有意差异**：深度默认 2（论文为 3）、`outline-gap` 为 `1.3em`（论文为 `.3em`，因编号形态不同）、无章眉罗马页码、页脚沿用 mainmatter「第X页，共Y页」。
 
 ```typst
 #let (doc, cover, notice, outline-page, mainmatter, bilingual-bibliography, ...) = proposalclass(
@@ -1574,14 +1576,14 @@ $ y = integral_1^2 x^2 dif x $ <->
 #show: doc
 #cover()
 #notice()
-#show: mainmatter          // 页码从提纲起编；正文 2em 首行缩进
+#show: mainmatter          // 页码从目录起编；正文 2em 首行缩进
 #outline-page()            // 自动收集下列一/二级标题
 = 选题的背景及意义
 // ...
 #bilingual-bibliography(full: true)
 ```
 
-物理顺序：封面 → 填表说明 →（报告提纲 + 连续正文）→ 参考文献。提纲与正文共处 `mainmatter` 布局，不再按分节另起页码。
+物理顺序：封面 → 填表说明 →（目录 + 连续正文）→ 参考文献。目录与正文共处 `mainmatter` 布局，页码连续。
 
 ### 20.2 配置项
 

@@ -5,7 +5,7 @@
 #import "../utils/style.typ": get-fonts, 字号, 行距
 
 // =============================================================================
-// 默认版面参数（按 Word 实测；可在 proposalclass(cfg: (...)) 覆盖）
+// 默认版面参数（按 Word 版式；可在 proposalclass(cfg: (...)) 覆盖）
 // =============================================================================
 
 #let default-proposal-cfg = (
@@ -19,22 +19,24 @@
   // 填表说明
   notice-title-size: 字号.小二, // 18pt
   notice-body-size: 字号.小四, // 12pt
-  // Word 固定值 23 磅；实测校准后 leading≈14.5pt（基线距≈23pt）
+  // Word 固定值 23 磅 → leading≈14.5pt（基线距≈23pt）
   notice-leading: 14.5pt,
-  // 报告提纲（目录形态，样式对齐学位论文 outline-page）
+  // 目录（样式对齐 pages/outline-page.typ / thesis 目录）
+  outline-title: [目#h(1em)录],
   outline-title-size: 字号.四号,
-  outline-depth: 2, // 收录到二级标题
-  outline-title-above: 1.45cm,
-  outline-title-below: 1.1cm,
-  // 条目字号/字重：一级四号黑体，二级小四黑体（同论文目录）
+  outline-depth: 2, // 开题默认收到二级；论文目录为 3
+  // 与 thesis outline-page 相同的规范值
+  outline-title-above: 24pt,
+  outline-title-below: 18pt,
   outline-entry-size: (字号.四号, 字号.小四),
-  outline-entry-weight: ("regular", "regular"),
-  outline-entry-above: (12pt, 8pt),
-  outline-entry-below: (4pt, 2pt),
-  // 缩进：一级顶格，二级 1 汉字（12pt，同论文目录）
+  outline-entry-font: auto, // auto → (黑体, 黑体)
+  outline-entry-above: (6pt, 6pt),
+  outline-entry-below: (0pt, 0pt),
   outline-indent: (0pt, 12pt),
-  outline-gap: 0.3em, // 序号与题名间距
-  outline-fill: repeat([.], gap: 0.15em), // 点线
+  // prefix 后 h(gap)：编号内全角空格 1em + 0.3em，合计约 1.3em
+  outline-gap: 1.3em,
+  // 点线：半角句点密排；页码与点线在兄弟 text 内固定 Times 小四
+  outline-fill: (repeat([.], gap: 0.12em),),
   body-size: 字号.小四, // 12pt
   // 与 layouts/mainmatter.typ 相同：leading/spacing 取 行距.正文（1.1em）
   body-leading: 行距.正文,
@@ -64,7 +66,7 @@
 // 形式参数 supervisor-form（控制填入/展示形式）：
 //   auto      — 按「已填了哪一种」自动识别：
 //               只填整行 → 整行；只填分栏 → 分栏；
-//               两种都填 → 展示整行，并给出预警（不报错）。
+//               两种都填 → 展示整行，并给出预警。
 //   "full"    — 只允许填整行；填了分栏或未填整行 → 报错
 //   "split"   — 只允许填分栏；填了整行或未填分栏 → 报错
 // =============================================================================
@@ -77,7 +79,7 @@
   v != none and v != auto and type(v) == dictionary
 }
 
-// 预警收集：Typst 无官方 warn()，不中断编译；写入 state 供排查
+// 非致命预警：Typst 无官方 warn()，写入 state 而不中断编译
 #let proposal-supervisor-warnings = state("proposal-supervisor-warnings", ())
 
 #let _emit-supervisor-warning(msg) = {
@@ -180,7 +182,7 @@
   }
 }
 
-// 页脚：第X页，共Y页（提纲起编号，与 Word 分节页码一致）
+// 页脚：第X页，共Y页（从目录起编）
 #let proposal-page-footer(fonts: (:)) = context {
   set text(font: fonts.宋体, size: 字号.五号)
   set align(center)
@@ -213,7 +215,7 @@
         text(bottom-edge: "descender", v)
       }
       let size = cfg.cover-field-size
-      // 实测@15pt：字面高≈0.91em，行距≈1.49em；横线在字面底边再留 1.5pt
+      // 15pt 时：字面高≈0.91em，行距≈1.49em；横线在字面底边再留 1.5pt
       let ink = size * 0.91
       let line-spacing = size * 1.49
       let m = measure(block(width: avail.width, content))
@@ -277,7 +279,7 @@
   info: (:),
   cfg: (:),
 ) = {
-  // 本科生版式暂与研究生完全一致；后续分叉时再按 doctype 切换标题与字段。
+  // 本科生与研究生共用同一封面标题
   let cover-title = if doctype == "bachelor" {
     "研究生学位论文开题报告"
   } else {
@@ -414,9 +416,9 @@
 }
 
 // =============================================================================
-// 报告提纲（目录形态：序号 + 题名 + 点线 + 页码，与正文标题一一对应）
-// 样式对齐 pages/outline-page.typ；差异：标题为「报告提纲」、无章眉、
-// 页脚沿用开题「第X页，共Y页」、编号为 1. / 1.1.。
+// 目录（样式对齐 pages/outline-page.typ）
+// 开题差异：标题文案、深度默认 2、无章眉罗马页码、页脚由 mainmatter
+// 提供「第X页，共Y页」、编号为 1. / 1.1.（非「第1章」）。
 // =============================================================================
 
 #let proposal-outline-page(
@@ -425,71 +427,72 @@
   depth: auto,
 ) = {
   let outline-depth = if depth == auto { cfg.outline-depth } else { depth }
-  let title-above = cfg.at("outline-title-above", default: 1.45cm)
-  let title-below = cfg.at("outline-title-below", default: 1.1cm)
-  let entry-size = cfg.at("outline-entry-size", default: (字号.四号, 字号.小四))
-  let entry-weight = cfg.at("outline-entry-weight", default: (
-    "regular",
-    "regular",
-  ))
-  let entry-above = cfg.at("outline-entry-above", default: (10pt, 6pt))
-  let entry-below = cfg.at("outline-entry-below", default: (4pt, 2pt))
-  // Typst outline(indent:) 的 level 为 0 基（见 AGENTS.md 已验证结论）
+  let title = cfg.at("outline-title", default: [目#h(1em)录])
+  let title-above = cfg.at("outline-title-above", default: 24pt)
+  let title-below = cfg.at("outline-title-below", default: 18pt)
+  let size = cfg.at("outline-entry-size", default: (字号.四号, 字号.小四))
+  let entry-font = cfg.at("outline-entry-font", default: auto)
+  if entry-font == auto {
+    entry-font = (fonts.黑体, fonts.黑体)
+  }
+  let above = cfg.at("outline-entry-above", default: (6pt, 6pt))
+  let below = cfg.at("outline-entry-below", default: (0pt, 0pt))
+  // Typst outline(indent:) 的 level 为 0 基
   let indent = cfg.at("outline-indent", default: (0pt, 12pt))
-  let gap = cfg.at("outline-gap", default: 0.3em)
-  let fill = cfg.at("outline-fill", default: repeat([.], gap: 0.15em))
+  let gap = cfg.at("outline-gap", default: 1.3em)
+  let fill = cfg.at("outline-fill", default: (repeat([.], gap: 0.12em),))
 
-  // 标题（黑体四号加粗居中，同论文目录标题层级）
+  // 标题
   v(title-above)
   {
     set align(center)
-    set par(leading: 行距.单倍, spacing: 0pt, justify: false)
+    set par(leading: 行距.单倍, spacing: 0pt)
     text(
       font: fonts.黑体,
-      size: cfg.outline-title-size,
+      size: cfg.at("outline-title-size", default: 字号.四号),
       weight: "bold",
-      top-edge: "cap-height",
-      bottom-edge: "baseline",
-      "报告提纲",
+      title,
     )
   }
   v(title-below)
 
-  // 目录条目：与正文 heading 链接，点线 + 页码
+  // 序号与题名按条目字体字号；点线与页码为兄弟 text（Times 小四）
+  // （与 pages/outline-page.typ 同一视觉策略）
   set outline(indent: level => indent
     .slice(0, calc.min(level + 1, indent.len()))
     .sum())
   show outline.entry: entry => {
-    let lvl = calc.min(entry.level, entry-size.len())
-    set par(
-      leading: 行距.单倍,
-      spacing: 0pt,
-      justify: false,
-      first-line-indent: 0em,
-    )
+    set par(leading: 行距.单倍, spacing: 0pt)
+    let current-size = size.at(entry.level - 1, default: size.last())
+    let current-above = above.at(entry.level - 1, default: above.last())
+    let current-below = below.at(entry.level - 1, default: below.last())
+    let row-font = entry-font.at(entry.level - 1, default: entry-font.last())
+    let current-fill = if type(fill) == array {
+      fill.at(entry.level - 1, default: fill.last())
+    } else {
+      fill
+    }
     block(
-      above: entry-above.at(lvl - 1, default: entry-above.last()),
-      below: entry-below.at(lvl - 1, default: entry-below.last()),
+      above: current-above,
+      below: current-below,
       link(entry.element.location(), entry.indented(
         none,
         {
-          // 序号/题名/点线/页码同字号，避免页码掉回正文小四
           text(
-            font: fonts.黑体,
-            size: entry-size.at(lvl - 1, default: entry-size.last()),
-            weight: entry-weight.at(lvl - 1, default: entry-weight.last()),
-            top-edge: "cap-height",
-            bottom-edge: "baseline",
+            font: row-font,
+            size: current-size,
             {
               if entry.prefix() not in (none, []) {
                 entry.prefix()
                 h(gap)
               }
               entry.body()
-              box(width: 1fr, inset: (x: .25em), fill)
-              entry.page()
             },
           )
+          text(font: ("Times New Roman",), size: 字号.小四, {
+            box(width: 1fr, inset: (x: .25em), current-fill)
+            entry.page()
+          })
         },
         gap: 0pt,
       )),

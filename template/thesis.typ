@@ -331,7 +331,7 @@ Typst CLI 提供两种编译方式：
 
 (k) `degree-table.typ`：学位类别中英文对照表（规范附件 2，无编号展示性表格，置于附录等处）。
 
-(l) `proposal.typ`：开题报告版式实现（封面、填表说明、报告提纲、正文布局）；`bachelor-proposal.typ` / `master-proposal.typ` 为本科/研究生入口别名，当前共用同一实现。
+(l) `proposal.typ`：开题报告版式实现（封面、填表说明、目录、正文布局）；`bachelor-proposal.typ` / `master-proposal.typ` 为本科/研究生入口别名，当前共用同一实现。
 
 === utils 文件夹
 

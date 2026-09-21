@@ -433,7 +433,7 @@
         ..args,
       )
     },
-    // 报告提纲（自正文标题自动收集）
+    // 目录（自正文标题自动收集）
     outline-page: (..args) => {
       proposal-outline-page(
         fonts: fonts,
