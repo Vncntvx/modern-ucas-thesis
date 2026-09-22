@@ -115,11 +115,8 @@ typst watch template/thesis.typ --root . --font-path fonts
     title: "论文开题题目",
     author: "张三",
     student-id: "1234567890",
-    // 指导教师必须填写：整行 / 分栏 至少一种
+    // 指导教师：填写 supervisors-full 或 supervisors-split 其一；未使用的键可省略
     supervisors-full: "李四教授",
-    supervisors-split: none,
-    // auto 按已填形式识别；"full"/"split" 锁定形式，填错会报错
-    supervisor-form: auto,
     degree-category: "工学硕士",
     major: "计算机科学与技术",
     research-direction: "智能信息处理",

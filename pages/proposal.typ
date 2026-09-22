@@ -35,7 +35,8 @@
   outline-indent: (0pt, 12pt),
   // prefix 后 h(gap)：编号内全角空格 1em + 0.3em，合计约 1.3em
   outline-gap: 1.3em,
-  // 点线：半角句点密排；页码与点线在兄弟 text 内固定 Times 小四
+  // 点线使用半角句点密排（repeat([.], gap: 0.12em)）；点线与页码置于
+  // 兄弟 text，固定 Times New Roman、小四
   outline-fill: (repeat([.], gap: 0.12em),),
   body-size: 字号.小四, // 12pt
   // 与 layouts/mainmatter.typ 相同：leading/spacing 取 行距.正文（1.1em）
@@ -57,104 +58,60 @@
 // =============================================================================
 
 // =============================================================================
-// 指导教师（proposalclass/info 中必须填写，不可为空）
+// 指导教师（info 必填）
 //
-// 数据（两种填入形式，至少填一种）：
+// 在下列两种形式中填写且仅填写一种。未使用的键可省略，无需写 none：
 //   supervisors-full : 整行字符串，如 "李四教授" / "李四教授 王五研究员"
-//   supervisors-split: 分栏字典 (name: "李四", title: "教授")
-//
-// 形式参数 supervisor-form（控制填入/展示形式）：
-//   auto      — 按「已填了哪一种」自动识别：
-//               只填整行 → 整行；只填分栏 → 分栏；
-//               两种都填 → 展示整行，并给出预警。
-//   "full"    — 只允许填整行；填了分栏或未填整行 → 报错
-//   "split"   — 只允许填分栏；填了整行或未填分栏 → 报错
+//   supervisors-split: 分栏字典 (name: "李四", title: "教授")，name 必填且非空
+// 两种同时填写或均未填写时，编译报错；split 缺非空 name 单独报错。
+// 按已填写的形式展示。
 // =============================================================================
 
 #let _supervisor-full-filled(v) = {
-  v != none and v != auto and type(v) == str and v.trim() != ""
+  v != none and type(v) == str and v.trim() != ""
 }
 
 #let _supervisor-split-filled(v) = {
-  v != none and v != auto and type(v) == dictionary
+  if v == none or type(v) != dictionary {
+    return false
+  }
+  let n = v.at("name", default: none)
+  type(n) == str and n.trim() != ""
 }
 
-// 非致命预警：Typst 无官方 warn()，写入 state 而不中断编译
-#let proposal-supervisor-warnings = state("proposal-supervisor-warnings", ())
-
-#let _emit-supervisor-warning(msg) = {
-  proposal-supervisor-warnings.update(w => w + (msg,))
-}
-
-#let resolve-supervisor-display(
-  full: none,
-  split: none,
-  form: auto,
-) = {
+#let resolve-supervisor-display(full: none, split: none) = {
   let has-full = _supervisor-full-filled(full)
   let has-split = _supervisor-split-filled(split)
-  let warn = none
 
-  let as-split(v) = (
-    mode: "split",
-    name: {
-      let n = v.at("name", default: "")
-      if type(n) == str { n } else { str(n) }
-    },
-    title: {
-      let t = v.at("title", default: "")
-      if type(t) == str { t } else { str(t) }
-    },
-  )
-
-  // —— 指定了具体形式：只允许填那一种，否则报错 ——
-  if form == "full" or form == "整行" {
-    if has-split {
-      panic(
-        "supervisor-form 已指定为整行（full），不可再填分栏 supervisors-split；请清空其一",
-      )
-    }
-    if not has-full {
-      panic(
-        "supervisor-form 为整行（full），必须填写 info.supervisors-full（非空字符串）",
-      )
-    }
-    return (mode: "full", line: full)
-  }
-  if form == "split" or form == "分栏" {
-    if has-full {
-      panic(
-        "supervisor-form 已指定为分栏（split），不可再填整行 supervisors-full；请清空其一",
-      )
-    }
-    if not has-split {
-      panic(
-        "supervisor-form 为分栏（split），必须填写 info.supervisors-split（name/title 字典）",
-      )
-    }
-    return as-split(split)
-  }
-  if form != auto {
+  if not has-split and split != none and type(split) == dictionary {
     panic(
-      "info.supervisor-form 须为 auto | \"full\"（整行）| \"split\"（分栏）",
+      "info.supervisors-split 须包含非空 name（如 (name: \"李四\", title: \"教授\")）",
     )
   }
 
-  // —— auto：按已填形式自动识别；不可为空 ——
+  if has-full and has-split {
+    panic(
+      "指导教师仅可填写一种形式：请仅保留 info.supervisors-full 或 info.supervisors-split 其一",
+    )
+  }
   if not has-full and not has-split {
     panic(
-      "指导教师不可为空：请填写 info.supervisors-full（整行）或 info.supervisors-split（分栏）",
+      "指导教师不可为空：请填写 info.supervisors-full 或 info.supervisors-split 其一",
     )
   }
-  if has-full and has-split {
-    warn = "指导教师两种形式均已填写：auto 优先展示整行 supervisors-full；如需分栏请设 supervisor-form: \"split\" 并只填 supervisors-split"
-    _emit-supervisor-warning(warn)
-    return (mode: "full", line: full)
-  }
+
   if has-full {
     return (mode: "full", line: full)
   }
-  return as-split(split)
+
+  (
+    mode: "split",
+    name: split.name.trim(),
+    title: {
+      let t = split.at("title", default: "")
+      if type(t) == str { t } else { str(t) }
+    },
+  )
 }
 
 #let format-date(d) = {
@@ -331,12 +288,11 @@
         // Word 信息栏行距约 31pt（由行高自然形成）
         full-row("报告题目", info.title)
         pair-row("学生姓名", info.author, "学号", info.student-id)
-        // 指导教师：必须已填；形式由 supervisor-form 控制（见 resolve-supervisor-display）
+        // 指导教师：在 supervisors-full / supervisors-split 中填写一种
         {
           let sup = resolve-supervisor-display(
             full: info.at("supervisors-full", default: none),
             split: info.at("supervisors-split", default: none),
-            form: info.at("supervisor-form", default: auto),
           )
           if sup.mode == "split" {
             pair-row("指导教师", sup.name, "职称", sup.title)
@@ -456,8 +412,8 @@
   }
   v(title-below)
 
-  // 序号与题名按条目字体字号；点线与页码为兄弟 text（Times 小四）
-  // （与 pages/outline-page.typ 同一视觉策略）
+  // 序号与题名使用条目字体字号；点线与页码使用兄弟 text（Times 小四），
+  // 与 pages/outline-page.typ 保持一致
   set outline(indent: level => indent
     .slice(0, calc.min(level + 1, indent.len()))
     .sum())

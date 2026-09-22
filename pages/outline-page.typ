@@ -28,7 +28,8 @@
   above: (6pt, 6pt),
   below: (0pt, 0pt),
   indent: (0pt, 12pt, 12pt),
-  // 点线：半角句点密排；页码与点线在兄弟 text 内固定 Times 小四
+  // 点线使用半角句点密排（repeat([.], gap: 0.12em)）；点线与页码置于
+  // 兄弟 text，固定 Times New Roman、小四
   fill: (repeat([.], gap: 0.12em),),
   gap: .3em,
 ) = {
@@ -56,7 +57,7 @@
   )
   pagebreak(weak: true, to: if twoside { "odd" })
 
-  // 条目字号（含题名）由各级 size 落实；点线与页码见 show outline.entry 内兄弟 text
+  // 条目字号由各级 size 指定；点线与页码见 show outline.entry 中的兄弟 text
   v(title-above)
   {
     set align(center)
@@ -80,7 +81,7 @@
     let current-above = above.at(entry.level - 1, default: above.last())
     let current-below = below.at(entry.level - 1, default: below.last())
     let current-font = font.at(entry.level - 1, default: font.last())
-    // fill 可为 content 或 per-level 数组（与 outline-page 的 fill 参数兼容）
+    // fill 取 content，或按级别排列的数组（取 entry.level 对应项）
     let current-fill = if type(fill) == array {
       fill.at(entry.level - 1, default: fill.last())
     } else {
@@ -92,9 +93,9 @@
       link(entry.element.location(), entry.indented(
         none,
         {
-          // 序号 + 题名按条目字号；点线与页码为紧随其后的兄弟 text（Times 小四）
-          // —— 勿嵌进题名 text，否则多行一级条目行盒高度会变
-          // （有意不随一级四号变化，见 AGENTS.md / CUSTOMIZE §5.3）
+          // 序号与题名使用条目字体字号。
+          // 点线与页码作为紧随其后的兄弟 text，固定 Times New Roman、小四。
+          // 不得将点线与页码嵌套进题名 text。
           text(
             font: current-font,
             size: current-size,

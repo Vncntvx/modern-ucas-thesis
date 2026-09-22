@@ -224,7 +224,7 @@ modern-ucas-thesis/
 | Graduate thesis proposal | ✅ | `template/proposal.typ`, `proposalclass(doctype: "master")`; styles in `pages/proposal.typ` |
 | Proposal heading numbering & indent | ✅ | Headings `1.` / `1.1.` / `1.1.2`; body first-line indent 2em |
 | Proposal bibliography | ✅ | Reuses `bilingual-bibliography` and `template/ref.bib` |
-| Proposal supervisor field | ✅ | Required: `supervisors-full` and/or `supervisors-split` + `supervisor-form: auto` (detect) \| `"full"` \| `"split"` (locked; wrong combo panics) |
+| Proposal supervisor field | ✅ | Required: provide exactly one of `supervisors-full` or `supervisors-split`; providing both or neither causes a compile error |
 
 ---
 

@@ -38,7 +38,7 @@
 #import "pages/proposal.typ": (
   default-proposal-cfg, proposal-cover, proposal-doc, proposal-mainmatter,
   proposal-notice, proposal-numbering, proposal-outline-page,
-  proposal-page-footer,
+  proposal-page-footer, resolve-supervisor-display,
 )
 
 // 借助函数闭包特性：`documentclass` 集中进行全局信息配置，返回携带该配置的
@@ -382,16 +382,12 @@
       title: "在此填写开题报告题目",
       author: "张三",
       student-id: "1234567890",
-      // 指导教师（必须填写，不可为空；两种数据至少填一种）
+      // 指导教师：填写且仅填写一种；未使用的键可省略，无需写 none
       //   supervisors-full : 整行，如 "李四教授" / "李四教授 王五研究员"
       //   supervisors-split: 分栏，(name: "李四", title: "教授")
-      // 形式控制 supervisor-form：
-      //   auto    — 按已填形式自动识别；两种都填 → 展示整行并预警（不报错）
-      //   "full"  — 只允许填整行，否则报错
-      //   "split" — 只允许填分栏，否则报错
-      supervisors-full: "李四教授",
-      supervisors-split: none,
-      supervisor-form: auto,
+      // 示例：
+      // supervisors-full: "李四教授",
+      // supervisors-split: (name: "李四", title: "教授"),
       // 学术型：哲学硕士 / 理学硕士 / 工学硕士 …；专业型：工程硕士 / MBA …
       degree-category: "工学硕士",
       major: "计算机科学与技术",
@@ -401,6 +397,11 @@
       submit-date: datetime.today(),
     )
       + info
+  )
+  // 指导教师尽早校验：在 proposalclass 组装阶段即 panic，不必等 cover 渲染
+  let _ = resolve-supervisor-display(
+    full: info.at("supervisors-full", default: none),
+    split: info.at("supervisors-split", default: none),
   )
 
   return (

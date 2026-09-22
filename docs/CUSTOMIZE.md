@@ -531,7 +531,7 @@ student-id, author, author-en, supervisors, supervisors-en, department
 
 各级缩进由 `indent` 控制——注意 Typst `outline.indent` 回调为 0-indexed（level1→0、level2→1、level3→2），默认 `(0pt, 12pt, 12pt)` 累加得一级 0pt、二级 12pt、三级 24pt。
 
-点线与页码的视觉策略（thesis 与 proposal 一致）：题名按条目 `size`（一级四号、二/三级小四）；点线 + 页码为紧随题名 `text` 的**兄弟** `text(font: ("Times New Roman",), size: 字号.小四)`（固定小四 Times，不随一级四号变化），引导符为半角句点密排（`repeat([.], gap: 0.12em)`），外盒 `box(width: 1fr, inset: (x: .25em), fill)`。相对 Typst 官方 `outline.entry` 默认 leader（`gap: 0.15em`）有意加密。勿将 aux 嵌进题名 `text`（多行一级条目基线会偏约 1.5pt）。
+点线与页码按下列方式渲染（thesis 与 proposal 一致）：题名使用条目 `size`（一级四号、二/三级小四）；点线与页码作为紧随题名 `text` 的兄弟 `text(font: ("Times New Roman",), size: 字号.小四)`，固定小四 Times；引导符为 `repeat([.], gap: 0.12em)`，外层为 `box(width: 1fr, inset: (x: .25em), fill)`。不得将点线与页码嵌套进题名 `text`。
 
 ### 5.3 目录定制参数
 
@@ -1519,7 +1519,7 @@ $ y = integral_1^2 x^2 dif x $ <->
 
 | 切换开题报告本/研 | `template/proposal.typ` | `proposalclass(doctype: "bachelor" \| "master")` |
 | 修改开题报告版面 | `template/proposal.typ` | `cfg: (outline-depth: 2, ...)` |
-| 开题报告指导教师 | `template/proposal.typ` | `supervisors-full` / `supervisors-split` + `supervisor-form: auto \| "full" \| "split"`（必须至少填一种） |
+| 开题报告指导教师 | `template/proposal.typ` | 填写 `supervisors-full` 或 `supervisors-split` 其一；同时填写或均未填写时编译报错 |
 
 ---
 
@@ -1562,7 +1562,7 @@ $ y = integral_1^2 x^2 dif x $ <->
 
 ### 20.1 结构与调用顺序
 
-`template/proposal.typ` 与 `template/thesis.typ` 同构。开题「目录」样式对齐学位论文 `pages/outline-page.typ`：标题为 `目#h(1em)录`（黑体四号加粗），条目一级四号、二级小四（黑体），段前 6pt / 段后 0pt，缩进 0/12pt；点线与页码与论文目录同一策略（Times New Roman 小四固定字号，半角句点密排点线），在各自 show 规则内以兄弟 `text` 实现，不依赖共享 util。开题与论文目录的**有意差异**：深度默认 2（论文为 3）、`outline-gap` 为 `1.3em`（论文为 `.3em`，因编号形态不同）、无章眉罗马页码、页脚沿用 mainmatter「第X页，共Y页」。
+`template/proposal.typ` 与 `template/thesis.typ` 同构。开题「目录」样式对齐学位论文 `pages/outline-page.typ`：标题为 `目#h(1em)录`（黑体四号加粗），条目一级四号、二级小四（黑体），段前 6pt / 段后 0pt，缩进 0/12pt；点线与页码与论文目录使用同一策略（Times New Roman 小四固定字号，半角句点密排点线），在各自 show 规则内以兄弟 `text` 实现。与论文目录的差异如下：深度默认 2（论文为 3）；`outline-gap` 为 `1.3em`（论文为 `.3em`，按编号形态区分）；无章眉罗马页码；页脚沿用 mainmatter「第X页，共Y页」。
 
 ```typst
 #let (doc, cover, notice, outline-page, mainmatter, bilingual-bibliography, ...) = proposalclass(
@@ -1591,24 +1591,18 @@ $ y = integral_1^2 x^2 dif x $ <->
 |------|------|------|
 | `doctype` | `proposalclass` | `"bachelor"` \| `"master"`；当前版式完全一致，仅预留分叉点 |
 | `fontset` / `fonts` | 同上 | 与学位论文相同的四套字体组与覆盖合并 |
-| `info` | 同上 | 封面字段：`title`（可用 `\n` 分行）、`author`、`student-id`、`supervisors-full` / `supervisors-split` / `supervisor-form`、`degree-category`、`major`、`research-direction`、`department`、`submit-date` |
+| `info` | 同上 | 封面字段：`title`（可用 `\n` 分行）、`author`、`student-id`、`supervisors-full` / `supervisors-split`（填写其一）、`degree-category`、`major`、`research-direction`、`department`、`submit-date` |
 | `bibliography` | 同上 | 如 `bibliography.with("ref.bib")`，默认与论文共用 `template/ref.bib` |
 | `cfg` | 同上 | 覆盖 `pages/proposal.typ` 的 `default-proposal-cfg`：`margin`、`logo-width`、封面/说明/提纲字号与 leading、`outline-depth`、`outline-entry-*`、`body-leading`/`body-spacing`（对齐学位论文 `行距.正文`）、`heading-size`/`heading-weight`/`heading-above`/`heading-below`（对齐 `layouts/mainmatter.typ`）、`first-line-indent` 等 |
 
-**指导教师**在 `proposalclass` / `info` 中**必须填写，不可为空**。两种数据至少填一种；形式由 `supervisor-form` 控制（解析见 `pages/proposal.typ` 的 `resolve-supervisor-display`）：
+**指导教师**：在 `info` 中填写，解析见 `pages/proposal.typ` 的 `resolve-supervisor-display`。在下列字段中填写且仅填写一种；未使用的键可省略，无需写 `none`：
 
 | 数据字段 | 填法 |
 |----------|------|
 | `supervisors-full` | 整行字符串，如 `"李四教授"` / `"李四教授 王五研究员"` |
 | `supervisors-split` | 分栏字典 `(name: "李四", title: "教授")` |
 
-| `supervisor-form` | 行为 |
-|-------------------|------|
-| `auto` | 按已填形式自动识别：只填整行→整行；只填分栏→分栏；**两种都填→展示整行 + 预警（不报错）**；两种都空→报错 |
-| `"full"` | 只允许填整行；填了分栏或未填整行→**报错** |
-| `"split"` | 只允许填分栏；填了整行或未填分栏→**报错** |
-
-> 预警：Typst 暂无官方 `warn()`，`auto` 下两者皆填时不中断编译，预警写入 `state("proposal-supervisor-warnings")`，展示优先整行。
+两种同时填写或均未填写时编译报错。按已填写的字段展示，不设 `supervisor-form`。
 
 ### 20.3 编号与缩进
 

@@ -31,17 +31,12 @@
     title: "基于 Typst 的中国科学院大学学位论文开题报告排版方法研究",
     author: "张三",
     student-id: "1234567890",
-    // 指导教师：必须填写，两种数据至少填一种（不可留空）
+    // 指导教师：在下列两种形式中填写且仅填写一种。
+    // 未使用的键可省略；同时填写或均未填写时，编译报错。
     // 整行：
-    supervisors-full: "李四教授",
-    // 分栏（与整行二选一；也可同时填，见 supervisor-form）：
-    // supervisors-split: (name: "李四", title: "教授"),
-    supervisors-split: none,
-    // 形式控制：
-    //   auto    — 按已填形式自动识别；两种都填 → 展示整行 + 预警（不报错）
-    //   "full"  — 只允许填 supervisors-full，否则编译报错
-    //   "split" — 只允许填 supervisors-split，否则编译报错
-    supervisor-form: auto,
+    // supervisors-full: "李四教授",
+    // 分栏（与 supervisors-full 互斥，只需要填一个）：
+    supervisors-split: (name: "李四", title: "教授"),
     degree-category: "工学硕士",
     major: "计算机科学与技术",
     research-direction: "智能信息处理",
