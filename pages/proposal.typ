@@ -383,20 +383,20 @@
   depth: auto,
 ) = {
   let outline-depth = if depth == auto { cfg.outline-depth } else { depth }
-  let title = cfg.at("outline-title", default: [目#h(1em)录])
-  let title-above = cfg.at("outline-title-above", default: 24pt)
-  let title-below = cfg.at("outline-title-below", default: 18pt)
-  let size = cfg.at("outline-entry-size", default: (字号.四号, 字号.小四))
-  let entry-font = cfg.at("outline-entry-font", default: auto)
+  let title = cfg.outline-title
+  let title-above = cfg.outline-title-above
+  let title-below = cfg.outline-title-below
+  let size = cfg.outline-entry-size
+  let entry-font = cfg.outline-entry-font
   if entry-font == auto {
     entry-font = (fonts.黑体, fonts.黑体)
   }
-  let above = cfg.at("outline-entry-above", default: (6pt, 6pt))
-  let below = cfg.at("outline-entry-below", default: (0pt, 0pt))
+  let above = cfg.outline-entry-above
+  let below = cfg.outline-entry-below
   // Typst outline(indent:) 的 level 为 0 基
-  let indent = cfg.at("outline-indent", default: (0pt, 12pt))
-  let gap = cfg.at("outline-gap", default: 1.3em)
-  let fill = cfg.at("outline-fill", default: (repeat([.], gap: 0.12em),))
+  let indent = cfg.outline-indent
+  let gap = cfg.outline-gap
+  let fill = cfg.outline-fill
 
   // 标题
   v(title-above)
@@ -405,7 +405,7 @@
     set par(leading: 行距.单倍, spacing: 0pt)
     text(
       font: fonts.黑体,
-      size: cfg.at("outline-title-size", default: 字号.四号),
+      size: cfg.outline-title-size,
       weight: "bold",
       title,
     )
@@ -418,13 +418,18 @@
     .slice(0, calc.min(level + 1, indent.len()))
     .sum())
   show outline.entry: entry => {
-    set par(leading: 行距.单倍, spacing: 0pt)
-    let current-size = size.at(entry.level - 1, default: size.last())
-    let current-above = above.at(entry.level - 1, default: above.last())
-    let current-below = below.at(entry.level - 1, default: below.last())
-    let row-font = entry-font.at(entry.level - 1, default: entry-font.last())
+    // 单倍行距按 Word 行高 1.25em（含行隙）；段前 6pt、段后 0pt。
+    // 基线距目标：小四 21pt、四号 23.5pt（1.25×字号 + 6pt）。
+    // bottom-edge 为相对基线偏移，基线以下取负。
+    set text(top-edge: 0.88em, bottom-edge: -0.37em)
+    set par(leading: 0pt, spacing: 0pt)
+    let pick = (arr, level) => arr.at(level - 1, default: arr.last())
+    let current-size = pick(size, entry.level)
+    let current-above = pick(above, entry.level)
+    let current-below = pick(below, entry.level)
+    let row-font = pick(entry-font, entry.level)
     let current-fill = if type(fill) == array {
-      fill.at(entry.level - 1, default: fill.last())
+      pick(fill, entry.level)
     } else {
       fill
     }
@@ -502,10 +507,59 @@
     fonts.黑体
   }
 
-  // 标题：字体字号 / 段前段后 均取学位论文同一套规范值
-  show heading: it => {
+  // 标题：字体字号 / 段前段后对齐学位论文规范值。
+  // 标题→正文：段后 = 规范值 + 行盒修剪补偿（一级 2pt、二级及以下 8pt）。
+  // 连续标题（中间无正文）：上一级紧接下一级 12pt，同级 8pt。
+  // 邻接表须在文档流中预计算：show 内 after/before query 恒为空（见 mainmatter）。
+  let body-comp = (2pt, 8pt) // 按级别取：一级 / 二级及以下
+  let cluster-gap = 8pt
+  let cluster-gap-parent = 12pt
+  let no-cluster = (cluster-prev: false, cluster-next: false)
+  let heading-adj = state("modern-ucas-proposal-heading-adj", ())
+
+  let mid-blocks = selector(par)
+    .or(selector(list))
+    .or(selector(enum))
+    .or(selector(figure))
+    .or(selector(math.equation))
+    .or(selector(raw))
+
+  context {
+    let heads = query(heading)
+    heading-adj.update(
+      range(heads.len()).map(i => {
+        let prev = if i == 0 { none } else { heads.at(i - 1).location() }
+        let cur = heads.at(i).location()
+        let next = if i + 1 >= heads.len() {
+          none
+        } else {
+          heads.at(i + 1).location()
+        }
+        let has-mid(a, b) = {
+          query(mid-blocks.after(a).before(b)).len() > 0
+        }
+        (
+          cluster-prev: prev != none and not has-mid(prev, cur),
+          cluster-next: next != none and not has-mid(cur, next),
+        )
+      }),
+    )
+  }
+
+  show heading: it => context {
     let lvl = calc.min(it.level, cfg.heading-size.len())
-    // 标题单倍行距（同 mainmatter：行距.单倍）
+    let idx = query(heading).position(h => h.location() == it.location())
+    let flags = if idx == none {
+      no-cluster
+    } else {
+      heading-adj.get().at(idx, default: no-cluster)
+    }
+    let gap-out = if it.level == 1 {
+      cluster-gap-parent
+    } else {
+      cluster-gap
+    }
+
     set par(
       leading: 行距.单倍,
       spacing: 行距.单倍,
@@ -519,11 +573,20 @@
       top-edge: "cap-height",
       bottom-edge: "baseline",
     )
-    // 段前用 block(above) 与相邻块 max 折叠（同 mainmatter L2+）；
-    // 段后额外补一个正文 leading，避免标题基线与首行粘连。
     set block(
-      above: cfg.heading-above.at(lvl - 1),
-      below: cfg.heading-below.at(lvl - 1) + 13.2pt,
+      above: if flags.cluster-prev {
+        cluster-gap
+      } else {
+        cfg.heading-above.at(lvl - 1)
+      },
+      below: if flags.cluster-next {
+        gap-out
+      } else {
+        (
+          cfg.heading-below.at(lvl - 1)
+            + body-comp.at(it.level - 1, default: body-comp.last())
+        )
+      },
     )
     it
   }

@@ -531,6 +531,20 @@ student-id, author, author-en, supervisors, supervisors-en, department
 
 各级缩进由 `indent` 控制——注意 Typst `outline.indent` 回调为 0-indexed（level1→0、level2→1、level3→2），默认 `(0pt, 12pt, 12pt)` 累加得一级 0pt、二级 12pt、三级 24pt。
 
+目录条目行距（规范：单倍行距、段前 6 磅、段后 0 磅）按 Word 行高模型落实：**单倍 = 1.25em**（字面 + 行隙），段前/段后为 `block(above: 6pt, below: 0pt)`。条目基线距目标与实测：
+
+| 字号 | 目标 `1.25×字号+6pt` | 实测 |
+|------|----------------------|------|
+| 小四 12pt | 21.0pt | 21.0pt |
+| 四号 14pt | 23.5pt | 23.5pt |
+
+实现：`text(top-edge: 0.88em, bottom-edge: -0.37em)`（行盒 1.25em；`bottom-edge` 为相对基线偏移，基线以下取负）+ `par(leading: 0pt)`。多行条目行内基线距同为 1.25em。
+
+不得使用下列写法（会导致目录紧缩）：
+
+- 修剪行盒 `cap-height→baseline` + `leading: 行距.单倍`（0.5em）：单行条目高仅约 0.70em，基线距约 14.6pt；
+- 仅用字面 `ascender→descender`（约 1.0em）：基线距约 18.9pt，仍缺 Word 行隙约 0.25em。
+
 点线与页码按下列方式渲染（thesis 与 proposal 一致）：题名使用条目 `size`（一级四号、二/三级小四）；点线与页码作为紧随题名 `text` 的兄弟 `text(font: ("Times New Roman",), size: 字号.小四)`，固定小四 Times；引导符为 `repeat([.], gap: 0.12em)`，外层为 `box(width: 1fr, inset: (x: .25em), fill)`。不得将点线与页码嵌套进题名 `text`。
 
 ### 5.3 目录定制参数
@@ -1610,6 +1624,7 @@ $ y = integral_1^2 x^2 dif x $ <->
 - 正文 `set par(first-line-indent: (amount: 2em, all: true))`，标题块内缩进清零。
 - 提纲深度默认 `cfg.outline-depth = 2`；无编号标题（如参考文献）只列题名。
 - 页脚自提纲起「第X页，共Y页」；`bilingual-bibliography` 以 `page-decoration: none` 调用，不覆盖开题页脚。
+- **开题标题间距**（仅 `pages/proposal.typ`，不改动学位论文 `layouts/mainmatter.typ`）：一级→正文段后 = 18pt + 2pt；二级及以下→正文段后 = 6pt + 8pt（基线距约 22pt，略大于正文行距）；连续标题（中间无正文）上一级紧接下一级约 12pt、同级约 8pt。实测基线距约 28.3pt（一级→正文）、22.3pt（二级→正文）、20.6pt（一级紧接二级）。
 
 ### 20.4 本/研切换
 

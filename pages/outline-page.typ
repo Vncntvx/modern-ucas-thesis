@@ -75,8 +75,13 @@
     .slice(0, calc.min(level + 1, indent.len()))
     .sum())
   show outline.entry: entry => {
-    // 条目单倍行距（规范值；多行条目才显现差异）
-    set par(leading: 行距.单倍, spacing: 0pt)
+    // 规范「单倍行距」按 Word/LaTeX 行高 1.25em 计（含行隙），不是 1.0em 字框。
+    // 段前段后：block(above: 6pt, below: 0pt)。
+    // 条目基线距目标：小四 1.25×12+6=21pt，四号 1.25×14+6=23.5pt。
+    // 实现：text 上下边张成 1.25em（基线约在 0.88em 处，其下 0.37em），leading 0。
+    // 注意 bottom-edge 为相对基线的偏移，基线以下须取负值。
+    set text(top-edge: 0.88em, bottom-edge: -0.37em)
+    set par(leading: 0pt, spacing: 0pt)
     let current-size = size.at(entry.level - 1, default: size.last())
     let current-above = above.at(entry.level - 1, default: above.last())
     let current-below = below.at(entry.level - 1, default: below.last())
