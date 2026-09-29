@@ -20,14 +20,6 @@
   title-above: 24pt,
   title-below: 18pt,
   abstract-title-weight: "regular",
-  stroke-width: 0.5pt,
-  info-value-align: center,
-  info-inset: (x: 0pt, bottom: 0pt),
-  info-key-width: 74pt,
-  grid-inset: 0pt,
-  column-gutter: 0pt,
-  row-gutter: 10pt,
-  anonymous-info-keys: ("author", "grade", "supervisors"),
   // 1.25 倍行距：Typst leading 是行盒之间的额外间隙，取 行距.正文，勿写 1.25em。
   leading: 行距.正文,
   // 段前段后 0 磅：段间距不含行距，取与 leading 等值，使段间基线距与行内一致。
@@ -56,35 +48,7 @@
     info.title = info.title.split("\n")
   }
 
-  // 3.  内置辅助函数
-  let info-key(body) = {
-    rect(inset: info-inset, stroke: none, text(
-      font: fonts.楷体,
-      size: 字号.四号,
-      body,
-    ))
-  }
-
-  let info-value(key, body) = {
-    set align(info-value-align)
-    rect(
-      width: 100%,
-      inset: info-inset,
-      stroke: (bottom: stroke-width + black),
-      text(
-        font: fonts.楷体,
-        size: 字号.四号,
-        bottom-edge: "descender",
-        if (anonymous and (key in anonymous-info-keys)) {
-          "█████"
-        } else {
-          body
-        },
-      ),
-    )
-  }
-
-  // 4.  正式渲染
+  // 3.  正式渲染
   // 起始页面样式：先设置页眉页脚（page.foreground）再换页，使双面模式下
   // to:"odd" 换页自动插入的填充空白页同样显示页眉页脚（偶数页论文题目、
   // 奇数页章名/部分名，页码罗马数字居中）。全静态实现，无运行时判断。

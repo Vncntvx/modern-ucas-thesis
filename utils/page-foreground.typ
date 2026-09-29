@@ -18,9 +18,9 @@
   str(thesis-title)
 }
 
-// 奇数页页眉内容：当前页的一级标题，当前页没有则取之前最近的一级标题。
-// doctype 为 "bachelor" 时补回编号模板中的负空格（见下），研究生不补。
-#let _odd-page-header-content(doctype: "doctor") = context {
+// 当前页（若有一级标题）或此前最近的一级标题；无则 none。
+// 在 context 调用方内使用（here/query 需要 context）。
+#let _latest-level1-heading() = {
   let current-page = here().page()
   let current-headings = query(heading.where(level: 1)).filter(
     h => h.location().page() == current-page,
@@ -30,24 +30,32 @@
   } else {
     query(selector(heading.where(level: 1)).before(here()))
   }
-  let current-heading = if filtered-headings.len() > 0 {
+  if filtered-headings.len() > 0 {
     filtered-headings.last()
   } else { none }
+}
+
+// 奇数页页眉内容：当前页的一级标题，当前页没有则取之前最近的一级标题。
+// doctype 为 "bachelor" 时补回编号模板中的负空格（见下），研究生不补。
+#let _odd-page-header-content(doctype: "doctor") = context {
+  let current-heading = _latest-level1-heading()
 
   let header-content = ""
   if current-heading != none {
     if (
       current-heading.has("numbering") and current-heading.numbering != none
     ) {
-      let counter-values = counter(heading).at(current-heading.location())
-      // 直接调用 heading 自身的 numbering 渲染章序号，
+      // 用 heading 自身的 numbering 在标题位点渲染章序号（官方 counter.display(at:)），
       // 而非硬编码"第1章"——这样附录（first-level 为空）的页眉
       // 不会错误显示"第1章"，而显示纯标题（如"附录"）。
       // 序号与章名间的"一个汉字符"由 numbering 模板内的全角空格 U+3000（1em）提供。
       // 本科编号模板另带 -编号自动间隙（抵消标题渲染中 Typst 自动追加的间隙，
       // 见 utils/custom-numbering.typ），页眉不经过标题渲染、没有那一段自动间隙，
       // 故本科在此补回，使净距同样为 1em；研究生编号无负空格，不补。
-      let number-content = (current-heading.numbering)(..counter-values)
+      let number-content = counter(heading).display(
+        current-heading.numbering,
+        at: current-heading.location(),
+      )
       header-content = if doctype == "bachelor" {
         number-content + h(编号自动间隙)
       } else {
@@ -107,7 +115,6 @@
     }
   },
 )
-}
 
 // 前言 foreground：页码大写罗马数字居中；奇数页章名、偶数页题目
 //（英文摘要偶数页用英文题目）。
@@ -141,22 +148,10 @@
     // 规范：英文摘要偶数页标明英文题目，其余前置部分标明中文题目。
     // 判断方法：查询当前位置之前最近的一级标题（与奇数页分支同源 query 模式），
     // 若其文本含 "Abstract" 则当前处于英文摘要部分，用 info.title-en；否则用 info.title。
-    let current-page-num = here().page()
-    let current-headings = query(heading.where(level: 1)).filter(
-      h => h.location().page() == current-page-num,
-    )
-    let recent-heading = if current-headings.len() > 0 {
-      current-headings.last()
-    } else {
-      let before-headings = query(
-        selector(heading.where(level: 1)).before(here()),
-      )
-      if before-headings.len() > 0 { before-headings.last() } else {
-        none
-      }
-    }
+    let recent-heading = _latest-level1-heading()
 
-    // 递归把 content 转为 str（与 bilingual-bibliography.typ 的 to-string 同构）
+    // 递归把 content 转为 str（与 bilingual-bibliography.typ 的 to-string 同构，
+    // 但后者额外处理空格 content、不处理 none/str/supplement，故不合并）。
     let content-to-str(c) = {
       if c == none { "" } else if type(c) == str { c } else if c.has("text") {
         c.text

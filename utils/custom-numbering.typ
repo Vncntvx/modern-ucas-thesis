@@ -38,13 +38,13 @@
     return
   }
   if first-level != auto and pos.len() == 1 {
-    return emit(first-level, args.pos())
+    return emit(first-level, pos)
   }
   if second-level != auto and pos.len() == 2 {
-    return emit(second-level, args.pos())
+    return emit(second-level, pos)
   }
   if third-level != auto and pos.len() == 3 {
-    return emit(third-level, args.pos())
+    return emit(third-level, pos)
   }
   // default
   if pos.len() >= base {
