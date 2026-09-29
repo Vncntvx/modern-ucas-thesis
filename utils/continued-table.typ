@@ -1,8 +1,6 @@
 #import "bilingual-figured.typ"
 #import "style.typ": 字号, 行距
 
-#let _typst-numbering = numbering
-
 #let continuation-style(
   separator: h(1em),
   caption_align: center,
@@ -172,7 +170,8 @@
     leading-zero: leading-zero,
   )
   let index = _table-index-at(loc, kind: kind)
-  _typst-numbering(numbering, ..heading-prefix, index)
+  // 形参 numbering 遮蔽了全局 numbering，经 std.numbering 调用内置实现
+  std.numbering(numbering, ..heading-prefix, index)
 }
 
 // 续页判断：给定位置页码是否晚于本表锚点页码。须在 context 内调用

@@ -85,8 +85,6 @@ THE SOFTWARE.
   }
 }
 
-#let _typst-numbering = numbering
-
 // 依据标题计数与填充参数解析编号数字序列（如 [1, 2]）。
 // bilingual-figured 与 continued-table 等多个模块共用的单点实现。
 #let _prepare-heading-numbers(
@@ -116,7 +114,8 @@ THE SOFTWARE.
   let _ = dic.remove("body", default: none)
   let _ = dic.remove("label", default: none)
   let _ = dic.remove("counter", default: none)
-  dic + (numbering: n => _typst-numbering(numbering, ..numbers, n))
+  // 形参 numbering 遮蔽了全局 numbering，经 std.numbering 调用内置实现
+  dic + (numbering: n => std.numbering(numbering, ..numbers, n))
 }
 
 // 当原 caption 为双语 metadata 时，用给定 supplement 覆盖其中的
@@ -370,9 +369,9 @@ THE SOFTWARE.
   }
 }
 
-#let _typst-outline = outline
+// 本函数名遮蔽了全局 outline，经 std.outline 调用内置实现
 #let outline(target-kind: image, title: [List of Figures], ..args) = {
-  _typst-outline(
+  std.outline(
     ..args,
     title: title,
     target: figure.where(kind: prefixed-kind(target-kind)),
@@ -380,8 +379,9 @@ THE SOFTWARE.
 }
 
 #let display-figure-number(fig) = {
-  let numbers = fig.counter.at(fig.location())
-  _typst-numbering(fig.numbering, ..numbers)
+  // 官方 counter.display(at:)：在目标位置用 fig.numbering 格式化计数器，
+  // 与「at 取值 + numbering 展开」行为一致（0.15.1 探针验证）。
+  fig.counter.display(fig.numbering, at: fig.location())
 }
 
 #let _default-supplements(kind) = if is-kind(kind, "bitable") {
@@ -495,7 +495,8 @@ THE SOFTWARE.
   }
 }
 
-#let bifigure(
+// 双语图表构造共用实现（bifigure / bitable 仅默认 kind 与 supplement 不同）。
+#let _bilingual-figure(
   body,
   caption-zh: none,
   caption-en: none,
@@ -504,8 +505,6 @@ THE SOFTWARE.
   supplement-zh: [图],
   supplement-en: [Figure],
   numbering: "1-1",
-  // 卧排（landscape）：true 时整图逆时针旋转 90°，顶左底右，适用于宽图。
-  // 旋转内容不跨页，故卧排图表应控制在一页之内。详见 _render-bilingual。
   landscape: false,
   ..args,
 ) = {
@@ -526,6 +525,34 @@ THE SOFTWARE.
   )
 }
 
+#let bifigure(
+  body,
+  caption-zh: none,
+  caption-en: none,
+  note: none,
+  kind: "bifigure",
+  supplement-zh: [图],
+  supplement-en: [Figure],
+  numbering: "1-1",
+  // 卧排（landscape）：true 时整图逆时针旋转 90°，顶左底右，适用于宽图。
+  // 旋转内容不跨页，故卧排图表应控制在一页之内。详见 _render-bilingual。
+  landscape: false,
+  ..args,
+) = {
+  _bilingual-figure(
+    body,
+    caption-zh: caption-zh,
+    caption-en: caption-en,
+    note: note,
+    kind: kind,
+    supplement-zh: supplement-zh,
+    supplement-en: supplement-en,
+    numbering: numbering,
+    landscape: landscape,
+    ..args,
+  )
+}
+
 #let bitable(
   body,
   caption-zh: none,
@@ -540,19 +567,16 @@ THE SOFTWARE.
   landscape: false,
   ..args,
 ) = {
-  figure(
+  _bilingual-figure(
     body,
-    supplement: none,
+    caption-zh: caption-zh,
+    caption-en: caption-en,
+    note: note,
     kind: kind,
-    caption: metadata(_bilingual-caption-data(
-      caption-zh,
-      caption-en,
-      note,
-      supplement-zh,
-      supplement-en,
-      landscape: landscape,
-    )),
+    supplement-zh: supplement-zh,
+    supplement-en: supplement-en,
     numbering: numbering,
+    landscape: landscape,
     ..args,
   )
 }
