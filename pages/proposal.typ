@@ -3,6 +3,7 @@
 // 用户配置与正文见 template/proposal.typ，由 lib.typ 的 proposalclass 注入。
 
 #import "../utils/style.typ": get-fonts, 字号, 行距
+#import "../utils/datetime-display.typ": datetime-display-full
 
 // =============================================================================
 // 默认版面参数（按 Word 版式；可在 proposalclass(cfg: (...)) 覆盖）
@@ -116,10 +117,7 @@
 
 #let format-date(d) = {
   if type(d) == datetime {
-    let y = str(d.year())
-    let m = if d.month() < 10 { "0" + str(d.month()) } else { str(d.month()) }
-    let day = if d.day() < 10 { "0" + str(d.day()) } else { str(d.day()) }
-    y + "年" + m + "月" + day + "日"
+    datetime-display-full(d)
   } else {
     d
   }
@@ -237,11 +235,7 @@
   cfg: (:),
 ) = {
   // 本科生与研究生共用同一封面标题
-  let cover-title = if doctype == "bachelor" {
-    "研究生学位论文开题报告"
-  } else {
-    "研究生学位论文开题报告"
-  }
+  let cover-title = "研究生学位论文开题报告"
 
   {
     set align(center)

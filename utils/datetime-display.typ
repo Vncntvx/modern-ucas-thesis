@@ -8,6 +8,11 @@
   date.display("[year]年[month padding:none]月")
 }
 
+// 中文日期全称式：开题报告填表日期用（"20XX年XX月XX日"，月日补零）。
+#let datetime-display-full(date) = {
+  date.display("[year]年[month padding:zero]月[day padding:zero]日")
+}
+
 // 英文日期：研究生封面用（"Sep, 20XX"）。
 #let datetime-en-display(date) = {
   date.display("[month repr:short], [year]")

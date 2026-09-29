@@ -298,7 +298,7 @@ typst watch   template/thesis.typ --root . --font-path fonts   # 实时预览
 
 > 换行规则：字符串中的 `\n` 会被按行拆成数组（`pages/master-cover.typ:78-80`）。中文各行以 `.sum()` 拼成一行，长标题靠自然换行（`master-cover.typ:275`）；英文各行以 `intersperse("\n")` 渲染，一元素一行（`master-cover.typ:346`）；页眉中英文均以 `join("")` 拼成单行（`utils/page-foreground.typ:111,230`）。
 
-> `utils/datetime-display.typ` 将 `datetime` 渲染为 `[year] 年 [month padding:none] 月`（中文）或 `[month repr:short], [year]`（英文）。本科封面按样张另用 `[year]年[month padding:none]月`（中文，"20XX年6月"）与 `[month repr:long] [year]`（英文，"June 20XX"），见 `pages/bachelor-cover.typ`。
+> `utils/datetime-display.typ` 将 `datetime` 渲染为 `[year] 年 [month padding:none] 月`（中文）或 `[month repr:short], [year]`（英文）。本科封面按样张另用 `[year]年[month padding:none]月`（中文，"20XX年6月"）与 `[month repr:long] [year]`（英文，"June 20XX"），见 `pages/bachelor-cover.typ`。开题报告填表日期用 `datetime-display-full`（`[year]年[month padding:zero]月[day padding:zero]日`）。
 
 ### 1.7 `ref-supplements`（交叉引用量词）
 
@@ -469,7 +469,7 @@ student-id, author, author-en, supervisors, supervisors-en, department
 
 ### 4.3 中文摘要定制参数
 
-`pages/master-abstract.typ:7-35`：
+`pages/master-abstract.typ:7-27`：
 
 | 参数名 | 类型 | 默认值 | 说明 |
 |-------|------|--------|------|
@@ -484,15 +484,15 @@ student-id, author, author-en, supervisors, supervisors-en, department
 
 ### 4.4 英文摘要定制参数
 
-`pages/master-abstract-en.typ:6-33`：与中文摘要参数基本一致，差异：
+`pages/master-abstract-en.typ:6-26`：与中文摘要参数基本一致，差异：
 
 - `outline-title` 默认 `"Abstract"`
-- 正文与关键词均使用 `Times New Roman` 字体（`master-abstract-en.typ:96,117,127`）
-- `show smartquote: set text(font: "Times New Roman")` 处理智能引号字体（`master-abstract-en.typ:118,128`）
+- 正文与关键词均使用 `Times New Roman` 字体（`master-abstract-en.typ:65,97`）
+- smartquote 随页面字体渲染，无需单独 `show` 规则（见 `master-abstract-en.typ:85-86` 注释）
 
 ### 4.5 关键词分隔符注意事项
 
-模板使用 `keywords.intersperse("，")` 渲染中文关键词、`keywords.intersperse(", ")` 渲染英文关键词（`master-abstract.typ:131`、`master-abstract-en.typ:129`）。
+模板使用 `keywords.intersperse("，")` 渲染中文关键词、`keywords.intersperse(", ")` 渲染英文关键词（`master-abstract.typ:95`、`master-abstract-en.typ:97`）。
 
 ### 4.6 盲审模式下的摘要
 
@@ -1642,8 +1642,8 @@ $ y = integral_1^2 x^2 dif x $ <->
 | 一·（一）封面 | 字段宋体四号加粗，2 倍行距 | `pages/master-cover.typ:283-320` |
 | 一·（一）封面 | 日期 Times New Roman 四号加粗 | `pages/master-cover.typ:324-326` |
 | 一·（二）声明 | 统一模板，作者与导师签名 | `pages/master-decl-page.typ` |
-| 一·（三）摘要 | "摘　要"空一字符，黑体四号加粗居中，段前 24 段后 18 | `pages/master-abstract.typ:108-116` |
-| 一·（三）摘要 | 关键词 3-5 个，中文逗号隔开 | `pages/master-abstract.typ:131` |
+| 一·（三）摘要 | "摘　要"空一字符，黑体四号加粗居中，段前 24 段后 18 | `pages/master-abstract.typ:71-80` |
+| 一·（三）摘要 | 关键词 3-5 个，中文逗号隔开 | `pages/master-abstract.typ:95` |
 | 一·（三）摘要 | 另起一页，罗马数字编页 | `layouts/preface.typ:63-66` |
 | 一·（四）目录 | 不含摘要，最多三级，缩进递增 | `pages/outline-page.typ` |
 | 一·（四）目录 | 图表目录先图后表，置于目录后 | `pages/list-of-figures-and-tables.typ` |
